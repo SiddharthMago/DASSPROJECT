@@ -1,0 +1,310 @@
+/* Import fonts */
+@import url("https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&display=swap");
+
+/* Office Page Specific Styles - Scoped to avoid affecting other components */
+.office-page {
+  --office-bg-light: #f8f9fa;
+  --office-bg-dark: #121212;
+  --office-text-light: #333333;
+  --office-text-dark: #ffffff;
+  --office-card-bg-light: #0f3446;
+  --office-card-bg-dark: #0a2430;
+  --office-section-bg-light: rgba(15, 52, 70, 0.45);
+  --office-section-bg-dark: rgba(15, 52, 70, 0.55);
+  --office-card-text: #ffffff;
+  --office-shadow-light: rgba(19, 19, 19, 0.18);
+  --office-shadow-dark: rgba(19, 19, 19, 0.58);
+  --office-faq-bg-light: rgba(255, 255, 255, 0.1);
+  --office-faq-active-bg-light: rgba(255, 255, 255, 0.15);
+  --office-faq-bg-dark: rgba(255, 255, 255, 0.05);
+  --office-faq-active-bg-dark: rgba(255, 255, 255, 0.1);
+  --office-title-bg-light: #0f3446;
+  --office-title-bg-dark: #2c2c2e;
+  
+  /* Use light mode variables by default */
+  --office-bg: var(--office-bg-light);
+  --office-text: var(--office-text-light);
+  --office-card-bg: var(--office-card-bg-light);
+  --office-section-bg: var(--office-section-bg-light);
+  --office-shadow: var(--office-shadow-light);
+  --office-faq-bg: var(--office-faq-bg-light);
+  --office-faq-active-bg: var(--office-faq-active-bg-light);
+  --office-title-bg: var(--office-title-bg-light);
+  
+  min-height: 100vh;
+  font-family: "Barlow", sans-serif;
+  background-color: var(--office-bg);
+  color: var(--office-text);
+  transition: background-color 0.3s, color 0.3s;
+  width: 100%;
+  padding-bottom: 40px;
+  padding-top: 40px;
+}
+
+/* Dark mode styles */
+.office-page.dark-mode {
+  --office-bg: var(--office-bg-dark);
+  --office-text: var(--office-text-dark);
+  --office-card-bg: var(--office-card-bg-dark);
+  --office-section-bg: var(--office-section-bg-dark);
+  --office-shadow: var(--office-shadow-dark);
+  --office-faq-bg: var(--office-faq-bg-dark);
+  --office-faq-active-bg: var(--office-faq-active-bg-dark);
+  --office-title-bg: var(--office-title-bg-dark);
+}
+
+/* Page Title */
+.office-page-title {
+  color: var(--office-text);
+  font-size: clamp(28px, 5vw, 38px);
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: clamp(4px, 1vw, 6.27px);
+  margin-bottom: 40px;
+}
+
+/* Admission Section */
+.admission-section {
+  width: 90%;
+  max-width: 1373px;
+  margin: 0 auto 40px;
+  padding: 40px;
+  border-radius: 40px;
+  box-shadow: 0px 4px 162px 828px var(--office-shadow) inset;
+  background-color: var(--office-section-bg);
+}
+
+.offices-section-title {
+  width: fit-content;
+  margin: 0 auto 40px;
+  padding: 10px 40px;
+  border-radius: 64px;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 3.96px;
+  background-color: var(--office-title-bg);
+  text-align: center;
+}
+
+/* Hybrid Grid-List Layout */
+.file-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 15px;
+  width: 100%;
+  padding: 0 10px;
+}
+
+/* File Item */
+.file-item {
+  background-color: var(--office-card-bg);
+  border-radius: 10px;
+  padding: 15px 10px; /* Reduced padding */
+  color: var(--office-card-text);
+  transition: transform 0.3s, box-shadow 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center the content */
+  text-align: center;
+  height: 90px; /* Slightly reduced height */
+  cursor: pointer;
+}
+
+.file-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.file-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  line-height: 1.3;
+  white-space: nowrap; /* Prevent wrapping */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px; /* Control maximum width */
+}
+
+/* File link styling - removing default link styling */
+.file-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+/* FAQ Section */
+.faq-section {
+  width: 90%;
+  max-width: 1373px;
+  margin: 0 auto 40px;
+  padding: 40px;
+  border-radius: 40px;
+  box-shadow: 0px 4px 162px 828px var(--office-shadow) inset;
+  background-color: var(--office-section-bg);
+}
+
+.faq-title {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 3.96px;
+  width: fit-content;
+  margin: 0 auto 40px;
+  padding: 10px 40px;
+  border-radius: 64px;
+  background-color: var(--office-title-bg);
+}
+
+.faq-container {
+  width: 100%;
+  max-width: 1000px;
+  margin: 30px auto;
+}
+
+.faq-item {
+  margin-bottom: 20px;
+  border-radius: 15px;
+  background-color: var(--office-faq-bg);
+  overflow: hidden;
+  transition: background-color 0.3s;
+}
+
+.faq-question {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 20px 25px;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  font-family: "Barlow", sans-serif;
+}
+
+.faq-icon {
+  font-size: 24px;
+  font-weight: 700;
+  transition: transform 0.3s ease;
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+  padding: 0 25px;
+}
+
+.faq-answer.show {
+  max-height: 500px;
+  padding: 0 25px 20px;
+}
+
+.faq-answer p {
+  color: #fff;
+  font-size: 18px;
+  line-height: 1.6;
+  margin: 0;
+  letter-spacing: 0.5px;
+  font-family: "Barlow", sans-serif;
+}
+
+.faq-item.active {
+  background-color: var(--office-faq-active-bg);
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+  .admission-section,
+  .faq-section {
+    padding: 25px;
+  }
+  
+  .offices-section-title,
+  .faq-title {
+    font-size: 20px;
+    padding: 8px 20px;
+  }
+  
+  .file-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+  
+  .file-title {
+    font-size: 15px;
+    max-width: 160px;
+  }
+}
+
+@media (max-width: 640px) {
+  .office-page-title {
+    font-size: 28px;
+    letter-spacing: 4px;
+  }
+  
+  .file-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  
+  .file-item {
+    padding: 12px 8px;
+    height: 80px;
+  }
+  
+  .file-title {
+    font-size: 14px;
+    max-width: 120px;
+  }
+  
+  .faq-question {
+    font-size: 18px;
+  }
+  
+  .faq-answer p {
+    font-size: 16px;
+  }
+}
+
+/* Delete button styling - permanently visible */
+.delete-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 26px;
+    height: 26px;
+    background-color: var(--office-title-bg-light);
+    color: white;
+    border-radius: 4px;  /* More square-ish */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 2;
+    transition: background-color 0.3s, transform 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    padding: 4px;  /* Add padding */
+    opacity: 1;    /* Always visible */
+    visibility: visible;  /* Always visible */
+}
+
+.delete-btn:hover {
+    background-color: #FF5A79;
+    transform: scale(1.05);
+}
+
+/* Dark mode styling for delete button */
+.dark-mode .delete-btn {
+    background-color: var(--office-title-bg-dark);
+    color: white;
+}

@@ -1,0 +1,1749 @@
+/* Add these styles to your home.css file for admin dark mode support */
+
+/* Admin-specific form elements for dark mode */
+/* For admin dark mode styles */
+body.dark-mode .announcement-edit-textarea,
+body.dark-mode .office-select,
+body.dark-mode .image-upload-label,
+body.dark-mode .quick-link-edit-form {
+  background-color: #333;
+  color: #e0e0e0;
+}
+
+.dark-mode .announcement-edit-textarea {
+    background-color: #333;
+    color: #e0e0e0;
+    border-color: #5b8eff;
+  }
+  
+  .dark-mode .office-select {
+    background-color: #333;
+    color: #e0e0e0;
+    border-color: #5b8eff;
+  }
+  
+  .dark-mode .image-upload-label {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: #5b8eff;
+    color: #e0e0e0;
+  }
+  
+  .dark-mode .image-upload-label:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Quick link edit form in dark mode */
+  .dark-mode .quick-link-edit-form {
+    background-color: #1e1e1e;
+    border-color: #5b8eff;
+  }
+  
+  .dark-mode .edit-form-group input {
+    background-color: #333;
+    color: #e0e0e0;
+    border-color: #555;
+  }
+  
+  .dark-mode .quick-links-edit-panel {
+    background-color: #1e1e1e;
+    border-color: #5b8eff;
+  }
+  
+  .dark-mode .quick-link-edit-wrapper {
+    color: #e0e0e0;
+  }
+  
+  .dark-mode .quick-link-edit-btn {
+    background-color: #333;
+    color: #e0e0e0;
+    border-color: #555;
+  }
+  
+  .dark-mode .quick-link-delete-btn {
+    background-color: rgba(255, 77, 79, 0.2);
+    color: #ff7875;
+  }
+  
+  /* Add variables for form input backgrounds */
+  :root {
+    --input-bg: #ffffff;
+  }
+  
+  .dark-mode {
+    --input-bg: #333;
+  }
+  
+  /* Additional styles for admin buttons in dark mode */
+  .dark-mode .add-btn {
+    background-color: #5b8eff;
+  }
+  
+  .dark-mode .add-btn:hover {
+    background-color: #4a7ae0;
+  }
+  
+  .dark-mode .edit-announcement-btn {
+    color: #e0e0e0;
+  }
+  
+  .dark-mode .edit-section-btn {
+    color: #e0e0e0;
+  }
+  
+  /* Quick link items in dark mode */
+  .dark-mode .quick-link-edit-btn {
+    border-color: #5b8eff;
+  }
+  
+  .dark-mode .quick-link-item button {
+    color: #e0e0e0;
+  }
+  
+  /* Form buttons in dark mode */
+  .dark-mode .save-btn {
+    background-color: #5b8eff;
+  }
+  
+  .dark-mode .save-btn:hover {
+    background-color: #4a7ae0;
+  }
+  
+  /* Fix for image preview container in dark mode */
+  .dark-mode .image-preview-container {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 10px;
+    border-radius: 4px;
+  }
+
+/* Global Styles */
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+  }
+  
+  /* Light mode variables */
+  :root {
+	--bg-primary: #f8f9fa;
+	--text-primary: #333;
+	--accent-color: #2e5bbb;
+	--card-bg: #ffffff;
+	--card-border: #e0e0e0;
+	--navbar-bg: #ffffff;
+	--announcement-bg: #e6f7ff;
+	--dot-color: #888;
+	--dot-active: #2e5bbb;
+  }
+  
+  /* Dark mode variables */
+  .dark-mode {
+	--bg-primary: #121212;
+	--text-primary: #e0e0e0;
+	--accent-color: #5b8eff;
+	--card-bg: #1e1e1e;
+	--card-border: #333;
+	--navbar-bg: #1a1a1a;
+	--announcement-bg: #003366;
+	--dot-color: #aaa;
+	--dot-active: #ffffff;
+  }
+  
+  body {
+	background-color: var(--bg-primary);
+	color: var(--text-primary);
+	transition: background-color 0.3s, color 0.3s;
+  }
+  
+  .home-container {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	background-color: var(--bg-primary);
+	color: var(--text-primary);
+	transition: background-color 0.3s, color 0.3s;
+  }
+  
+  /* Navbar Styles - Made slimmer */
+  .navbar {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0.5rem 2rem; /* Reduced padding for slimmer navbar */
+	background-color: var(--navbar-bg);
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+	position: sticky;
+	top: 0;
+	z-index: 1000;
+  }
+  
+  .navbar-logo img {
+	height: 40px; /* Reduced logo size */
+  }
+  
+  .navbar-links {
+	display: flex;
+	gap: 2rem;
+	align-items: center;
+  }
+  
+  .navbar-links a {
+	text-decoration: none;
+	color: var(--text-primary);
+	font-weight: 500;
+	padding: 0.3rem 0; /* Reduced padding */
+	position: relative;
+  }
+  
+  .navbar-links a:hover {
+	color: var(--accent-color);
+  }
+  
+  .navbar-links a::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 0;
+	height: 2px;
+	background-color: var(--accent-color);
+	transition: width 0.3s;
+  }
+  
+  .navbar-links a:hover::after {
+	width: 100%;
+  }
+  
+  .navbar-mode-toggle button {
+	background: none;
+	border: 1px solid var(--card-border);
+	padding: 0.3rem 0.8rem; /* Reduced padding */
+	border-radius: 20px;
+	cursor: pointer;
+	color: var(--text-primary);
+	transition: all 0.3s;
+  }
+  
+  .navbar-mode-toggle button:hover {
+	background-color: var(--accent-color);
+	color: white;
+	border-color: var(--accent-color);
+  }
+  
+  /* Hamburger Menu */
+  .hamburger-menu {
+	display: none;
+	cursor: pointer;
+  }
+  
+  .hamburger-icon {
+	width: 30px;
+	height: 20px;
+	position: relative;
+  }
+  
+  .hamburger-icon span {
+	display: block;
+	position: absolute;
+	height: 3px;
+	width: 100%;
+	background: var(--text-primary);
+	border-radius: 3px;
+	opacity: 1;
+	left: 0;
+	transform: rotate(0deg);
+	transition: .25s ease-in-out;
+  }
+  
+  .hamburger-icon span:nth-child(1) {
+	top: 0px;
+  }
+  
+  .hamburger-icon span:nth-child(2) {
+	top: 8px;
+  }
+  
+  .hamburger-icon span:nth-child(3) {
+	top: 16px;
+  }
+  
+  .hamburger-icon.open span:nth-child(1) {
+	top: 8px;
+	transform: rotate(135deg);
+  }
+  
+  .hamburger-icon.open span:nth-child(2) {
+	opacity: 0;
+	left: -60px;
+  }
+  
+  .hamburger-icon.open span:nth-child(3) {
+	top: 8px;
+	transform: rotate(-135deg);
+  }
+  
+  /* Announcements Section - Increased height to 30% */
+  .announcements-section {
+	padding: 2rem;
+	display: flex;
+	justify-content: center;
+	width: 100%;
+  }
+  
+  .announcement-container {
+	border-radius: 15px;
+	padding: 1.5rem;
+	width: 90%;
+	min-height: 30vh;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+	position: relative;
+	background-color: rgba(0,0,0,0.6); /* Dark overlay for better text readability */
+	background-blend-mode: overlay;
+	background-size: cover;
+	background-position: center;
+	color: white; /* Text color changed to white for better visibility */
+  }
+  
+  /* Default background images for each office */
+  .announcement-container.academics {
+	background-image: url('../assets/bg-academics.jpg');
+  }
+  
+  .announcement-container.students {
+	background-image: url('../assets/bg-students.jpg');
+  }
+  
+  .announcement-container.research {
+	background-image: url('../assets/bg-research.jpg');
+  }
+  
+  .announcement-container.administration {
+	background-image: url('../assets/bg-admin.jpg');
+  }
+  
+  /* Update announcement text for better visibility on image backgrounds */
+  .announcement-text {
+	font-size: 1.2rem;
+	text-align: center;
+	margin-bottom: 1rem;
+	color: white;
+	font-weight: 500;
+	text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+  }
+  
+  .announcement-dots {
+	display: flex;
+	gap: 0.8rem;
+  }
+  
+  .dot {
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	background-color: rgba(255,255,255,0.5);
+	cursor: pointer;
+	transition: all 0.3s;
+	border: 1px solid rgba(255,255,255,0.8);
+  }
+  
+  .dot.active {
+	background-color: white;
+	transform: scale(1.2);
+	border-color: white;
+  }
+  
+  /* Office Tags for Announcements */
+  .announcement-content {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 100%;
+	margin-bottom: 1rem;
+  }
+  
+  .office-tag {
+	display: inline-block;
+	padding: 4px 12px;
+	border-radius: 16px;
+	font-size: 0.9rem;
+	font-weight: 600;
+	margin-bottom: 0.8rem;
+	text-transform: capitalize;
+	background-color: rgba(255,255,255,0.9);
+	border: none;
+  }
+  
+  .office-tag.academics {
+	color: #0066cc;
+  }
+  
+  .office-tag.students {
+	color: #52c41a;
+  }
+  
+  .office-tag.research {
+	color: #f5222d;
+  }
+  
+  .office-tag.administration {
+	color: #fa8c16;
+  }
+  
+  .dark-mode .office-tag.academics {
+	background-color: rgba(0, 102, 204, 0.2);
+	color: #91d5ff;
+  }
+  
+  .dark-mode .office-tag.students {
+	background-color: rgba(82, 196, 26, 0.2);
+	color: #b7eb8f;
+  }
+  
+  .dark-mode .office-tag.research {
+	background-color: rgba(245, 34, 45, 0.2);
+	color: #ffa39e;
+  }
+  
+  .dark-mode .office-tag.administration {
+	background-color: rgba(250, 140, 22, 0.2);
+	color: #ffd591;
+  }
+  
+  .edit-form-group {
+	margin-bottom: 1rem;
+	width: 100%;
+  }
+  
+  .edit-form-group label {
+	display: block;
+	margin-bottom: 0.5rem;
+	font-weight: 500;
+  }
+  
+  .office-select {
+	width: 100%;
+	padding: 0.5rem;
+	border-radius: 4px;
+	border: 1px solid var(--accent-color);
+	background-color: var(--card-bg);
+	color: var(--text-primary);
+	margin-bottom: 1rem;
+	font-size: 1rem;
+  }
+  
+  /* Add styles for image upload in edit mode */
+  .image-upload-container {
+	margin-bottom: 1rem;
+	width: 100%;
+  }
+  
+  .image-upload-label {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 1rem;
+	border: 2px dashed var(--accent-color);
+	border-radius: 8px;
+	cursor: pointer;
+	background-color: rgba(255,255,255,0.1);
+	transition: all 0.3s;
+  }
+  
+  .image-upload-label:hover {
+	background-color: rgba(255,255,255,0.2);
+  }
+  
+  .image-upload-label span {
+	margin-top: 0.5rem;
+	font-size: 0.9rem;
+  }
+  
+  .image-upload-input {
+	display: none;
+  }
+  
+  .image-preview {
+	margin-top: 0.5rem;
+	max-width: 100%;
+	height: auto;
+	border-radius: 4px;
+	max-height: 150px;
+  }
+  
+  .image-upload-remove {
+	margin-top: 0.5rem;
+	background: none;
+	border: 1px solid #ff4d4f;
+	color: #ff4d4f;
+	padding: 0.3rem 0.8rem;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: all 0.3s;
+  }
+  
+  .image-upload-remove:hover {
+	background-color: #ff4d4f;
+	color: white;
+  }
+  
+  /* Offices Section */
+  .offices-section {
+	padding: 2rem;
+  }
+  
+  .section-title {
+	text-align: center;
+	margin-bottom: 2rem;
+	font-size: 2rem;
+	color: var(--accent-color);
+  }
+  
+  .offices-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 2rem;
+	max-width: 1200px;
+	margin: 0 auto;
+  }
+  
+  .office-block {
+	background-color: var(--card-bg);
+	border-radius: 10px;
+	padding: 1.5rem;
+	box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+	border: 1px solid var(--card-border);
+	transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .office-block:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  }
+  
+  .office-header {
+	display: flex;
+	align-items: center;
+	margin-bottom: 1rem;
+	padding-bottom: 0.5rem;
+	border-bottom: 2px solid var(--accent-color);
+  }
+  
+  .office-logo {
+	width: 32px;
+	height: 32px;
+	margin-right: 10px;
+  }
+  
+  .office-header h3 {
+	color: var(--accent-color);
+	margin: 0;
+  }
+  
+  /* Grid layout for office links - 2 links per row */
+  .office-links-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 0.8rem;
+  }
+  
+  .office-links-grid a {
+	text-decoration: none;
+	color: var(--text-primary);
+	transition: color 0.3s, transform 0.2s;
+	display: block;
+	padding: 0.5rem 0.3rem;
+	font-size: 0.9rem;
+  }
+  
+  .office-links-grid a:hover {
+	color: var(--accent-color);
+	transform: translateX(3px);
+  }
+  
+  /* IIIT Portals Section */
+  .iiit-portals-section {
+	padding: 2rem;
+	background-color: var(--bg-primary);
+	border-top: 1px solid var(--card-border);
+  }
+  
+  .iiit-portals-container {
+	max-width: 1200px;
+	margin: 0 auto;
+  }
+  
+  .iiit-portals-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 1.5rem;
+  }
+  
+  .portal-link {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	text-decoration: none;
+	background-color: var(--card-bg);
+	border-radius: 10px;
+	padding: 1.5rem 1rem;
+	transition: all 0.3s ease;
+	border: 1px solid var(--card-border);
+	box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  
+  .portal-link:hover {
+	transform: translateY(-5px);
+	box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+	border-color: var(--accent-color);
+  }
+  
+  .portal-icon {
+	font-size: 2rem;
+	margin-bottom: 0.8rem;
+	color: var(--accent-color);
+  }
+  
+  .portal-title {
+	color: var(--text-primary);
+	font-weight: 500;
+	text-align: center;
+  }
+  
+  /* Responsive adjustments for IIIT Portals */
+  @media (max-width: 1024px) {
+	.iiit-portals-grid {
+	  grid-template-columns: repeat(3, 1fr);
+	}
+  }
+  
+  @media (max-width: 768px) {
+	.iiit-portals-grid {
+	  grid-template-columns: repeat(2, 1fr);
+	}
+  }
+  
+  @media (max-width: 480px) {
+	.iiit-portals-grid {
+	  grid-template-columns: 1fr;
+	}
+  }
+  
+  /* Footer */
+  .footer {
+	margin-top: auto;
+	background-color: var(--navbar-bg);
+	padding: 1rem;
+	text-align: center;
+	border-top: 1px solid var(--card-border);
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 1024px) {
+	.offices-grid {
+	  grid-template-columns: 1fr;
+	  gap: 1.5rem;
+	}
+  }
+  
+  @media (max-width: 768px) {
+	/* Show hamburger menu and hide regular links */
+	.hamburger-menu {
+	  display: block;
+	  order: 3; /* Place after logo but before toggle */
+	}
+	
+	.navbar {
+	  flex-wrap: wrap;
+	  padding: 0.5rem 1rem;
+	}
+	
+	.navbar-logo {
+	  order: 1;
+	}
+	
+	.navbar-mode-toggle {
+	  order: 2;
+	}
+	
+	.navbar-links {
+	  flex-direction: column;
+	  width: 100%;
+	  order: 4;
+	  max-height: 0;
+	  overflow: hidden;
+	  transition: max-height 0.3s ease-out;
+	  gap: 0;
+	}
+	
+	.navbar-links.mobile-open {
+	  max-height: 300px; /* Adjust based on content */
+	  border-top: 1px solid var(--card-border);
+	  margin-top: 0.5rem;
+	}
+	
+	.navbar-links a {
+	  padding: 0.8rem 0;
+	  width: 100%;
+	  text-align: center;
+	}
+  
+	.announcement-container {
+	  width: 95%;
+	  padding: 1rem;
+	}
+  
+	.section-title {
+	  font-size: 1.5rem;
+	}
+	
+	/* Make office links single column on smaller screens */
+	.office-links-grid {
+	  grid-template-columns: 1fr;
+	}
+  }
+  
+  @media (max-width: 480px) {
+	.navbar-logo img {
+	  height: 30px;
+	}
+	
+	.office-block {
+	  padding: 1rem;
+	}
+	
+	.announcement-text {
+	  font-size: 1rem;
+	}
+  }
+  
+  /* Image inversion for dark mode */
+  .invert {
+	filter: invert(1) brightness(0.8) hue-rotate(180deg);
+	transition: filter 0.3s ease;
+  }
+  
+  /* You may need to adjust these values depending on your specific images */
+  .dark-mode .navbar-logo img.invert {
+	filter: invert(1) brightness(0.7) hue-rotate(180deg);
+  }
+  
+  .dark-mode .office-logo.invert {
+	filter: invert(1) brightness(0.9) hue-rotate(180deg);
+  }
+  
+  /* Quick Links Section */
+  .quick-links-section {
+	padding: 2rem;
+	background-color: var(--bg-primary);
+	border-top: 1px solid var(--card-border);
+  }
+  
+  .quick-links-container {
+	max-width: 1200px;
+	margin: 0 auto;
+  }
+  
+  .quick-links-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 1rem;
+  }
+  
+  .quick-links-grid a {
+	text-decoration: none;
+	color: var(--text-primary);
+	padding: 0.5rem 0.3rem;
+	border-bottom: 1px dotted var(--card-border);
+	transition: color 0.2s, transform 0.2s;
+	font-size: 0.9rem;
+  }
+  
+  .quick-links-grid a:hover {
+	color: var(--accent-color);
+	transform: translateX(3px);
+  }
+  
+  .edit-actions {
+	display: flex;
+	gap: 1rem;
+	margin-bottom: 1rem;
+  }
+  
+  .add-btn {
+	background-color: var(--accent-color);
+	color: white;
+	border: none;
+	padding: 0.5rem 1rem;
+	border-radius: 4px;
+	cursor: pointer;
+	font-weight: 500;
+	transition: background-color 0.3s;
+  }
+  
+  .add-btn:hover {
+	background-color: #1e4899;
+  }
+  
+  .quick-link-edit-form h3 {
+	margin-bottom: 1rem;
+	color: var(--accent-color);
+  }
+  
+  .quick-link-edit-btn {
+	background: none;
+	border: 1px solid var(--card-border);
+	padding: 0.5rem;
+	width: 100%;
+	text-align: left;
+	border-radius: 4px;
+	cursor: pointer;
+	color: var(--text-primary);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	transition: all 0.3s;
+  }
+  
+  .quick-link-edit-btn:hover {
+	border-color: var(--accent-color);
+	background-color: rgba(46, 91, 187, 0.05);
+  }
+  
+  /* Updated Footer with Social Media Icons */
+  .footer {
+	margin-top: auto;
+	background-color: var(--navbar-bg);
+	padding: 1.5rem;
+	text-align: center;
+	border-top: 1px solid var(--card-border);
+  }
+  
+  .footer-content {
+	max-width: 1200px;
+	margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+  }
+  
+  .social-icons {
+	display: flex;
+	gap: 1.5rem;
+	margin-bottom: 1rem;
+  }
+  
+  .social-icon {
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background-color: var(--accent-color);
+	color: white;
+	transition: transform 0.3s, background-color 0.3s;
+  }
+  
+  .social-icon:hover {
+	transform: translateY(-3px);
+	background-color: var(--text-primary);
+  }
+  
+  .social-icon img {
+	width: 18px;
+	height: 18px;
+	filter: brightness(0) invert(1); /* Makes the icon white */
+  }
+  
+  .dark-mode .social-icon img {
+	filter: brightness(0) invert(1); /* Keep icons white in dark mode too */
+  }
+  
+  .copyright {
+	margin-top: 0.5rem;
+	font-size: 0.9rem;
+  }
+  
+  /* Responsive adjustments for quick links */
+  @media (max-width: 1024px) {
+	.quick-links-grid {
+	  grid-template-columns: repeat(3, 1fr);
+	}
+  }
+  
+  @media (max-width: 768px) {
+	.quick-links-grid {
+	  grid-template-columns: repeat(2, 1fr);
+	}
+	
+	.social-icons {
+	  gap: 1rem;
+	}
+  }
+  
+  @media (max-width: 480px) {
+	.quick-links-grid {
+	  grid-template-columns: 1fr;
+	}
+	
+	.social-icons {
+	  flex-wrap: wrap;
+	  justify-content: center;
+	}
+  }
+  
+  /* Add these styles to your home.css file */
+  .announcement-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+	margin-bottom: 1rem;
+  }
+  
+  .edit-announcement-btn {
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 1.2rem;
+	color: var(--text-primary);
+	transition: transform 0.2s;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+  }
+  
+  .edit-announcement-btn:hover {
+	transform: scale(1.1);
+	background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  .dark-mode .edit-announcement-btn:hover {
+	background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .announcement-edit-mode {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+  }
+  
+  .announcement-edit-textarea {
+	width: 100%;
+	min-height: 100px;
+	padding: 0.8rem;
+	margin-bottom: 1rem;
+	border: 2px solid var(--accent-color);
+	border-radius: 8px;
+	font-size: 1rem;
+	background-color: var(--card-bg);
+	color: var(--text-primary);
+  }
+  
+  .edit-buttons {
+	display: flex;
+	gap: 1rem;
+	justify-content: center;
+  }
+  
+  .edit-buttons button {
+	padding: 0.5rem 1.5rem;
+	border-radius: 20px;
+	border: none;
+	cursor: pointer;
+	font-weight: 500;
+	transition: all 0.3s;
+  }
+  
+  .save-btn {
+	background-color: var(--accent-color);
+	color: white;
+  }
+  
+  .save-btn:hover {
+	background-color: #1a4ba8;
+  }
+  
+  .cancel-btn {
+	background-color: #e0e0e0;
+	color: #333;
+  }
+  
+  .cancel-btn:hover {
+	background-color: #d0d0d0;
+  }
+  
+  .dark-mode .cancel-btn {
+	background-color: #444;
+	color: #f0f0f0;
+  }
+  
+  .dark-mode .cancel-btn:hover {
+	background-color: #555;
+  }
+  
+  /* Section header with title and edit button */
+  .section-header {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 1.5rem;
+	position: relative;
+  }
+  
+  .edit-section-btn {
+	position: absolute;
+	right: 0;
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 1.2rem;
+	color: var(--text-primary);
+	transition: transform 0.2s;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+  }
+  
+  .edit-section-btn:hover {
+	transform: scale(1.1);
+	background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  .dark-mode .edit-section-btn:hover {
+	background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Quick links editing styles */
+  .quick-links-edit-panel {
+	margin-bottom: 1rem;
+	padding: 0.5rem 1rem;
+	background-color: var(--card-bg);
+	border-radius: 8px;
+	border: 1px dashed var(--accent-color);
+	text-align: center;
+  }
+  
+  .quick-link-edit-form {
+	margin-bottom: 1.5rem;
+	padding: 1rem;
+	background-color: var(--card-bg);
+	border-radius: 8px;
+	border: 1px solid var(--accent-color);
+  }
+  
+  .edit-form-group {
+	margin-bottom: 1rem;
+  }
+  
+  .edit-form-group label {
+	display: block;
+	margin-bottom: 0.5rem;
+	font-weight: 500;
+  }
+  
+  .edit-form-group input {
+	width: 100%;
+	padding: 0.5rem;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	font-size: 1rem;
+	background-color: var(--input-bg);
+	color: var(--text-primary);
+  }
+  
+  .quick-link-item {
+	display: flex;
+  }
+  
+  .quick-link-edit-btn {
+	width: 100%;
+	text-align: left;
+	padding: 0.5rem 1rem;
+	background: none;
+	border: 1px dashed var(--accent-color);
+	cursor: pointer;
+	color: var(--text-primary);
+	font-size: 1rem;
+	border-radius: 4px;
+	transition: all 0.2s;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+  }
+  
+  .quick-link-edit-btn:hover {
+	background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  .dark-mode .quick-link-edit-btn:hover {
+	background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Admin-specific CSS for home.css */
+
+/* Section headers with edit buttons */
+.section-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 20px;
+  }
+  
+  .edit-section-btn {
+	background: none;
+	border: none;
+	font-size: 18px;
+	cursor: pointer;
+	padding: 5px 10px;
+	border-radius: 4px;
+	transition: background-color 0.2s;
+  }
+  
+  .edit-section-btn:hover {
+	background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Announcement editing */
+  .announcement-edit-mode {
+	width: 100%;
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 20px;
+	background: rgba(0, 0, 0, 0.2);
+	border-radius: 15px;
+  }
+  
+  .edit-form-group {
+	margin-bottom: 20px;
+  }
+  
+  .edit-form-group label {
+	display: block;
+	margin-bottom: 6px;
+	font-weight: 600;
+	color: white;
+  }
+  
+  .office-select,
+  .announcement-edit-textarea,
+  .announcement-edit-input {
+	width: 100%;
+	padding: 10px;
+	border-radius: 5px;
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	background-color: rgba(255, 255, 255, 0.1);
+	color: white;
+	font-family: "Barlow", sans-serif;
+	font-size: 16px;
+  }
+  
+  .announcement-edit-textarea {
+	min-height: 100px;
+	resize: vertical;
+  }
+  
+  .image-upload-container {
+	margin-bottom: 20px;
+  }
+  
+  .image-upload-label {
+	display: inline-block;
+	padding: 10px 15px;
+	background-color: rgba(255, 255, 255, 0.1);
+	border-radius: 5px;
+	cursor: pointer;
+	margin-bottom: 10px;
+  }
+  
+  .image-upload-input {
+	display: none;
+  }
+  
+  .image-preview-container {
+	margin-top: 10px;
+	text-align: center;
+  }
+  
+  .image-preview {
+	max-width: 100%;
+	max-height: 200px;
+	border-radius: 5px;
+	margin-bottom: 10px;
+  }
+  
+  .image-upload-remove {
+	background-color: #ff5a5a;
+	color: white;
+	border: none;
+	padding: 5px 10px;
+	border-radius: 4px;
+	cursor: pointer;
+  }
+  
+  .edit-buttons {
+	display: flex;
+	gap: 10px;
+	justify-content: flex-end;
+  }
+  
+  .save-btn, .cancel-btn, .add-btn {
+	padding: 8px 16px;
+	border: none;
+	border-radius: 4px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: opacity 0.2s;
+  }
+  
+  .save-btn {
+	background-color: #4CAF50;
+	color: white;
+  }
+  
+  .cancel-btn {
+	background-color: #f1f1f1;
+	color: #333;
+  }
+  
+  .add-btn {
+	background-color: #2196F3;
+	color: white;
+  }
+  
+  .save-btn:hover, .cancel-btn:hover, .add-btn:hover {
+	opacity: 0.9;
+  }
+  
+  /* Portal and Quick Link admin styling */
+  .portal-edit-panel,
+  .quick-links-edit-panel {
+	margin-bottom: 20px;
+	padding: 15px;
+	background-color: rgba(255, 255, 255, 0.05);
+	border-radius: 10px;
+  }
+  
+  .edit-actions {
+	display: flex;
+	gap: 10px;
+	justify-content: flex-end;
+  }
+  
+  .portal-edit-form,
+  .quick-link-edit-form {
+	background-color: rgba(255, 255, 255, 0.05);
+	padding: 20px;
+	border-radius: 10px;
+	margin-bottom: 20px;
+  }
+  
+  .portal-edit-form h3,
+  .quick-link-edit-form h3 {
+	margin-top: 0;
+	margin-bottom: 15px;
+	color: white;
+  }
+  
+  .portal-item-admin,
+  .quick-link-item-admin {
+	position: relative;
+	background-color: rgba(255, 255, 255, 0.05);
+	border-radius: 8px;
+	padding: 15px;
+	transition: background-color 0.2s;
+  }
+  
+  .portal-item-admin:hover,
+  .quick-link-item-admin:hover {
+	background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .portal-link-edit-wrapper,
+  .quick-link-edit-wrapper {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+  }
+  
+  .portal-link-actions,
+  .quick-link-actions {
+	display: flex;
+	gap: 5px;
+  }
+  
+  .admin-edit-btn,
+  .admin-pin-btn,
+  .admin-delete-btn {
+	background: none;
+	border: none;
+	font-size: 16px;
+	cursor: pointer;
+	padding: 5px;
+	border-radius: 4px;
+	transition: background-color 0.2s;
+  }
+  
+  .admin-edit-btn:hover,
+  .admin-pin-btn:hover,
+  .admin-delete-btn:hover {
+	background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .admin-delete-btn:hover {
+	color: #ff5a5a;
+  }
+  
+  /* Edit announcement button on the announcement card */
+  .announcement-header {
+	position: relative;
+	width: 100%;
+  }
+  
+  .edit-announcement-btn {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	background: rgba(0, 0, 0, 0.3);
+	border: none;
+	color: white;
+	font-size: 18px;
+	padding: 5px 10px;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: background-color 0.2s;
+  }
+  
+  .edit-announcement-btn:hover {
+	background: rgba(0, 0, 0, 0.5);
+  }
+  
+  /* Dark mode adjustments */
+  .dark-mode .save-btn {
+	background-color: #4CAF50;
+  }
+  
+  .dark-mode .cancel-btn {
+	background-color: #555;
+	color: white;
+  }
+  
+  .dark-mode .add-btn {
+	background-color: #1976D2;
+  }
+  
+  .dark-mode .edit-form-group input,
+  .dark-mode .edit-form-group textarea,
+  .dark-mode .edit-form-group select {
+	background-color: rgba(255, 255, 255, 0.05);
+	color: white;
+  }
+
+  .success-message {
+	position: fixed;
+	top: 20px;
+	left: 50%;
+	transform: translateX(-50%);
+	background-color: #4CAF50;
+	color: white;
+	padding: 10px 20px;
+	border-radius: 5px;
+	z-index: 1000;
+	box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+	animation: fadeInOut 3s ease-in-out;
+  }
+  
+  @keyframes fadeInOut {
+	0%, 100% { opacity: 0; }
+	10%, 90% { opacity: 1; }
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+	.edit-actions {
+	  flex-direction: column;
+	}
+	
+	.edit-buttons {
+	  flex-direction: column;
+	}
+	
+	.save-btn, .cancel-btn, .add-btn {
+	  width: 100%;
+	}
+	
+	.edit-announcement-btn {
+	  top: 5px;
+	  right: 5px;
+	  font-size: 16px;
+	  padding: 3px 6px;
+	}
+  }
+
+  .add-announcement-btn-small {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    padding: 6px 12px;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(5px);
+  }
+
+  .add-announcement-btn-small:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+  }
+
+  .no-announcements .add-announcement-btn-small {
+    position: relative;
+    bottom: auto;
+    right: auto;
+    margin-top: 15px;
+  }
+
+  /* Update these styles in your home.css file */
+
+/* Improved announcement container for clickability */
+.announcement-container {
+	border-radius: 15px;
+	padding: 1.5rem;
+	width: 90%;
+	min-height: 30vh;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+	position: relative;
+	background-color: rgba(0,0,0,0.6);
+	background-blend-mode: overlay;
+	background-size: cover;
+	background-position: center;
+	color: white;
+	transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  /* Add hover effect for clickable announcements */
+  .announcement-container[style*="cursor: pointer"]:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+  }
+  
+  /* Improved link indicator */
+  .link-indicator {
+	margin-top: 10px;
+	font-size: 0.8rem;
+	padding: 4px 12px;
+	background-color: rgba(255, 255, 255, 0.2);
+	border-radius: 20px;
+	display: inline-block;
+	backdrop-filter: blur(5px);
+	font-weight: 500;
+  }
+  
+  /* Improved Add New Announcement button */
+  .add-announcement-btn {
+	position: absolute;
+	bottom: 15px;
+	right: 15px;
+	padding: 8px 16px;
+	background-color: var(--accent-color);
+	color: white;
+	border: none;
+	border-radius: 30px;
+	font-family: "Barlow", sans-serif;
+	font-weight: 600;
+	cursor: pointer;
+	font-size: 14px;
+	letter-spacing: 0.5px;
+	transition: all 0.2s ease;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+	z-index: 10;
+  }
+  
+  .add-announcement-btn:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+	background-color: #1a4ba8; /* Darker shade of your accent color */
+  }
+  
+  /* Remove the small variant since we're using a consistent design */
+  .add-announcement-btn-small {
+	display: none;
+  }
+  
+  /* Improve the announcement actions positioning */
+  .announcement-actions {
+	position: absolute;
+	top: 15px;
+	right: 15px;
+	display: flex;
+	gap: 10px;
+  }
+  
+  .edit-announcement-btn, 
+  .delete-announcement-btn {
+	background-color: rgba(0, 0, 0, 0.4);
+	color: white;
+	border: none;
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	font-size: 16px;
+	transition: background-color 0.2s ease, transform 0.2s ease;
+	backdrop-filter: blur(3px);
+  }
+  
+  .edit-announcement-btn:hover,
+  .delete-announcement-btn:hover {
+	background-color: rgba(0, 0, 0, 0.6);
+	transform: scale(1.1);
+  }
+  
+  .delete-announcement-btn:hover {
+	background-color: rgba(255, 0, 0, 0.3);
+  }
+  
+  /* Improved dots navigation */
+  .announcement-dots {
+	position: absolute;
+	bottom: 15px;
+	left: 50%;
+	transform: translateX(-50%);
+	display: flex;
+	gap: 8px;
+	z-index: 5;
+  }
+  
+  .dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background-color: rgba(255, 255, 255, 0.3);
+	cursor: pointer;
+	transition: transform 0.2s ease, background-color 0.2s ease;
+  }
+  
+  .dot.active {
+	background-color: white;
+	transform: scale(1.2);
+  }
+  
+  .dot:hover {
+	background-color: rgba(255, 255, 255, 0.8);
+  }
+  
+  /* No announcements state improved */
+  .no-announcements {
+	width: 90%;
+	min-height: 25vh;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	background-color: rgba(0, 0, 0, 0.1);
+	border-radius: 15px;
+	border: 2px dashed rgba(255, 255, 255, 0.2);
+  }
+  
+  .no-announcements p {
+	margin-bottom: 20px;
+	font-size: 1.2rem;
+	color: var(--text-primary);
+  }
+  
+  .no-announcements .add-announcement-btn {
+	position: relative;
+	bottom: auto;
+	right: auto;
+  }
+  
+  /* Dark mode adjustments */
+  .dark-mode .add-announcement-btn {
+	background-color: var(--accent-color);
+  }
+  
+  .dark-mode .add-announcement-btn:hover {
+	background-color: #4a7ae0;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+	.add-announcement-btn {
+	  padding: 6px 12px;
+	  font-size: 12px;
+	  right: 10px;
+	  bottom: 10px;
+	}
+	
+	.announcement-actions {
+	  top: 10px;
+	  right: 10px;
+	  gap: 5px;
+	}
+	
+	.edit-announcement-btn, 
+	.delete-announcement-btn {
+	  width: 30px;
+	  height: 30px;
+	  font-size: 14px;
+	}
+  }
+
+/* Add these styles to your home.css file */
+
+/* Link indicator for clickable announcements */
+.link-indicator {
+	margin-top: 10px;
+	font-size: 0.85rem;
+	padding: 5px 12px;
+	background-color: rgba(255, 255, 255, 0.2);
+	border-radius: 20px;
+	display: inline-block;
+	backdrop-filter: blur(4px);
+	font-weight: 500;
+	transition: all 0.2s ease;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Hover effects for clickable announcements */
+  .announcement-container[style*="cursor: pointer"]:hover {
+	transform: translateY(-3px);
+	box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .announcement-container[style*="cursor: pointer"]:hover .link-indicator {
+	background-color: rgba(255, 255, 255, 0.3);
+	transform: scale(1.05);
+  }
+  
+  /* Improved Add New Announcement button */
+  .add-announcement-btn {
+	position: absolute;
+	bottom: 15px;
+	right: 15px;
+	padding: 8px 16px;
+	background-color: var(--accent-color, #2e5bbb);
+	color: white;
+	border: none;
+	border-radius: 30px;
+	font-family: "Barlow", sans-serif;
+	font-weight: 600;
+	cursor: pointer;
+	font-size: 14px;
+	letter-spacing: 0.5px;
+	transition: all 0.2s ease;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+	z-index: 10;
+  }
+  
+  .add-announcement-btn:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+	background-color: #1a4ba8; /* Darker shade for hover */
+  }
+  
+  /* Style the small variant of the button to match */
+  .add-announcement-btn-small {
+	position: absolute;
+	bottom: 15px;
+	right: 15px;
+	padding: 8px 16px;
+	background-color: var(--accent-color, #2e5bbb);
+	color: white;
+	border: none;
+	border-radius: 30px;
+	font-family: "Barlow", sans-serif;
+	font-weight: 600;
+	cursor: pointer;
+	font-size: 14px;
+	letter-spacing: 0.5px;
+	transition: all 0.2s ease;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+	z-index: 10;
+  }
+  
+  .add-announcement-btn-small:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+	background-color: #1a4ba8;
+  }
+  
+  /* No announcements state - center button */
+  .no-announcements .add-announcement-btn-small {
+	position: relative;
+	bottom: auto;
+	right: auto;
+	margin-top: 15px;
+  }
+  
+  /* Make the dots area more spacious to avoid overlap with the button */
+  .announcement-dots {
+	position: absolute;
+	bottom: 20px;
+	left: 50%;
+	transform: translateX(-50%);
+	display: flex;
+	gap: 8px;
+	z-index: 5;
+	padding: 5px 15px;
+  }
+  
+  /* Dark mode adjustments */
+  .dark-mode .add-announcement-btn,
+  .dark-mode .add-announcement-btn-small {
+	background-color: var(--accent-color, #5b8eff);
+  }
+  
+  .dark-mode .add-announcement-btn:hover,
+  .dark-mode .add-announcement-btn-small:hover {
+	background-color: #4a7ae0;
+  }
+  
+  .dark-mode .link-indicator {
+	background-color: rgba(255, 255, 255, 0.15);
+	color: #ffffff;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+	.add-announcement-btn,
+	.add-announcement-btn-small {
+	  padding: 6px 12px;
+	  font-size: 12px;
+	  right: 10px;
+	  bottom: 10px;
+	}
+	
+	.announcement-dots {
+	  bottom: 15px;
+	}
+  }
+  
+  /* Additional styles to prevent button overlap with dots on small screens */
+  @media (max-width: 480px) {
+	.add-announcement-btn,
+	.add-announcement-btn-small {
+	  bottom: 45px; /* Move button above dots on very small screens */
+	}
+  }

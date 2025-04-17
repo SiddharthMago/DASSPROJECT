@@ -1,0 +1,212 @@
+@import url("https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&display=swap");
+
+/* Light mode variables */
+:root {
+  --primary-bg: #0f3446;
+  --secondary-bg: #242426;
+  --dark-bg: #151e23;
+  --text-white: #ffffff;
+  --text-black: #000000;
+  --gray-bg: #5f5e5e;
+  
+  /* Light mode specific */
+  --body-bg: #f2f2f2;
+  --body-text: black;
+  --table-bg: #ffffff;
+  --table-text: #000000;
+  --table-row-hover: #f2f2f2;
+  --table-divider: #ccc;
+}
+
+/* Dark mode variables */
+.dark-mode {
+  --body-bg: #121212;
+  --body-text: #e0e0e0;
+  --table-bg: #1e1e1e;
+  --table-text: #e0e0e0;
+  --table-row-hover: #2c2c2c;
+  --table-divider: #444;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background-color: var(--body-bg);
+}
+
+/* Container */
+.pending-approvals-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: var(--body-bg);
+  color: var(--body-text);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Page Title */
+.page-title {
+  text-align: center;
+  font-size: 2.5rem;
+  letter-spacing: 4px;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: var(--body-text);
+}
+
+/* Table Section */
+.pending-table {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0 15px; /* Vertical gap between rows */
+}
+
+.table-header {
+  display: table-header-group;
+  background-color: var(--primary-bg);
+  border-radius: 10px;
+  padding: 1rem;
+  color: var(--text-white);
+}
+
+.header-row {
+  display: table-row;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 2px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.header-row > div {
+  display: table-cell;
+  padding: 0.5rem;
+}
+
+/* Vertical Divider */
+.table-divider {
+  width: 0.5rem;
+  text-align: center;
+  color: var(--table-divider);
+}
+
+.table-rows {
+  display: table-row-group;
+}
+
+/* Each Row */
+.table-row {
+  display: table-row;
+  height: 60px; /* Uniform row height */
+  background-color: var(--table-bg);
+  color: var(--table-text);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.table-row > div,
+.table-row > a {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  padding: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Optional column widths */
+.file-name-col {
+  width: 20%;
+}
+.author-col {
+  width: 20%;
+}
+.office-col {
+  width: 20%;
+}
+.date-col {
+  width: 20%;
+}
+.preview-col {
+  width: 10%;
+}
+.action-col {
+  width: 10%;
+}
+
+/* Preview Link Styling */
+.preview-link {
+  color: var(--primary-bg);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.dark-mode .preview-link {
+  color: #5b8eff; /* Lighter blue for dark mode */
+}
+
+/* Actions Column */
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+/* Approve/Reject Buttons */
+.approve-btn,
+.reject-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--table-text);
+}
+
+/* Approve All Button */
+.approve-all-btn {
+  display: block;
+  margin: 2rem auto 0 auto;
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--primary-bg);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.approve-all-btn:hover {
+  background-color: #1a4b60;
+}
+
+.dark-mode .approve-all-btn:hover {
+  background-color: #5b8eff;
+}
+
+/* Optional Hover Effect for Data Rows */
+.table-row:hover {
+  background-color: var(--table-row-hover);
+}
+
+/* No Results Message */
+.no-results {
+  text-align: center;
+  padding: 2rem;
+  background-color: var(--table-bg);
+  color: var(--table-text);
+  border-radius: 10px;
+  font-weight: 500;
+}

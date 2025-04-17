@@ -1,0 +1,635 @@
+/* Import base styles from home.css */
+@import './home.css';
+
+/* Contacts Page Specific Styles */
+.contacts-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.contacts-content {
+    flex: 1;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.contacts-filters {
+    margin: 1.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.search-bar {
+    display: flex;
+    max-width: 600px;
+    width: 100%;
+}
+
+.search-bar input {
+    flex: 1;
+    padding: 0.8rem;
+    border: 1px solid var(--card-border);
+    border-radius: 4px 0 0 4px;
+    font-size: 1rem;
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.search-button {
+    background-color: var(--accent-color);
+    border: none;
+    color: white;
+    padding: 0 1rem;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+}
+
+.post-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.post-filters button {
+    padding: 0.5rem 1rem;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: all 0.3s;
+}
+
+.post-filters button:hover {
+    border-color: var(--accent-color);
+}
+
+.post-filters button.active {
+    background-color: var(--accent-color);
+    color: white;
+    border-color: var(--accent-color);
+}
+
+.contacts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.contact-card {
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem;
+    border: 1px solid var(--card-border);
+}
+
+.contact-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.contact-image-container {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--accent-color);
+    margin-bottom: 1rem;
+}
+
+.contact-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.contact-details {
+    text-align: center;
+    width: 100%;
+}
+
+.contact-name {
+    font-size: 1.2rem;
+    margin: 0.5rem 0;
+    color: var(--text-primary);
+}
+
+.contact-post {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 0.8rem;
+    text-transform: capitalize;
+}
+
+.contact-post.faculty {
+    background-color: #e6f7ff;
+    color: #0066cc;
+    border: 1px solid #91d5ff;
+}
+
+.contact-post.adjunct-faculty {
+    background-color: #f9f0ff;
+    color: #722ed1;
+    border: 1px solid #d3adf7;
+}
+
+.contact-post.it-office {
+    background-color: #f6ffed;
+    color: #52c41a;
+    border: 1px solid #b7eb8f;
+}
+
+.contact-post.guest {
+    background-color: #fff7e6;
+    color: #fa8c16;
+    border: 1px solid #ffd591;
+}
+
+.contact-post.speaker {
+    background-color: #fff1f0;
+    color: #f5222d;
+    border: 1px solid #ffa39e;
+}
+
+.contact-department {
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.contact-email {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-size: 0.9rem;
+    word-break: break-all;
+}
+
+.contact-email:hover {
+    text-decoration: underline;
+}
+
+.no-results {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 3rem;
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+}
+
+/* Dark mode styles */
+.dark-mode .contact-post.faculty {
+    background-color: rgba(0, 102, 204, 0.2);
+    color: #91d5ff;
+}
+
+.dark-mode .contact-post.adjunct-faculty {
+    background-color: rgba(114, 46, 209, 0.2);
+    color: #d3adf7;
+}
+
+.dark-mode .contact-post.it-office {
+    background-color: rgba(82, 196, 26, 0.2);
+    color: #b7eb8f;
+}
+
+.dark-mode .contact-post.guest {
+    background-color: rgba(250, 140, 22, 0.2);
+    color: #ffd591;
+}
+
+.dark-mode .contact-post.speaker {
+    background-color: rgba(245, 34, 45, 0.2);
+    color: #ffa39e;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .contacts-grid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
+
+    .post-filters {
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        flex-wrap: nowrap;
+    }
+}
+
+@media (max-width: 480px) {
+    .contacts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .contacts-content {
+        padding: 1rem;
+    }
+
+    .search-bar {
+        max-width: 100%;
+    }
+}
+
+
+/* Admin-specific styles for contacts page */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.add-contact-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.add-contact-btn:hover {
+    background-color: #0056b3;
+}
+
+.admin-filters {
+    background-color: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--card-border);
+    margin-bottom: 2rem;
+}
+
+.filters-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.role-filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.role-filters button {
+    background-color: var(--gray-bg);
+    border: none;
+    border-radius: 20px;
+    padding: 4px 19px;
+    color: var(--text-white);
+    font-size: 20px;
+    letter-spacing: 3px;
+    cursor: pointer;
+}
+
+.role-filters .active {
+    background-color: var(--primary-bg);
+}
+
+.admin-contact-card {
+    position: relative;
+}
+
+.office-indicator {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    color: #739cc4;
+}
+
+.contact-actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.8rem;
+    margin-top: 1rem;
+    border-top: 1px solid var(--card-border);
+    padding-top: 1rem;
+}
+
+.action-edit,
+.action-role,
+.action-delete {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.3rem;
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.action-edit {
+    background-color: #e6f7ff;
+    color: #1890ff;
+}
+
+.action-edit:hover {
+    background-color: #1890ff;
+    color: white;
+}
+
+.action-role {
+    background-color: #f9f0ff;
+    color: #722ed1;
+}
+
+.action-role:hover {
+    background-color: #722ed1;
+    color: white;
+}
+
+.action-delete {
+    background-color: #fff1f0;
+    color: #ff4d4f;
+}
+
+.action-delete:hover {
+    background-color: #ff4d4f;
+    color: white;
+}
+
+.role-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: var(--card-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--card-border);
+}
+
+.edit-contact-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.edit-contact-form {
+    background-color: var(--card-bg);
+    padding: 2rem;
+    border-radius: 10px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.edit-contact-form h2 {
+    color: var(--accent-color);
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.edit-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.edit-form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.edit-form-group input,
+.edit-form-group select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid var(--card-border);
+    border-radius: 4px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.edit-form-group input:focus,
+.edit-form-group select:focus {
+    border-color: var(--accent-color);
+    outline: none;
+}
+
+.edit-image-container {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.edit-image-preview {
+    width: 100px;
+    height: 100px;
+}
+
+.edit-image-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.custom-file-upload {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--accent-color);
+    border-radius: 4px;
+    background-color: var(--bg-primary);
+    color: var(--accent-color);
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+}
+
+.custom-file-upload:hover {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.custom-file-upload input {
+    display: none;
+}
+
+.edit-form-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+
+.btn-save,
+.btn-cancel {
+    padding: 0.7rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s;
+}
+
+.btn-save {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn-save:hover {
+    background-color: #0056b3;
+}
+
+.btn-cancel {
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+.btn-cancel:hover {
+    background-color: #e0e0e0;
+}
+
+/* Role indicator and dropdown */
+.role-indicator {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.role-badge {
+    font-weight: 600;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    text-transform: capitalize;
+}
+
+.role-badge.admin {
+    background-color: #fff1f0;
+    color: #f5222d;
+}
+
+.role-badge.user {
+    background-color: #e6f7ff;
+    color: #0066cc;
+}
+
+.role-dropdown {
+    position: relative;
+}
+
+.role-select {
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--card-border);
+    border-radius: 4px;
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 0.9rem;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 1.5rem;
+}
+
+.role-dropdown::after {
+    content: '▼';
+    font-size: 0.8rem;
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--text-secondary);
+}
+
+.contact-actions {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 0.8rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-edit,
+.action-delete {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+    padding: 0.2rem;
+}
+
+.action-edit:hover,
+.role-select:hover,
+.action-delete:hover {
+    transform: scale(1.15);
+}
+
+.action-delete {
+    color: #f5222d;
+}
+
+.dark-mode .role-badge.admin {
+    background-color: rgba(245, 34, 45, 0.2);
+    color: #ffa39e;
+}
+
+.dark-mode .role-badge.user {
+    background-color: rgba(0, 102, 204, 0.2);
+    color: #91d5ff;
+}
+
+/* Responsive styles for admin view */
+@media (max-width: 768px) {
+    .edit-image-container {
+        flex-direction: column;
+    }
+
+    .filters-row {
+        flex-direction: column;
+    }
+
+    .admin-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .add-contact-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

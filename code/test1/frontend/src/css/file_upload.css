@@ -1,0 +1,345 @@
+/* Import base styles if needed */
+@import url("https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&display=swap");
+
+/* Variables scoped to the upload-page component only */
+.upload-page {
+  /* Light mode variables - these won't affect other components */
+  --fileupload-primary-bg: #0f3446;
+  --fileupload-secondary-bg: #f2f2f2;
+  --fileupload-body-bg: #f2f2f2;
+  --fileupload-card-bg: rgba(15, 52, 70, 0.55);
+  --fileupload-dropzone-bg: rgba(27, 92, 123, 0.55);
+  --fileupload-dropzone-active-bg: rgba(40, 120, 160, 0.65);
+  --fileupload-text-color: #333333;
+  --fileupload-input-bg: #ffffff;
+  --fileupload-input-text: #333333;
+  --fileupload-button-bg: #0f3446;
+  --fileupload-button-text: #ffffff;
+  --fileupload-button-hover-bg: #1a4b60;
+  --fileupload-shadow-color: rgba(19, 19, 19, 0.18);
+
+  /* Main container styles */
+  min-height: 81vh;
+  font-family: "Barlow", sans-serif;
+  background-color: var(--fileupload-body-bg);
+  color: var(--fileupload-text-color);
+  transition: background-color 0.3s, color 0.3s;
+  width: 100%;
+}
+
+/* Dark mode variables scoped to the component */
+.upload-page.dark-mode {
+  --fileupload-primary-bg: #0a2430;
+  --fileupload-secondary-bg: #121212;
+  --fileupload-body-bg: #121212;
+  --fileupload-card-bg: rgba(15, 52, 70, 0.75);
+  --fileupload-dropzone-bg: rgba(15, 70, 100, 0.55);
+  --fileupload-dropzone-active-bg: rgba(25, 100, 140, 0.65);
+  --fileupload-text-color: #ffffff;
+  --fileupload-input-bg: #333333;
+  --fileupload-input-text: #e0e0e0;
+  --fileupload-button-bg: #2c5e7a;
+  --fileupload-button-text: #ffffff;
+  --fileupload-button-hover-bg: #1d4e6a;
+  --fileupload-shadow-color: rgba(0, 0, 0, 0.7);
+}
+
+.upload-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--fileupload-body-bg);
+  transition: background-color 0.3s;
+  padding: 0 20px 50px; /* Add horizontal padding */
+}
+
+/* Header Styles */
+.upload-header {
+  color: var(--fileupload-text-color);
+  font-size: clamp(28px, 5vw, 38px); /* Responsive font size */
+  font-weight: 700;
+  line-height: 1.5;
+  letter-spacing: clamp(4px, 1vw, 6.27px); /* Responsive letter spacing */
+  margin-top: clamp(20px, 5vh, 40px);
+  margin-bottom: clamp(20px, 3vh, 30px);
+  text-align: center;
+  width: 100%;
+}
+
+/* Content Area Styles */
+.upload-content {
+  width: 100%;
+  max-width: 1373px;
+  height: auto;
+  background-color: var(--fileupload-card-bg);
+  border-radius: clamp(20px, 3vw, 40px); /* Responsive border radius */
+  box-shadow: 0px 4px 162px 828px var(--fileupload-shadow-color) inset;
+  padding: clamp(20px, 3vw, 40px); /* Responsive padding */
+  display: flex;
+  margin-bottom: clamp(30px, 5vh, 50px);
+  transition: background-color 0.3s;
+  color: #ffffff; /* Always white text inside the content area */
+  gap: clamp(20px, 3vw, 40px); /* Responsive gap between form and dropzone */
+}
+
+/* Form Styles */
+.upload-form {
+  width: 100%;
+  max-width: 389px;
+  flex-shrink: 0;
+}
+
+.file-name-label {
+  color: #ffffff; /* Always white text for labels inside content area */
+  font-size: clamp(18px, 2.5vw, 24px); /* Responsive font size */
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: clamp(2px, 0.5vw, 3.96px); /* Responsive letter spacing */
+  margin-bottom: clamp(10px, 2vh, 20px);
+  display: block;
+}
+
+.file-name-input {
+  width: 100%;
+  height: clamp(45px, 7vh, 58px); /* Responsive height */
+  background-color: var(--fileupload-input-bg);
+  color: var(--fileupload-input-text);
+  border-radius: 5px;
+  margin-bottom: clamp(20px, 4vh, 40px);
+  border: none;
+  padding: 0 15px;
+  font-size: clamp(14px, 1.8vw, 18px); /* Responsive font size */
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.submit-button {
+  width: 100%;
+  color: var(--fileupload-button-text);
+  font-size: clamp(16px, 2vw, 24px); /* Responsive font size */
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: clamp(2px, 0.5vw, 3.96px); /* Responsive letter spacing */
+  height: clamp(45px, 7vh, 59px); /* Responsive height */
+  border-radius: 8px;
+  background-color: var(--fileupload-button-bg);
+  cursor: pointer;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.submit-button:hover {
+  background-color: var(--fileupload-button-hover-bg);
+}
+
+/* Dropzone Styles */
+.dropzone-container {
+  flex: 1;
+  min-height: 250px; /* Minimum height for the dropzone container */
+  width: 100%;
+}
+
+.dropzone {
+  width: 100%;
+  height: 100%;
+  background-color: var(--fileupload-dropzone-bg);
+  border-radius: clamp(20px, 3vw, 40px); /* Responsive border radius */
+  box-shadow: 0px 4px 162px 828px var(--fileupload-shadow-color) inset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: clamp(200px, 40vh, 300px); /* Responsive min-height */
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  padding: 20px;
+}
+
+.dropzone.dragging {
+  background-color: var(--fileupload-dropzone-active-bg);
+  border: 2px dashed rgba(255, 255, 255, 0.6);
+}
+
+.dropzone-text {
+  color: #ffffff; /* Always white text in the dropzone */
+  font-size: clamp(16px, 2.2vw, 24px); /* Responsive font size */
+  font-weight: 600;
+  line-height: 1.6;
+  letter-spacing: clamp(2px, 0.5vw, 3.96px); /* Responsive letter spacing */
+  text-align: center;
+  margin: 0;
+}
+
+/* File List Styles - Optional if you want to show uploaded files */
+.file-list {
+  margin-top: 20px;
+  width: 100%;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  margin-bottom: 10px;
+  flex-wrap: wrap; /* Allow wrapping on small screens */
+}
+
+.file-item-name {
+  font-size: clamp(14px, 1.5vw, 16px); /* Responsive font size */
+  color: #ffffff; /* Always white text for file items */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: calc(100% - 40px); /* Allow space for the delete button */
+}
+
+.file-item-remove {
+  background: none;
+  border: none;
+  color: #ff4d4f;
+  cursor: pointer;
+  font-size: 18px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.success-message, .error-message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  border-radius: 5px;
+  z-index: 1000;
+  text-align: center;
+  animation: fadeInOut 3s ease-in-out;
+}
+
+.success-message {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.error-message {
+  background-color: #f44336;
+  color: white;
+}
+
+@keyframes fadeInOut {
+  0%, 100% { opacity: 0; }
+  10%, 90% { opacity: 1; }
+}
+
+.category-section, 
+.new-category-section {
+  margin-bottom: 15px;
+}
+
+.category-select,
+.new-category-input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+}
+
+.new-category-input-group {
+  display: flex;
+  gap: 10px;
+}
+
+.add-category-btn {
+  padding: 8px 15px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.office-display {
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.file-url-label,
+.file-url-input {
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.file-url-input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+/* Responsive layout adjustments */
+@media (max-width: 1100px) {
+  .upload-content {
+    gap: 20px;
+  }
+}
+
+@media (max-width: 991px) {
+  .upload-content {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .upload-form {
+    max-width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .dropzone-container {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .dropzone {
+    min-height: 180px;
+  }
+  
+  .submit-button {
+    height: 50px;
+  }
+  
+  .file-name-input {
+    height: 45px;
+  }
+}
+
+@media (max-width: 480px) {
+  .upload-container {
+    padding: 0 15px 30px;
+  }
+  
+  .upload-content {
+    padding: 15px;
+  }
+  
+  .file-item {
+    padding: 8px;
+  }
+}
+
+/* Add support for very large screens */
+@media (min-width: 1600px) {
+  .upload-content {
+    max-width: 1500px;
+  }
+  
+  .upload-form {
+    max-width: 450px;
+  }
+}

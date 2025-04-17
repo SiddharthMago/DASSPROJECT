@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import '../css/archive.css';
+import { FaTh, FaList } from 'react-icons/fa';
 
 function Archive({ darkMode, userRole }) {
   // State for filtering
@@ -13,6 +14,7 @@ function Archive({ darkMode, userRole }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedFileId, setExpandedFileId] = useState(null);
+  const [layout, setLayout] = useState('grid'); // 'grid' or 'table'
 
   // Set active tab from URL parameter on component mount
   useEffect(() => {
@@ -98,8 +100,6 @@ function Archive({ darkMode, userRole }) {
             }
           });
 
-          console.log('Raw response from my-files:', res.data);
-
           if (!res.data.success) {
             console.error('Failed to fetch user files:', res.data.error);
             setError('Failed to fetch your uploaded files');
@@ -117,8 +117,6 @@ function Archive({ darkMode, userRole }) {
             comments: file.comments || [],
             downloadUrl: file.url || `http://localhost:5000/${file.filePath?.replace(/\\/g, '/')}`,
           }));
-
-          console.log('Mapped files:', mapped);
           setArchiveItems(mapped);
         } else if (activeTab === 'Announcements') {
           const res = await axios.get('http://localhost:5000/api/announcements');
@@ -167,25 +165,7 @@ function Archive({ darkMode, userRole }) {
     const matchesSearch =
       searchQuery === '' || item.fileName.toLowerCase().includes(searchQuery.toLowerCase());
 
-    console.log('Filtering item:', {
-      item,
-      matchesCategory,
-      matchesOffice,
-      matchesSearch,
-      activeTab,
-      selectedOffice,
-      searchQuery
-    });
-
     return matchesCategory && matchesOffice && matchesSearch;
-  });
-
-  console.log('Current state:', {
-    archiveItems,
-    filteredItems,
-    activeTab,
-    selectedOffice,
-    searchQuery
   });
 
   const toggleComments = (fileId) => {
@@ -198,52 +178,76 @@ function Archive({ darkMode, userRole }) {
         rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&display=swap"
       />
+      
+      {/* Header Section */}
       <header className="archive-header">
         <h1 className="page-title">Archive</h1>
+        <p className="page-subtitle">Browse and access all institutional resources</p>
       </header>
 
-      {/* Controls: Search and Office Filter */}
-      <center className="archive-controls">
-        <div className="search-bar">
-          <input
-            type="text"
-            placeholder="Search by name, email, or department..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <button className="search-button">🔍</button>
-        </div>
+      {/* Layout Toggle */}
+      <div className="layout-toggle">
+        <button
+          className={layout === 'grid' ? 'active' : ''}
+          onClick={() => setLayout('grid')}
+          title="Grid View"
+        >
+          <FaTh />
+        </button>
+        <button
+          className={layout === 'table' ? 'active' : ''}
+          onClick={() => setLayout('table')}
+          title="Table View"
+        >
+          <FaList />
+        </button>
+      </div>
 
-        <div className="office-filter">
-          <label htmlFor="office-filter">Office: </label>
-          <select
-            id="office-filter"
-            value={selectedOffice}
-            onChange={(e) => setSelectedOffice(e.target.value)}
-          >
-            <option value="">All</option>
-            <option value="Admissions Office">Admissions Office</option>
-            <option value="Library Office">Library Office</option>
-            <option value="Examinations Office">Examinations Office</option>
-            <option value="Academic Office">Academic Office</option>
-            <option value="Student Affairs Office">Student Affairs Office</option>
-            <option value="Mess Office">Mess Office</option>
-            <option value="Hostel Office">Hostel Office</option>
-            <option value="Alumni Cell">Alumni Cell</option>
-            <option value="Faculty Portal">Faculty Portal</option>
-            <option value="Placement Cell">Placement Cell</option>
-            <option value="Outreach Office">Outreach Office</option>
-            <option value="Statistical Cell">Statistical Cell</option>
-            <option value="R&D Office">R&D Office</option>
-            <option value="General Administration">General Administration</option>
-            <option value="Accounts Office">Accounts Office</option>
-            <option value="IT Services Office">IT Services Office</option>
-            <option value="Communication Office">Communication Office</option>
-            <option value="Engineering Office">Engineering Office</option>
-            <option value="HR & Personnel">HR & Personnel</option>
-          </select>
+      {/* Search and Filter Section */}
+      <section className="archive-filters">
+        <div className="search-container">
+          <div className="search-bar">
+            <input
+              type="text"
+              placeholder="Search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          
+          <div className="filter-container">
+            <div className="office-filter">
+              <label htmlFor="office-filter">Office: </label>
+              <select
+                id="office-filter"
+                value={selectedOffice}
+                onChange={(e) => setSelectedOffice(e.target.value)}
+              >
+                <option value="All">All Offices</option>
+                <option value="Admissions Office">Admissions Office</option>
+                <option value="Library Office">Library Office</option>
+                <option value="Examinations Office">Examinations Office</option>
+                <option value="Academic Office">Academic Office</option>
+                <option value="Student Affairs Office">Student Affairs Office</option>
+                <option value="Mess Office">Mess Office</option>
+                <option value="Hostel Office">Hostel Office</option>
+                <option value="Alumni Cell">Alumni Cell</option>
+                <option value="Faculty Portal">Faculty Portal</option>
+                <option value="Placement Cell">Placement Cell</option>
+                <option value="Outreach Office">Outreach Office</option>
+                <option value="Statistical Cell">Statistical Cell</option>
+                <option value="R&D Office">R&D Office</option>
+                <option value="General Administration">General Administration</option>
+                <option value="Accounts Office">Accounts Office</option>
+                <option value="IT Services Office">IT Services Office</option>
+                <option value="Communication Office">Communication Office</option>
+                <option value="Engineering Office">Engineering Office</option>
+                <option value="HR & Personnel">HR & Personnel</option>
+              </select>
+            </div>
+          </div>
         </div>
-      </center>
+      </section>
 
       {/* Category Tabs */}
       <nav className="category-tabs">
@@ -271,111 +275,190 @@ function Archive({ darkMode, userRole }) {
         </ul>
       </nav>
 
-      {/* Archive Table */}
-      <section className="archive-table">
-        <div className="table-header">
-          <div className="header-row">
-            <div className="file-name-col">FILE NAME</div>
-            <div className="table-divider">|</div>
-            <div className="author-col">AUTHOR</div>
-            <div className="table-divider">|</div>
-            <div className="office-col">OFFICE</div>
-            <div className="table-divider">|</div>
-            <div className="date-col">UPLOAD DATE</div>
-            <div className="table-divider">|</div>
-            {activeTab === 'Uploaded by Me' ? (
-              <>
-                <div className="status-col">STATUS</div>
-                <div className="table-divider">|</div>
-                <div className="preview-col">PREVIEW</div>
-                <div className="table-divider">|</div>
-                <div className="action-col">DOWNLOAD</div>
-              </>
-            ) : (
-              <>
-                <div className="preview-col">PREVIEW</div>
-                <div className="table-divider">|</div>
-                <div className="action-col">DOWNLOAD</div>
-              </>
-            )}
+      {/* Content Section */}
+      <section className="archive-content">
+        {loading ? (
+          <div className="loading-state">
+            <div className="loading-spinner"></div>
+            <p>Loading archive items...</p>
           </div>
-        </div>
-
-        <div className="table-rows">
-          {filteredItems.map((item) => (
-            <React.Fragment key={item.id}>
-              <article className="table-row">
-                <div className="file-name">{item.fileName}</div>
-                <div className="table-divider">|</div>
-                <div className="author">{item.author}</div>
-                <div className="table-divider">|</div>
-                <div className="office">{item.office}</div>
-                <div className="table-divider">|</div>
-                <div className="upload-date">{item.modifiedDate}</div>
-                <div className="table-divider">|</div>
-                {activeTab === 'Uploaded by Me' && (
-                  <>
-                    <div 
-                      className={`status ${item.status} ${item.status === 'rejected' ? 'clickable' : ''}`}
-                      onClick={() => item.status === 'rejected' && toggleComments(item.id)}
-                    >
-                      {item.status}
+        ) : error ? (
+          <div className="error-state">
+            <p>{error}</p>
+          </div>
+        ) : filteredItems.length === 0 ? (
+          <div className="empty-state">
+            <p>No items found matching your criteria</p>
+          </div>
+        ) : layout === 'grid' ? (
+          <div className="archive-grid">
+            {filteredItems.map((item) => (
+              <div key={item.id} className="archive-card">
+                <div className="card-header">
+                  <h3 className="card-title">{item.fileName}</h3>
+                  <span className={`card-category ${item.category.toLowerCase()}`}>
+                    {item.category}
+                  </span>
+                </div>
+                
+                <div className="card-content">
+                  <div className="card-info">
+                    <div className="info-row">
+                      <span className="info-label">Author:</span>
+                      <span className="info-value">{item.author}</span>
                     </div>
-                    <div className="table-divider">|</div>
-                  </>
-                )}
-                <div className="preview">
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (item.downloadUrl) {
-                        window.open(item.downloadUrl, '_blank');
-                      }
-                    }}
-                    className="preview-link"
+                    <div className="info-row">
+                      <span className="info-label">Office:</span>
+                      <span className="info-value">{item.office}</span>
+                    </div>
+                    <div className="info-row">
+                      <span className="info-label">Date:</span>
+                      <span className="info-value">{item.modifiedDate}</span>
+                    </div>
+                    {activeTab === 'Uploaded by Me' && (
+                      <div className="info-row">
+                        <span className="info-label">Status:</span>
+                        <span className={`status-badge ${item.status}`}>
+                          {item.status}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="card-actions">
+                  <button 
+                    className="action-button preview"
+                    onClick={() => window.open(item.downloadUrl, '_blank')}
                   >
                     Preview
-                  </a>
-                </div>
-                <div className="table-divider">|</div>
-                <div className="download">
+                  </button>
                   <a
                     href={item.downloadUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="download-link"
+                    className="action-button download"
                   >
                     Download
                   </a>
                 </div>
-              </article>
-              {activeTab === 'Uploaded by Me' && item.status === 'rejected' && expandedFileId === item.id && (
-                <div className="comments-dropdown">
-                  <div className="comments-header">Rejection Comments</div>
-                  {item.comments && item.comments.length > 0 ? (
-                    item.comments.map((comment, index) => (
-                      <div key={index} className="comment-item">
-                        <div className="comment-author">
-                          {comment.author?.name || 'Unknown'}: 
-                        </div>
-                        <div className="comment-text">{comment.content}</div>
-                        <div className="comment-date">
-                          {new Date(comment.createdAt).toLocaleDateString()}
-                        </div>
+
+                {activeTab === 'Uploaded by Me' && item.status === 'rejected' && (
+                  <div className="comments-section">
+                    <button 
+                      className="comments-toggle"
+                      onClick={() => toggleComments(item.id)}
+                    >
+                      View Rejection Comments
+                    </button>
+                    {expandedFileId === item.id && (
+                      <div className="comments-content">
+                        {item.comments && item.comments.length > 0 ? (
+                          item.comments.map((comment, index) => (
+                            <div key={index} className="comment-item">
+                              <div className="comment-header">
+                                <span className="comment-author">
+                                  {comment.author?.name || 'Unknown'}
+                                </span>
+                                <span className="comment-date">
+                                  {new Date(comment.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p className="comment-text">{comment.content}</p>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="no-comments">No comments available</p>
+                        )}
                       </div>
-                    ))
-                  ) : (
-                    <div className="comment-item">No comments available</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <table className="archive-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Author</th>
+                <th>Office</th>
+                <th>Date</th>
+                {activeTab === 'Uploaded by Me' && <th>Status</th>}
+                <th className="actions-cell">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredItems.map((item) => (
+                <tr key={item.id}>
+                  <td className="name-cell">{item.fileName}</td>
+                  <td className="category-cell">
+                    <span className={`category-badge ${item.category.toLowerCase()}`}>
+                      {item.category}
+                    </span>
+                  </td>
+                  <td className="author-cell">{item.author}</td>
+                  <td className="office-cell">{item.office}</td>
+                  <td className="date-cell">{item.modifiedDate}</td>
+                  {activeTab === 'Uploaded by Me' && (
+                    <td className="status-cell">
+                      <div className="status-container">
+                        <span className={`status-badge ${item.status?.toLowerCase()}`}>
+                          {item.status}
+                        </span>
+                        {item.status?.toLowerCase() === 'rejected' && item.comments && (
+                          <button 
+                            className="comments-toggle"
+                            onClick={() => toggleComments(item.id)}
+                          >
+                            View Comments
+                          </button>
+                        )}
+                      </div>
+                      {expandedFileId === item.id && item.comments && (
+                        <div className="comments-content">
+                          {item.comments.map((comment, index) => (
+                            <div key={index} className="comment-item">
+                              <div className="comment-header">
+                                <span className="comment-author">
+                                  {comment.author?.name || 'Unknown'}
+                                </span>
+                                <span className="comment-date">
+                                  {new Date(comment.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p className="comment-text">{comment.content}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </td>
                   )}
-                </div>
-              )}
-            </React.Fragment>
-          ))}
-          {filteredItems.length === 0 && (
-            <p className="no-results">No archive items found.</p>
-          )}
-        </div>
+                  <td className="actions-cell">
+                    <div className="card-actions">
+                      <button 
+                        className="action-button preview"
+                        onClick={() => window.open(item.downloadUrl, '_blank')}
+                      >
+                        Preview
+                      </button>
+                      <a
+                        href={item.downloadUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="action-button download"
+                      >
+                        Download
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </section>
     </div>
   );

@@ -57,6 +57,9 @@ function Archive({ darkMode, userRole }) {
     pinned: true
   });
 
+  // Add userOffice state to store the admin's office
+  const [userOffice, setUserOffice] = useState('');
+
   // Set active tab from URL parameter on component mount
   useEffect(() => {
     const tabParam = searchParams.get('tab');
@@ -64,6 +67,29 @@ function Archive({ darkMode, userRole }) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
+
+  // Add useEffect to fetch user's office when component mounts
+  useEffect(() => {
+    const fetchUserOffice = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:5000/api/auth_cas/current', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.data.success) {
+          setUserOffice(response.data.data.office);
+        }
+      } catch (err) {
+        console.error('Error fetching user office:', err);
+      }
+    };
+
+    if (userRole === 'admin') {
+      fetchUserOffice();
+    }
+  }, [userRole]);
 
   // Fetch data based on active tab
   useEffect(() => {
@@ -213,6 +239,13 @@ function Archive({ darkMode, userRole }) {
     setExpandedFileId(expandedFileId === fileId ? null : fileId);
   };
 
+  // Helper function to check if user has permission to manage an item
+  const canManageItem = (itemOffice) => {
+    if (userRole === 'superadmin') return true;
+    if (userRole === 'admin') return itemOffice === userOffice;
+    return false;
+  };
+
   // Function to handle item deletion
   const handleDelete = async (id, category) => {
     try {
@@ -357,7 +390,7 @@ function Archive({ darkMode, userRole }) {
       const formData = new FormData();
       
       formData.append('title', announcementModal.title);
-      formData.append('office', announcementModal.office);
+      formData.append('office', userRole === 'superadmin' ? announcementModal.office : userOffice);
       formData.append('link', announcementModal.link);
       if (announcementModal.image) {
         formData.append('image', announcementModal.image);
@@ -417,13 +450,12 @@ function Archive({ darkMode, userRole }) {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      
       const response = await axios.post('http://localhost:5000/api/quicklinks', {
         title: linkModal.title,
-        office: linkModal.office,
+        office: userRole === 'superadmin' ? linkModal.office : userOffice,
         url: linkModal.url,
-        pinned: true, // Set pinned to true by default
-        approved: true // Set approved to true by default
+        pinned: true,
+        approved: true
       }, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -451,7 +483,7 @@ function Archive({ darkMode, userRole }) {
           title: '',
           office: '',
           url: '',
-          pinned: true // Reset to true by default
+          pinned: true
         });
       } else {
         alert('Failed to create link: ' + response.data.error);
@@ -605,7 +637,7 @@ function Archive({ darkMode, userRole }) {
       </div>
 
       {/* Add New Button */}
-      {activeTab !== 'All' && activeTab !== 'Events' && activeTab !== 'Uploaded by Me' && (
+      {(userRole === 'admin' || userRole === 'superadmin') && activeTab !== 'All' && activeTab !== 'Events' && activeTab !== 'Uploaded by Me' && (
         <div className="add-new-container">
           {activeTab === 'Links' ? (
             <button 
@@ -755,19 +787,21 @@ function Archive({ darkMode, userRole }) {
                 <div className="card-actions">
                   {item.category === 'Announcements' ? (
                     <>
-                      <button 
-                        className="action-button edit"
-                        onClick={() => setEditAnnouncementModal({
-                          show: true,
-                          id: item.id,
-                          title: item.fileName,
-                          office: item.office,
-                          link: item.downloadUrl,
-                          image: null
-                        })}
-                      >
-                        Edit
-                      </button>
+                      {canManageItem(item.office) && (
+                        <button 
+                          className="action-button edit"
+                          onClick={() => setEditAnnouncementModal({
+                            show: true,
+                            id: item.id,
+                            title: item.fileName,
+                            office: item.office,
+                            link: item.downloadUrl,
+                            image: null
+                          })}
+                        >
+                          Edit
+                        </button>
+                      )}
                       <button
                         className="action-button open-link"
                         onClick={() => window.open(item.downloadUrl, '_blank')}
@@ -778,19 +812,21 @@ function Archive({ darkMode, userRole }) {
                     </>
                   ) : item.category === 'Links' ? (
                     <>
-                      <button 
-                        className="action-button edit"
-                        onClick={() => setEditLinkModal({
-                          show: true,
-                          id: item.id,
-                          title: item.fileName,
-                          office: item.office,
-                          url: item.downloadUrl,
-                          pinned: item.pinned
-                        })}
-                      >
-                        Edit
-                      </button>
+                      {canManageItem(item.office) && (
+                        <button 
+                          className="action-button edit"
+                          onClick={() => setEditLinkModal({
+                            show: true,
+                            id: item.id,
+                            title: item.fileName,
+                            office: item.office,
+                            url: item.downloadUrl,
+                            pinned: item.pinned
+                          })}
+                        >
+                          Edit
+                        </button>
+                      )}
                       <button
                         className="action-button open-link"
                         onClick={() => window.open(item.downloadUrl, '_blank')}
@@ -817,17 +853,19 @@ function Archive({ darkMode, userRole }) {
                   </a>
                     </>
                   )}
-                  <button
-                    className="action-button delete"
-                    onClick={() => setDeleteModal({ 
-                      show: true, 
-                      itemId: item.id, 
-                      itemName: item.fileName,
-                      category: item.category 
-                    })}
-                  >
-                    <FaTrash />
-                  </button>
+                  {canManageItem(item.office) && (
+                    <button
+                      className="action-button delete"
+                      onClick={() => setDeleteModal({ 
+                        show: true, 
+                        itemId: item.id, 
+                        itemName: item.fileName,
+                        category: item.category 
+                      })}
+                    >
+                      <FaTrash />
+                    </button>
+                  )}
                 </div>
 
                 {activeTab === 'Uploaded by Me' && item.status === 'rejected' && (
@@ -927,19 +965,21 @@ function Archive({ darkMode, userRole }) {
                     <div className="card-actions">
                       {item.category === 'Announcements' ? (
                         <>
-                          <button 
-                            className="action-button edit"
-                            onClick={() => setEditAnnouncementModal({
-                              show: true,
-                              id: item.id,
-                              title: item.fileName,
-                              office: item.office,
-                              link: item.downloadUrl,
-                              image: null
-                            })}
-                          >
-                            Edit
-                          </button>
+                          {canManageItem(item.office) && (
+                            <button 
+                              className="action-button edit"
+                              onClick={() => setEditAnnouncementModal({
+                                show: true,
+                                id: item.id,
+                                title: item.fileName,
+                                office: item.office,
+                                link: item.downloadUrl,
+                                image: null
+                              })}
+                            >
+                              Edit
+                            </button>
+                          )}
                           <button
                             className="action-button open-link"
                             onClick={() => window.open(item.downloadUrl, '_blank')}
@@ -950,19 +990,21 @@ function Archive({ darkMode, userRole }) {
                         </>
                       ) : item.category === 'Links' ? (
                         <>
-                          <button 
-                            className="action-button edit"
-                            onClick={() => setEditLinkModal({
-                              show: true,
-                              id: item.id,
-                              title: item.fileName,
-                              office: item.office,
-                              url: item.downloadUrl,
-                              pinned: item.pinned
-                            })}
-                          >
-                            Edit
-                          </button>
+                          {canManageItem(item.office) && (
+                            <button 
+                              className="action-button edit"
+                              onClick={() => setEditLinkModal({
+                                show: true,
+                                id: item.id,
+                                title: item.fileName,
+                                office: item.office,
+                                url: item.downloadUrl,
+                                pinned: item.pinned
+                              })}
+                            >
+                              Edit
+                            </button>
+                          )}
                           <button
                             className="action-button open-link"
                             onClick={() => window.open(item.downloadUrl, '_blank')}
@@ -989,17 +1031,19 @@ function Archive({ darkMode, userRole }) {
                           </a>
                         </>
                       )}
-                      <button
-                        className="action-button delete"
-                        onClick={() => setDeleteModal({ 
-                          show: true, 
-                          itemId: item.id, 
-                          itemName: item.fileName,
-                          category: item.category 
-                        })}
-                      >
-                        <FaTrash />
-                      </button>
+                      {canManageItem(item.office) && (
+                        <button
+                          className="action-button delete"
+                          onClick={() => setDeleteModal({ 
+                            show: true, 
+                            itemId: item.id, 
+                            itemName: item.fileName,
+                            category: item.category 
+                          })}
+                        >
+                          <FaTrash />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

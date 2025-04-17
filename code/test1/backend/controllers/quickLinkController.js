@@ -29,8 +29,8 @@ exports.addQuickLink = async (req, res, next) => {
       title,
       url,
       office,
-      approved: false,
-      pinned: false
+      approved: true,
+      pinned: true
     });
 
     res.status(201).json({

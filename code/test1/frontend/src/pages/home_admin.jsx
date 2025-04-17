@@ -1311,15 +1311,31 @@ function HomeAdmin({ darkMode }) {
                 />
               </div>
               <div className="edit-form-group">
-                <label htmlFor="portal-icon">Icon:</label>
-                <input
-                  id="portal-icon"
-                  type="text"
-                  value={editPortalIcon}
-                  onChange={(e) => setEditPortalIcon(e.target.value)}
-                  maxLength={2}
-                />
-              </div>
+  <label htmlFor="portal-icon">Icon:</label>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    {/* Input field for custom icon */}
+    <input
+      id="portal-icon"
+      type="text"
+      value={editPortalIcon}
+      onChange={(e) => setEditPortalIcon(e.target.value)}
+      maxLength={2}
+      placeholder="Custom Icon"
+    />
+    {/* Dropdown for predefined icons */}
+    <select
+      value={editPortalIcon}
+      onChange={(e) => setEditPortalIcon(e.target.value)}
+      className="icon-dropdown"
+    >
+      <option value="🔗">🔗</option>
+      <option value="📁">📁</option>
+      <option value="🌐">🌐</option>
+      <option value="📄">📄</option>
+      <option value="⚙️">⚙️</option>
+    </select>
+  </div>
+</div>
               <div className="edit-buttons">
                 <button onClick={saveNewPortal} className="save-btn">Save</button>
                 <button onClick={cancelEditingPortal} className="cancel-btn">Cancel</button>
@@ -1349,15 +1365,31 @@ function HomeAdmin({ darkMode }) {
                 />
               </div>
               <div className="edit-form-group">
-                <label htmlFor="portal-icon">Icon:</label>
-                <input
-                  id="portal-icon"
-                  type="text"
-                  value={editPortalIcon}
-                  onChange={(e) => setEditPortalIcon(e.target.value)}
-                  maxLength={2}
-                />
-              </div>
+  <label htmlFor="portal-icon">Icon:</label>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    {/* Input field for custom icon */}
+    <input
+      id="portal-icon"
+      type="text"
+      value={editPortalIcon}
+      onChange={(e) => setEditPortalIcon(e.target.value)}
+      maxLength={2}
+      placeholder="Custom Icon"
+    />
+    {/* Dropdown for predefined icons */}
+    <select
+      value={editPortalIcon}
+      onChange={(e) => setEditPortalIcon(e.target.value)}
+      className="icon-dropdown"
+    >
+      <option value="🔗">🔗</option>
+      <option value="📁">📁</option>
+      <option value="🌐">🌐</option>
+      <option value="📄">📄</option>
+      <option value="⚙️">⚙️</option>
+    </select>
+  </div>
+</div>
               <div className="edit-buttons">
                 <button onClick={savePortal} className="save-btn">Save</button>
                 <button onClick={cancelEditingPortal} className="cancel-btn">Cancel</button>

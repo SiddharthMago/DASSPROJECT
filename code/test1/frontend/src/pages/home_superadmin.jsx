@@ -17,20 +17,20 @@ function HomeAdmin({ darkMode }) {
   const [announcementsError, setAnnouncementsError] = useState(null);
 
   const [successMessage, setSuccessMessage] = useState("");
-  
+
   // State for quick links
   const [quickLinks, setQuickLinks] = useState([]);
   const [quickLinksLoading, setQuickLinksLoading] = useState(true);
   const [quickLinksError, setQuickLinksError] = useState(null);
-  
+
   // State for portals
   const [portals, setPortals] = useState([]);
   const [portalsLoading, setPortalsLoading] = useState(true);
   const [portalsError, setPortalsError] = useState(null);
-  
+
   // State for tracking current announcement index
   const [currentAnnouncementIndex, setCurrentAnnouncementIndex] = useState(0);
-  
+
   // State for announcement editing
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState("");
@@ -38,7 +38,7 @@ function HomeAdmin({ darkMode }) {
   const [editLink, setEditLink] = useState("");
   const [editImage, setEditImage] = useState(null);
   const [editImageUrl, setEditImageUrl] = useState(null);
-  
+
   // State for adding new announcement
   const [isAddingAnnouncement, setIsAddingAnnouncement] = useState(false);
   const [newAnnouncementText, setNewAnnouncementText] = useState("");
@@ -46,14 +46,14 @@ function HomeAdmin({ darkMode }) {
   const [newAnnouncementLink, setNewAnnouncementLink] = useState("");
   const [newAnnouncementImage, setNewAnnouncementImage] = useState(null);
   const [newAnnouncementImageUrl, setNewAnnouncementImageUrl] = useState(null);
-  
+
   // Quick links editing state
   const [isEditingQuickLinks, setIsEditingQuickLinks] = useState(false);
   const [selectedQuickLinkIndex, setSelectedQuickLinkIndex] = useState(null);
   const [editQuickLinkTitle, setEditQuickLinkTitle] = useState("");
   const [editQuickLinkUrl, setEditQuickLinkUrl] = useState("");
   const [isAddingQuickLink, setIsAddingQuickLink] = useState(false);
-  
+
   // Portals editing state
   const [isEditingPortals, setIsEditingPortals] = useState(false);
   const [selectedPortalIndex, setSelectedPortalIndex] = useState(null);
@@ -83,17 +83,17 @@ function HomeAdmin({ darkMode }) {
         setAnnouncementsLoading(true);
         console.log('Fetching announcements...');
         const response = await fetch('/api/announcements/latest');
-        
+
         console.log('Response status:', response.status);
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           console.error('Error details:', errorData);
           throw new Error(`Failed to fetch announcements: ${response.status}`);
         }
-        
+
         const data = await response.json();
         console.log('Fetched announcements:', data);
-        
+
         // Transform the data to match your component's expected format
         const formattedAnnouncements = data.data.map(announcement => ({
           text: announcement.title,
@@ -102,7 +102,7 @@ function HomeAdmin({ darkMode }) {
           link: announcement.link,
           id: announcement._id
         }));
-        
+
         console.log('Formatted announcements:', formattedAnnouncements);
         setAnnouncements(formattedAnnouncements);
         setAnnouncementsLoading(false);
@@ -124,14 +124,14 @@ function HomeAdmin({ darkMode }) {
         console.log('Fetching quick links...');
         // For admin, fetch all quick links regardless of pinned status
         const response = await fetch('/api/quicklinks');
-        
+
         console.log('Quick links response status:', response.status);
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           console.error('Error details:', errorData);
           throw new Error(`Failed to fetch quick links: ${response.status}`);
         }
-        
+
         const data = await response.json();
         console.log('Fetched quick links:', data);
         setQuickLinks(data.data);
@@ -154,14 +154,14 @@ function HomeAdmin({ darkMode }) {
         console.log('Fetching portals...');
         // For admin, fetch all portals regardless of pinned status
         const response = await fetch('/api/portals');
-        
+
         console.log('Portals response status:', response.status);
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           console.error('Error details:', errorData);
           throw new Error(`Failed to fetch portals: ${response.status}`);
         }
-        
+
         const data = await response.json();
         console.log('Fetched portals:', data);
         setPortals(data.data);
@@ -179,7 +179,7 @@ function HomeAdmin({ darkMode }) {
   // Effect for rotating through announcements automatically
   useEffect(() => {
     if (announcements.length === 0 || isEditing) return;
-    
+
     const interval = setInterval(() => {
       setCurrentAnnouncementIndex((prevIndex) =>
         (prevIndex + 1) % announcements.length
@@ -192,7 +192,7 @@ function HomeAdmin({ darkMode }) {
   // Start editing announcement
   const startEditingAnnouncement = () => {
     if (announcements.length === 0) return;
-    
+
     setIsEditing(true);
     const currentAnnouncement = announcements[currentAnnouncementIndex];
     setEditText(currentAnnouncement.text);
@@ -208,22 +208,22 @@ function HomeAdmin({ darkMode }) {
       if (!authToken) {
         throw new Error('Authentication token not found. Please log in again.');
       }
-  
+
       const currentAnnouncement = announcements[currentAnnouncementIndex];
       const id = currentAnnouncement.id;
-      
+
       // Create FormData for the update
       const formData = new FormData();
       formData.append('title', editText);
       formData.append('office', editOffice); // Use the corrected office name
       formData.append('link', editLink || '');
       formData.append('approved', 'true');
-      
+
       // If a new image was selected, append it
       if (editImage) {
         formData.append('image', editImage);
       }
-  
+
       // Make API call to update the announcement
       const response = await fetch(`/api/announcements/${id}`, {
         method: 'PUT',
@@ -232,14 +232,14 @@ function HomeAdmin({ darkMode }) {
         },
         body: formData
       });
-  
+
       const responseData = await response.json();
       console.log('Server response:', responseData);
-  
+
       if (!response.ok) {
         throw new Error(responseData.error || 'Failed to update announcement');
       }
-  
+
       // Update local state with our values
       const updatedAnnouncements = [...announcements];
       updatedAnnouncements[currentAnnouncementIndex] = {
@@ -250,10 +250,10 @@ function HomeAdmin({ darkMode }) {
         imageUrl: responseData.data.image || currentAnnouncement.imageUrl,
         id: id
       };
-      
+
       setAnnouncements(updatedAnnouncements);
       setIsEditing(false);
-      
+
       setSuccessMessage("Announcement updated successfully");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
@@ -293,11 +293,11 @@ function HomeAdmin({ darkMode }) {
         backgroundPosition: 'center'
       };
     }
-    
+
     // Otherwise, use the office logo
     const officeName = announcement.office;
     const logoUrl = officeLogos[officeName];
-    
+
     if (logoUrl) {
       console.log('Using office logo for', officeName, logoUrl);
       return {
@@ -307,7 +307,7 @@ function HomeAdmin({ darkMode }) {
         backgroundRepeat: 'no-repeat'
       };
     }
-    
+
     // Fallback - use a class-based background
     console.log('Using class-based background for', officeName);
     return {};
@@ -325,11 +325,13 @@ function HomeAdmin({ darkMode }) {
 
   // Function to save edited quick link
   const saveQuickLink = async () => {
+    setIsEditingQuickLinks(false);
+
     if (selectedQuickLinkIndex === null) return;
-    
+
     try {
       const quickLink = quickLinks[selectedQuickLinkIndex];
-      
+
       // Make API call to update the quick link
       const response = await fetch(`/api/quicklinks/${quickLink._id}`, {
         method: 'PUT',
@@ -342,11 +344,11 @@ function HomeAdmin({ darkMode }) {
           url: editQuickLinkUrl
         })
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to update quick link');
       }
-      
+
       // Update local state
       const updatedQuickLinks = [...quickLinks];
       updatedQuickLinks[selectedQuickLinkIndex] = {
@@ -354,11 +356,11 @@ function HomeAdmin({ darkMode }) {
         title: editQuickLinkTitle,
         url: editQuickLinkUrl
       };
-      
+
       setQuickLinks(updatedQuickLinks);
       setIsEditingQuickLinks(false);
       setSelectedQuickLinkIndex(null);
-      
+
       // Refetch to get updated data
       const refreshResponse = await fetch('/api/quicklinks');
       if (refreshResponse.ok) {
@@ -385,7 +387,7 @@ function HomeAdmin({ darkMode }) {
       alert("Title and URL are required");
       return;
     }
-    
+
     try {
       const response = await fetch('/api/quicklinks', {
         method: 'POST',
@@ -399,13 +401,13 @@ function HomeAdmin({ darkMode }) {
           office: 'Administration',
         })
       });
-      
+
       const responseBody = await response.json();
       console.log('QuickLink Creation Response:', {
         status: response.status,
         body: responseBody
       });
-      
+
       if (!response.ok) {
         // Handle token expiration
         if (response.status === 401) {
@@ -414,27 +416,27 @@ function HomeAdmin({ darkMode }) {
         }
         throw new Error(responseBody.error || 'Failed to create quick link');
       }
-      
+
       // Show success message for approval process
       setSuccessMessage("Quick link sent for approval");
-      
+
       // Reset form state
       setIsAddingQuickLink(false);
       setEditQuickLinkTitle("");
       setEditQuickLinkUrl("");
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => {
         setSuccessMessage("");
       }, 3000);
-      
+
       // Refetch to get updated data
       const refreshResponse = await fetch('/api/quicklinks', {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
       });
-      
+
       if (refreshResponse.ok) {
         const data = await refreshResponse.json();
         // Only show approved quick links to regular users
@@ -458,7 +460,7 @@ function HomeAdmin({ darkMode }) {
   // Function to remove a quick link
   const removeQuickLink = async (index) => {
     const quickLink = quickLinks[index];
-    
+
     if (window.confirm(`Are you sure you want to delete "${quickLink.title}"?`)) {
       try {
         // Make API call to delete the quick link
@@ -468,14 +470,17 @@ function HomeAdmin({ darkMode }) {
             'Authorization': `Bearer ${authToken}` // Add auth token
           }
         });
-        
+
         if (!response.ok) {
           throw new Error('Failed to delete quick link');
         }
-        
+
         // Update local state
         const updatedQuickLinks = quickLinks.filter((_, i) => i !== index);
         setQuickLinks(updatedQuickLinks);
+
+        setSuccessMessage("Quick link deleted successfully");
+        setTimeout(() => setSuccessMessage(""), 3000);
       } catch (err) {
         console.error('Error deleting quick link:', err);
         alert('Failed to delete quick link. Please try again.');
@@ -486,33 +491,38 @@ function HomeAdmin({ darkMode }) {
   // Function to toggle the pinned status of a quick link
   const toggleQuickLinkPin = async (index) => {
     const quickLink = quickLinks[index];
-    
+    const confirmMsg = quickLink.pinned
+      ? `Are you sure you want to unpin "${quickLink.title}"?`
+      : `Are you sure you want to pin "${quickLink.title}"?`;
+
+    if (!window.confirm(confirmMsg)) return;
+
     try {
-      // Make API call to toggle pin status
       const response = await fetch(`/api/quicklinks/${quickLink._id}/pin`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${authToken}` // Add auth token
+          'Authorization': `Bearer ${authToken}`
         }
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to update pin status');
-      }
-      
-      // Update local state
+
+      if (!response.ok) throw new Error('Failed to update pin status');
+
       const updatedQuickLinks = [...quickLinks];
       updatedQuickLinks[index] = {
         ...quickLink,
         pinned: !quickLink.pinned
       };
-      
       setQuickLinks(updatedQuickLinks);
+
+      const actionType = quickLink.pinned ? 'unpinned' : 'pinned';
+      setSuccessMessage(`Quick link ${actionType} successfully`);
+      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error('Error toggling pin status:', err);
       alert('Failed to update pin status. Please try again.');
     }
   };
+
 
   // Portal functions
   const startEditingPortal = (index) => {
@@ -527,10 +537,10 @@ function HomeAdmin({ darkMode }) {
 
   const savePortal = async () => {
     if (selectedPortalIndex === null) return;
-    
+
     try {
       const portal = portals[selectedPortalIndex];
-      
+
       // Make API call to update the portal
       const response = await fetch(`/api/portals/${portal._id}`, {
         method: 'PUT',
@@ -544,11 +554,11 @@ function HomeAdmin({ darkMode }) {
           icon: editPortalIcon
         })
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to update portal');
       }
-      
+
       // Update local state
       const updatedPortals = [...portals];
       updatedPortals[selectedPortalIndex] = {
@@ -557,11 +567,14 @@ function HomeAdmin({ darkMode }) {
         url: editPortalUrl,
         icon: editPortalIcon
       };
-      
+
       setPortals(updatedPortals);
       setIsEditingPortals(false);
       setSelectedPortalIndex(null);
-      
+
+      setSuccessMessage("Portal updated successfully");
+      setTimeout(() => setSuccessMessage(""), 3000);
+
       // Refetch to get updated data
       const refreshResponse = await fetch('/api/portals');
       if (refreshResponse.ok) {
@@ -587,7 +600,7 @@ function HomeAdmin({ darkMode }) {
       alert("Title and URL are required");
       return;
     }
-    
+
     try {
       // Make API call to create a new portal
       const response = await fetch('/api/portals', {
@@ -604,25 +617,25 @@ function HomeAdmin({ darkMode }) {
           pinned: false    // Explicitly set to unpinned
         })
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to create portal');
       }
-      
+
       // Show success message for approval process
       setSuccessMessage("Portal sent for approval");
-      
+
       // Reset form state
       setIsAddingPortal(false);
       setEditPortalTitle("");
       setEditPortalUrl("");
       setEditPortalIcon("🔗");
-      
+
       // Clear success message after 3 seconds
       setTimeout(() => {
         setSuccessMessage("");
       }, 3000);
-      
+
       // Refetch to get updated data
       const refreshResponse = await fetch('/api/portals');
       if (refreshResponse.ok) {
@@ -646,7 +659,7 @@ function HomeAdmin({ darkMode }) {
 
   const removePortal = async (index) => {
     const portal = portals[index];
-    
+
     if (window.confirm(`Are you sure you want to delete "${portal.title}"?`)) {
       try {
         // Make API call to delete the portal
@@ -656,14 +669,17 @@ function HomeAdmin({ darkMode }) {
             'Authorization': `Bearer ${authToken}` // Add auth token
           }
         });
-        
+
         if (!response.ok) {
           throw new Error('Failed to delete portal');
         }
-        
+
         // Update local state
         const updatedPortals = portals.filter((_, i) => i !== index);
         setPortals(updatedPortals);
+
+        setSuccessMessage("Portal deleted successfully");
+        setTimeout(() => setSuccessMessage(""), 3000);
       } catch (err) {
         console.error('Error deleting portal:', err);
         alert('Failed to delete portal. Please try again.');
@@ -673,34 +689,38 @@ function HomeAdmin({ darkMode }) {
 
   const togglePortalPin = async (index) => {
     const portal = portals[index];
-    
+    const confirmMsg = portal.pinned
+      ? `Are you sure you want to unpin "${portal.title}"?`
+      : `Are you sure you want to pin "${portal.title}"?`;
+
+    if (!window.confirm(confirmMsg)) return;
+
     try {
-      // Make API call to toggle pin status
       const response = await fetch(`/api/portals/${portal._id}/pin`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${authToken}` // Add auth token
+          'Authorization': `Bearer ${authToken}`
         }
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to update pin status');
-      }
-      
-      // Update local state
+
+      if (!response.ok) throw new Error('Failed to update pin status');
+
       const updatedPortals = [...portals];
       updatedPortals[index] = {
         ...portal,
         pinned: !portal.pinned
       };
-      
       setPortals(updatedPortals);
+
+      const actionType = portal.pinned ? 'unpinned' : 'pinned';
+      setSuccessMessage(`Portal ${actionType} successfully`);
+      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error('Error toggling pin status:', err);
       alert('Failed to update pin status. Please try again.');
     }
   };
-  
+
   const location = useLocation();
   useEffect(() => {
     if (location.hash) {
@@ -710,32 +730,32 @@ function HomeAdmin({ darkMode }) {
       }
     }
   }, [location]);
-  
+
   // Function to render links with appropriate handling for external URLs
   const renderLinkComponent = (item, index, className, isEditing, onEdit, onPin, onDelete) => {
     const isExternalLink = item.url && (item.url.startsWith('http://') || item.url.startsWith('https://'));
-    
+
     if (isEditing) {
       return (
         <div key={index} className={`${className}-edit-wrapper`}>
           <div className={`${className}-title`}>{item.title}</div>
           <div className={`${className}-actions`}>
-            <button 
-              className="admin-edit-btn" 
+            <button
+              className="admin-edit-btn"
               onClick={() => onEdit(index)}
               title="Edit"
             >
               ✏️
             </button>
-            <button 
-              className="admin-pin-btn" 
+            <button
+              className="admin-pin-btn"
               onClick={() => onPin(index)}
               title={item.pinned ? "Unpin" : "Pin"}
             >
               {item.pinned ? "📌" : "📍"}
             </button>
-            <button 
-              className="admin-delete-btn" 
+            <button
+              className="admin-delete-btn"
               onClick={() => onDelete(index)}
               title="Delete"
             >
@@ -746,10 +766,10 @@ function HomeAdmin({ darkMode }) {
       );
     } else if (isExternalLink) {
       return (
-        <a 
-          key={index} 
-          href={item.url} 
-          target="_blank" 
+        <a
+          key={index}
+          href={item.url}
+          target="_blank"
           rel="noopener noreferrer"
           className={className}
         >
@@ -766,11 +786,11 @@ function HomeAdmin({ darkMode }) {
       );
     }
   };
-  
+
   // Function to delete an announcement
   const deleteAnnouncement = async (index) => {
     const announcement = announcements[index];
-    
+
     if (window.confirm(`Are you sure you want to delete this announcement?`)) {
       try {
         const response = await fetch(`/api/announcements/${announcement.id}`, {
@@ -787,12 +807,12 @@ function HomeAdmin({ darkMode }) {
         // Update local state
         const updatedAnnouncements = announcements.filter((_, i) => i !== index);
         setAnnouncements(updatedAnnouncements);
-        
+
         // Adjust current index if needed
         if (currentAnnouncementIndex >= updatedAnnouncements.length) {
           setCurrentAnnouncementIndex(Math.max(0, updatedAnnouncements.length - 1));
         }
-        
+
         setSuccessMessage("Announcement deleted successfully");
         setTimeout(() => setSuccessMessage(""), 3000);
       } catch (err) {
@@ -849,15 +869,15 @@ function HomeAdmin({ darkMode }) {
         imageUrl: responseData.data.image,
         id: responseData.data._id
       }];
-      
+
       setAnnouncements(updatedAnnouncements);
       setIsAddingAnnouncement(false);
       setNewAnnouncementText("");
-      setNewAnnouncementOffice("Admissions Office");
+      setNewAnnouncementOffice("");
       setNewAnnouncementLink("");
       setNewAnnouncementImage(null);
       setNewAnnouncementImageUrl(null);
-      
+
       setSuccessMessage("Announcement added successfully");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
@@ -907,6 +927,7 @@ function HomeAdmin({ darkMode }) {
                     onChange={(e) => setEditOffice(e.target.value)}
                     className="office-select"
                   >
+                    <option value="Select Office">Select Office</option>
                     <option value="Admissions Office">Admissions Office</option>
                     <option value="Academic Office">Academic Office</option>
                     <option value="Library Office">Library Office</option>
@@ -1176,7 +1197,7 @@ function HomeAdmin({ darkMode }) {
                 className={`office-logo ${darkMode ? 'invert' : ''}`}
               />
               <h3>Academics</h3>
-            </div>  
+            </div>
             <div className="office-links-grid">
               <Link to="/superadmin/offices/Admissions Office">Admissions Office</Link>
               <Link to="/superadmin/offices/Library Office">Library Office</Link>
@@ -1244,7 +1265,7 @@ function HomeAdmin({ darkMode }) {
         </div>
       </div>
       {successMessage && (
-        <div 
+        <div
           style={{
             position: 'fixed',
             top: '20px',
@@ -1276,20 +1297,20 @@ function HomeAdmin({ darkMode }) {
               ✏️
             </button>
           </div>
-          
+
           {isEditingPortals && !isAddingPortal && selectedPortalIndex === null && (
             <div className="portal-edit-panel">
               <div className="edit-actions">
                 <button onClick={startAddingPortal} className="add-btn">
                   Add New Portal
                 </button>
-                <button onClick={cancelEditingPortal} className="cancel-btn">
+                {/* <button onClick={cancelEditingPortal} className="cancel-btn">
                   Done Editing
-                </button>
+                </button> */}
               </div>
             </div>
           )}
-          
+
           {isEditingPortals && isAddingPortal && (
             <div className="portal-edit-form">
               <h3>Add New Portal</h3>
@@ -1312,22 +1333,38 @@ function HomeAdmin({ darkMode }) {
                 />
               </div>
               <div className="edit-form-group">
-                <label htmlFor="portal-icon">Icon:</label>
-                <input
-                  id="portal-icon"
-                  type="text"
-                  value={editPortalIcon}
-                  onChange={(e) => setEditPortalIcon(e.target.value)}
-                  maxLength={2}
-                />
-              </div>
+  <label htmlFor="portal-icon">Icon:</label>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    {/* Input field for custom icon */}
+    <input
+      id="portal-icon"
+      type="text"
+      value={editPortalIcon}
+      onChange={(e) => setEditPortalIcon(e.target.value)}
+      maxLength={2}
+      placeholder="Custom Icon"
+    />
+    {/* Dropdown for predefined icons */}
+    <select
+      value={editPortalIcon}
+      onChange={(e) => setEditPortalIcon(e.target.value)}
+      className="icon-dropdown"
+    >
+      <option value="🔗">🔗</option>
+      <option value="📁">📁</option>
+      <option value="🌐">🌐</option>
+      <option value="📄">📄</option>
+      <option value="⚙️">⚙️</option>
+    </select>
+  </div>
+</div>
               <div className="edit-buttons">
                 <button onClick={saveNewPortal} className="save-btn">Save</button>
                 <button onClick={cancelEditingPortal} className="cancel-btn">Cancel</button>
               </div>
             </div>
           )}
-          
+
           {isEditingPortals && selectedPortalIndex !== null && (
             <div className="portal-edit-form">
               <h3>Edit Portal</h3>
@@ -1351,13 +1388,29 @@ function HomeAdmin({ darkMode }) {
               </div>
               <div className="edit-form-group">
                 <label htmlFor="portal-icon">Icon:</label>
-                <input
-                  id="portal-icon"
-                  type="text"
-                  value={editPortalIcon}
-                  onChange={(e) => setEditPortalIcon(e.target.value)}
-                  maxLength={2}
-                />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {/* Input field for custom icon */}
+                  <input
+                    id="portal-icon"
+                    type="text"
+                    value={editPortalIcon}
+                    onChange={(e) => setEditPortalIcon(e.target.value)}
+                    maxLength={2}
+                    placeholder="Custom Icon"
+                  />
+                  {/* Dropdown for predefined icons */}
+                  <select
+                    value={editPortalIcon}
+                    onChange={(e) => setEditPortalIcon(e.target.value)}
+                    className="icon-dropdown"
+                  >
+                    <option value="🔗">🔗 </option>
+                    <option value="📁">📁 </option>
+                    <option value="🌐">🌐 </option>
+                    <option value="📄">📄 </option>
+                    <option value="⚙️">⚙️ </option>
+                  </select>
+                </div>
               </div>
               <div className="edit-buttons">
                 <button onClick={savePortal} className="save-btn">Save</button>
@@ -1365,28 +1418,28 @@ function HomeAdmin({ darkMode }) {
               </div>
             </div>
           )}
-          
+
           {portalsLoading ? (
             <div className="portals-loading">Loading portals...</div>
           ) : portalsError ? (
             <div className="portals-error">{portalsError}</div>
           ) : portals.length > 0 ? (
             <div className="iiit-portals-grid">
-              {isEditingPortals ? 
+              {isEditingPortals ?
                 portals.map((portal, index) => (
                   <div key={index} className="portal-item-admin">
                     {renderLinkComponent(
-                      portal, 
-                      index, 
-                      "portal-link", 
-                      true, 
-                      startEditingPortal, 
-                      togglePortalPin, 
+                      portal,
+                      index,
+                      "portal-link",
+                      true,
+                      startEditingPortal,
+                      togglePortalPin,
                       removePortal
                     )}
                   </div>
                 )) :
-                portals.map((portal, index) => 
+                portals.map((portal, index) =>
                   renderLinkComponent(portal, index, "portal-link", false)
                 )
               }
@@ -1410,20 +1463,20 @@ function HomeAdmin({ darkMode }) {
               ✏️
             </button>
           </div>
-          
+
           {isEditingQuickLinks && !isAddingQuickLink && selectedQuickLinkIndex === null && (
             <div className="quick-links-edit-panel">
               <div className="edit-actions">
                 <button onClick={startAddingQuickLink} className="add-btn">
                   Add New Link
                 </button>
-                <button onClick={cancelEditingQuickLink} className="cancel-btn">
+                {/* <button onClick={cancelEditingQuickLink} className="cancel-btn">
                   Done Editing
-                </button>
+                </button> */}
               </div>
             </div>
           )}
-          
+
           {isEditingQuickLinks && isAddingQuickLink && (
             <div className="quick-link-edit-form">
               <h3>Add New Quick Link</h3>
@@ -1451,7 +1504,7 @@ function HomeAdmin({ darkMode }) {
               </div>
             </div>
           )}
-          
+
           {isEditingQuickLinks && selectedQuickLinkIndex !== null && (
             <div className="quick-link-edit-form">
               <h3>Edit Quick Link</h3>
@@ -1479,28 +1532,28 @@ function HomeAdmin({ darkMode }) {
               </div>
             </div>
           )}
-          
+
           {quickLinksLoading ? (
             <div className="quick-links-loading">Loading quick links...</div>
           ) : quickLinksError ? (
             <div className="quick-links-error">{quickLinksError}</div>
           ) : quickLinks.length > 0 ? (
             <div className="quick-links-grid">
-              {isEditingQuickLinks ? 
+              {isEditingQuickLinks ?
                 quickLinks.map((link, index) => (
                   <div key={index} className="quick-link-item-admin">
                     {renderLinkComponent(
-                      link, 
-                      index, 
-                      "quick-link", 
-                      true, 
-                      startEditingQuickLink, 
-                      toggleQuickLinkPin, 
+                      link,
+                      index,
+                      "quick-link",
+                      true,
+                      startEditingQuickLink,
+                      toggleQuickLinkPin,
                       removeQuickLink
                     )}
                   </div>
                 )) :
-                quickLinks.map((link, index) => 
+                quickLinks.map((link, index) =>
                   renderLinkComponent(link, index, "quick-link", false)
                 )
               }

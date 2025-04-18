@@ -22,6 +22,8 @@ function HomeAdmin({ darkMode }) {
   const [quickLinks, setQuickLinks] = useState([]);
   const [quickLinksLoading, setQuickLinksLoading] = useState(true);
   const [quickLinksError, setQuickLinksError] = useState(null);
+  const [editQuickLinkOffice, setEditQuickLinkOffice] = useState("None");
+
 
   // State for portals
   const [portals, setPortals] = useState([]);
@@ -196,7 +198,7 @@ function HomeAdmin({ darkMode }) {
     setIsEditing(true);
     const currentAnnouncement = announcements[currentAnnouncementIndex];
     setEditText(currentAnnouncement.text);
-    setEditOffice(currentAnnouncement.office);
+    setEditOffice(currentAnnouncement.office); // Set the office for the dropdown
     setEditImageUrl(currentAnnouncement.imageUrl);
     setEditLink(currentAnnouncement.link || '');
     setEditImage(null);
@@ -286,28 +288,33 @@ function HomeAdmin({ darkMode }) {
   const getAnnouncementBackground = (announcement) => {
     // If there's a valid imageUrl, use it
     if (announcement.imageUrl && !announcement.imageUrl.includes('undefined')) {
-      console.log('Using image URL:', announcement.imageUrl);
+      const baseUrl = import.meta.env.VITE_CLIENT_URL || 'http://localhost:5000'; // Use Vite's environment variable or fallback to localhost
+      const fullImageUrl = announcement.imageUrl.startsWith('http')
+        ? announcement.imageUrl // If it's already a full URL, use it as is
+        : `${baseUrl}${announcement.imageUrl}`; // Prepend the base URL for relative paths
+  
+      console.log('Using image URL:', fullImageUrl);
       return {
-        backgroundImage: `url(${announcement.imageUrl})`,
+        backgroundImage: `url(${fullImageUrl})`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center'
+        backgroundPosition: 'center',
       };
     }
-
+  
     // Otherwise, use the office logo
     const officeName = announcement.office;
     const logoUrl = officeLogos[officeName];
-
+  
     if (logoUrl) {
       console.log('Using office logo for', officeName, logoUrl);
       return {
         backgroundImage: `url(${logoUrl})`,
         backgroundSize: 'contain',
         backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'no-repeat',
       };
     }
-
+  
     // Fallback - use a class-based background
     console.log('Using class-based background for', officeName);
     return {};
@@ -325,48 +332,43 @@ function HomeAdmin({ darkMode }) {
 
   // Function to save edited quick link
   const saveQuickLink = async () => {
-    setIsEditingQuickLinks(false);
-
     if (selectedQuickLinkIndex === null) return;
 
     try {
       const quickLink = quickLinks[selectedQuickLinkIndex];
 
-      // Make API call to update the quick link
+      // API call to update the quick link
       const response = await fetch(`/api/quicklinks/${quickLink._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}` // Add auth token
+          'Authorization': `Bearer ${authToken}`,
         },
         body: JSON.stringify({
           title: editQuickLinkTitle,
-          url: editQuickLinkUrl
-        })
+          url: editQuickLinkUrl,
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update quick link');
-      }
+      if (!response.ok) throw new Error('Failed to update quick link');
 
       // Update local state
       const updatedQuickLinks = [...quickLinks];
       updatedQuickLinks[selectedQuickLinkIndex] = {
         ...quickLink,
         title: editQuickLinkTitle,
-        url: editQuickLinkUrl
+        url: editQuickLinkUrl,
       };
 
       setQuickLinks(updatedQuickLinks);
+
+      setSuccessMessage("Quick link updated successfully");
+
+      // Automatically close the edit view
       setIsEditingQuickLinks(false);
       setSelectedQuickLinkIndex(null);
 
-      // Refetch to get updated data
-      const refreshResponse = await fetch('/api/quicklinks');
-      if (refreshResponse.ok) {
-        const data = await refreshResponse.json();
-        setQuickLinks(data.data);
-      }
+      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error('Error updating quick link:', err);
       alert('Failed to update quick link. Please try again.');
@@ -398,7 +400,7 @@ function HomeAdmin({ darkMode }) {
         body: JSON.stringify({
           title: editQuickLinkTitle.trim(),
           url: editQuickLinkUrl.trim(),
-          office: 'Administration',
+          office: editQuickLinkOffice, // Include the selected office
         })
       });
 
@@ -424,6 +426,7 @@ function HomeAdmin({ darkMode }) {
       setIsAddingQuickLink(false);
       setEditQuickLinkTitle("");
       setEditQuickLinkUrl("");
+      setEditQuickLinkOffice("None");
 
       // Clear success message after 3 seconds
       setTimeout(() => {
@@ -463,23 +466,26 @@ function HomeAdmin({ darkMode }) {
 
     if (window.confirm(`Are you sure you want to delete "${quickLink.title}"?`)) {
       try {
-        // Make API call to delete the quick link
+        // API call to delete the quick link
         const response = await fetch(`/api/quicklinks/${quickLink._id}`, {
           method: 'DELETE',
           headers: {
-            'Authorization': `Bearer ${authToken}` // Add auth token
-          }
+            'Authorization': `Bearer ${authToken}`,
+          },
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to delete quick link');
-        }
+        if (!response.ok) throw new Error('Failed to delete quick link');
 
         // Update local state
         const updatedQuickLinks = quickLinks.filter((_, i) => i !== index);
         setQuickLinks(updatedQuickLinks);
 
         setSuccessMessage("Quick link deleted successfully");
+
+        // Automatically close the edit view
+        setIsEditingQuickLinks(false);
+        setSelectedQuickLinkIndex(null);
+
         setTimeout(() => setSuccessMessage(""), 3000);
       } catch (err) {
         console.error('Error deleting quick link:', err);
@@ -498,24 +504,33 @@ function HomeAdmin({ darkMode }) {
     if (!window.confirm(confirmMsg)) return;
 
     try {
+      // API call to toggle the pin status
       const response = await fetch(`/api/quicklinks/${quickLink._id}/pin`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ pinned: !quickLink.pinned }), // Toggle the pinned status
       });
 
       if (!response.ok) throw new Error('Failed to update pin status');
 
-      const updatedQuickLinks = [...quickLinks];
-      updatedQuickLinks[index] = {
-        ...quickLink,
-        pinned: !quickLink.pinned
-      };
-      setQuickLinks(updatedQuickLinks);
+      // Update local state
+      const updatedQuickLinks = quickLinks.map((link, i) =>
+        i === index ? { ...link, pinned: !link.pinned } : link
+      );
+
+      // Filter only pinned quick links for display
+      setQuickLinks(updatedQuickLinks.filter(link => link.pinned));
 
       const actionType = quickLink.pinned ? 'unpinned' : 'pinned';
       setSuccessMessage(`Quick link ${actionType} successfully`);
+
+      // Automatically close the edit view
+      setIsEditingQuickLinks(false);
+      setSelectedQuickLinkIndex(null);
+
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error('Error toggling pin status:', err);
@@ -923,11 +938,11 @@ function HomeAdmin({ darkMode }) {
                   <label htmlFor="office-select">Office:</label>
                   <select
                     id="office-select"
-                    value={editOffice}
-                    onChange={(e) => setEditOffice(e.target.value)}
+                    value={editOffice} // Bind to the editOffice state
+                    onChange={(e) => setEditOffice(e.target.value)} // Update the state on change
                     className="office-select"
                   >
-                    <option value="Select Office">Select Office</option>
+                    <option value="None">Select Office</option>
                     <option value="Admissions Office">Admissions Office</option>
                     <option value="Academic Office">Academic Office</option>
                     <option value="Library Office">Library Office</option>
@@ -939,7 +954,7 @@ function HomeAdmin({ darkMode }) {
                     <option value="Faculty Portal">Faculty Portal</option>
                     <option value="Outreach Office">Outreach Office</option>
                     <option value="R&D Office">R&D Office</option>
-                    <option value="Placements Cell">Placement Cell</option>
+                    <option value="Placements Cell">Placements Cell</option>
                     <option value="Statistical Cell">Statistical Cell</option>
                     <option value="General Administration">General Administration</option>
                     <option value="Accounts Office">Accounts Office</option>
@@ -1016,6 +1031,7 @@ function HomeAdmin({ darkMode }) {
                     onChange={(e) => setNewAnnouncementOffice(e.target.value)}
                     className="office-select"
                   >
+                    <option value="None">None</option>
                     <option value="Admissions Office">Admissions Office</option>
                     <option value="Academic Office">Academic Office</option>
                     <option value="Library Office">Library Office</option>
@@ -1333,31 +1349,31 @@ function HomeAdmin({ darkMode }) {
                 />
               </div>
               <div className="edit-form-group">
-  <label htmlFor="portal-icon">Icon:</label>
-  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-    {/* Input field for custom icon */}
-    <input
-      id="portal-icon"
-      type="text"
-      value={editPortalIcon}
-      onChange={(e) => setEditPortalIcon(e.target.value)}
-      maxLength={2}
-      placeholder="Custom Icon"
-    />
-    {/* Dropdown for predefined icons */}
-    <select
-      value={editPortalIcon}
-      onChange={(e) => setEditPortalIcon(e.target.value)}
-      className="icon-dropdown"
-    >
-      <option value="🔗">🔗</option>
-      <option value="📁">📁</option>
-      <option value="🌐">🌐</option>
-      <option value="📄">📄</option>
-      <option value="⚙️">⚙️</option>
-    </select>
-  </div>
-</div>
+                <label htmlFor="portal-icon">Icon:</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {/* Input field for custom icon */}
+                  <input
+                    id="portal-icon"
+                    type="text"
+                    value={editPortalIcon}
+                    onChange={(e) => setEditPortalIcon(e.target.value)}
+                    maxLength={2}
+                    placeholder="Custom Icon"
+                  />
+                  {/* Dropdown for predefined icons */}
+                  <select
+                    value={editPortalIcon}
+                    onChange={(e) => setEditPortalIcon(e.target.value)}
+                    className="icon-dropdown"
+                  >
+                    <option value="🔗">🔗</option>
+                    <option value="📁">📁</option>
+                    <option value="🌐">🌐</option>
+                    <option value="📄">📄</option>
+                    <option value="⚙️">⚙️</option>
+                  </select>
+                </div>
+              </div>
               <div className="edit-buttons">
                 <button onClick={saveNewPortal} className="save-btn">Save</button>
                 <button onClick={cancelEditingPortal} className="cancel-btn">Cancel</button>
@@ -1498,6 +1514,36 @@ function HomeAdmin({ darkMode }) {
                   onChange={(e) => setEditQuickLinkUrl(e.target.value)}
                 />
               </div>
+              <div className="edit-form-group">
+                <label htmlFor="quick-link-office">Office:</label>
+                <select
+                  id="quick-link-office"
+                  value={editQuickLinkOffice}
+                  onChange={(e) => setEditQuickLinkOffice(e.target.value)}
+                  className="office-select"
+                >
+                  <option value="None">None</option>
+                  <option value="Admissions Office">Admissions Office</option>
+                  <option value="Academic Office">Academic Office</option>
+                  <option value="Library Office">Library Office</option>
+                  <option value="Examinations Office">Examinations Office</option>
+                  <option value="Student Affairs Office">Student Affairs Office</option>
+                  <option value="Hostel Office">Hostel Office</option>
+                  <option value="Mess Office">Mess Office</option>
+                  <option value="Alumni Office">Alumni Office</option>
+                  <option value="Faculty Portal">Faculty Portal</option>
+                  <option value="Outreach Office">Outreach Office</option>
+                  <option value="R&D Office">R&D Office</option>
+                  <option value="Placements Cell">Placements Cell</option>
+                  <option value="Statistical Cell">Statistical Cell</option>
+                  <option value="General Administration">General Administration</option>
+                  <option value="Accounts Office">Accounts Office</option>
+                  <option value="IT Services Offices">IT Services Offices</option>
+                  <option value="Communication Office">Communication Office</option>
+                  <option value="Engineering Office">Engineering Office</option>
+                  <option value="HR & Personnel">HR & Personnel</option>
+                </select>
+              </div>
               <div className="edit-buttons">
                 <button onClick={saveNewQuickLink} className="save-btn">Save</button>
                 <button onClick={cancelEditingQuickLink} className="cancel-btn">Cancel</button>
@@ -1539,8 +1585,8 @@ function HomeAdmin({ darkMode }) {
             <div className="quick-links-error">{quickLinksError}</div>
           ) : quickLinks.length > 0 ? (
             <div className="quick-links-grid">
-              {isEditingQuickLinks ?
-                quickLinks.map((link, index) => (
+              {isEditingQuickLinks
+                ? quickLinks.map((link, index) => (
                   <div key={index} className="quick-link-item-admin">
                     {renderLinkComponent(
                       link,
@@ -1552,11 +1598,12 @@ function HomeAdmin({ darkMode }) {
                       removeQuickLink
                     )}
                   </div>
-                )) :
-                quickLinks.map((link, index) =>
-                  renderLinkComponent(link, index, "quick-link", false)
-                )
-              }
+                ))
+                : quickLinks
+                  .filter(link => link.pinned) // Only display pinned quick links
+                  .map((link, index) =>
+                    renderLinkComponent(link, index, "quick-link", false)
+                  )}
             </div>
           ) : (
             <div className="no-quick-links">No quick links available</div>

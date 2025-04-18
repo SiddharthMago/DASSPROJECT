@@ -329,15 +329,15 @@ function Archive({ darkMode, userRole }) {
 						axios.get('http://localhost:5000/api/quicklinks')
 					]);
 
-          const files = filesRes.data.data.map((file) => ({
-            id: file._id,
-            fileName: file.name,
-            author: file.author?.name || 'Unknown',
-            office: file.office,
-            modifiedDate: new Date(file.createdAt).toLocaleDateString(),
-            category: 'Files',
-            downloadUrl: file.url || `http://localhost:5000${file.filePath?.replace(/\\/g, '/')}`,
-          }));
+					const files = filesRes.data.data.map((file) => ({
+						id: file._id,
+						fileName: file.name,
+						author: file.author?.name || 'Unknown',
+						office: file.office,
+						modifiedDate: new Date(file.createdAt).toLocaleDateString(),
+						category: 'Files',
+						downloadUrl: file.url || `http://localhost:5000${file.filePath?.replace(/\\/g, '/')}`,
+					}));
 
 					const announcements = announcementsRes.data.data.map((announcement) => ({
 						id: announcement._id,
@@ -412,6 +412,20 @@ function Archive({ darkMode, userRole }) {
 		} catch (err) {
 			console.error('Error deleting item:', err);
 			alert('Failed to delete item: ' + (err.response?.data?.error || err.message));
+		}
+	};
+
+	// Function to get the appropriate "Add New" route based on category
+	const getAddNewRoute = () => {
+		switch (activeTab) {
+			case 'Files':
+				return '/upload';
+			case 'Announcements':
+				return '/create-announcement';
+			case 'Links':
+				return '/create-link';
+			default:
+				return '#';
 		}
 	};
 

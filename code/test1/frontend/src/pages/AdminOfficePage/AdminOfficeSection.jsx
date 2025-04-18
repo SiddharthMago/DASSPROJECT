@@ -1,11 +1,59 @@
 "use client";
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import axios from 'axios';
 
 const AdminOfficeSection = ({ title, category, cards, darkMode, canEdit = false }) => {
   // State to track which file is being hovered
   const [hoveredFileIndex, setHoveredFileIndex] = useState(null);
+  // State to store user role
+  const [userRole, setUserRole] = useState(null);
+  
+  // Use location to determine if we're in admin or superadmin route
+  const location = useLocation();
+  
+  // Determine base path from current URL or fetch from user profile
+  useEffect(() => {
+    // Extract base path from current location
+    const basePath = location.pathname.startsWith('/admin') 
+      ? '/admin' 
+      : location.pathname.startsWith('/superadmin') 
+        ? '/superadmin' 
+        : null;
+        
+    if (basePath) {
+      setUserRole(basePath === '/admin' ? 'admin' : 'superadmin');
+    } else {
+      // Fallback to fetching user role if path doesn't clearly indicate role
+      const fetchUserRole = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          const response = await axios.get('/api/auth_cas/user-profile', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          setUserRole(response.data.role);
+        } catch (error) {
+          console.error('Error fetching user role:', error);
+        }
+      };
+      
+      fetchUserRole();
+    }
+  }, [location]);
+
+  // Generate the correct "add file" path based on role
+  const getAddFilePath = () => {
+    if (userRole === 'admin') {
+      return `/admin/add-file?office=${encodeURIComponent(category)}&category=${encodeURIComponent(title)}`;
+    } else if (userRole === 'superadmin') {
+      return `/superadmin/add-file?office=${encodeURIComponent(category)}&category=${encodeURIComponent(title)}`;
+    }
+    // Fallback to admin path if role is unknown
+    return `/admin/add-file?office=${encodeURIComponent(category)}&category=${encodeURIComponent(title)}`;
+  };
 
   // Function to truncate long titles
   const formatTitle = (title) => {
@@ -48,7 +96,8 @@ const AdminOfficeSection = ({ title, category, cards, darkMode, canEdit = false 
 
   // Generate unique URLs based on the section title and card title
   const generateUrl = (fileId) => {
-    return `/admin/file/${fileId}`;
+    const basePath = userRole === 'superadmin' ? '/superadmin' : '/admin';
+    return `${basePath}/file/${fileId}`;
   };
 
   const handleDelete = async (e, card) => {
@@ -87,7 +136,17 @@ const AdminOfficeSection = ({ title, category, cards, darkMode, canEdit = false 
 
   return (
     <section className="admission-section">
-      <h2 className="offices-section-title">{title}</h2>
+      <div className="section-header">
+        <h2 className="offices-section-title">{title}</h2>
+        {canEdit && (
+          <Link 
+            to={getAddFilePath()} 
+            className="add-file-button"
+          >
+            + Add New File
+          </Link>
+        )}
+      </div>
       <div className="file-grid">
         {cards.map((card, index) => (
           <div key={card.id} className="file-item-wrapper">

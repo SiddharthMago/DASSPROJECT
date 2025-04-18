@@ -3,23 +3,24 @@
 
 /* Office Page Specific Styles - Scoped to avoid affecting other components */
 .office-page {
+  /* Updated color variables to match your site's theme */
   --office-bg-light: #f8f9fa;
   --office-bg-dark: #121212;
   --office-text-light: #333333;
-  --office-text-dark: #ffffff;
-  --office-card-bg-light: #0f3446;
-  --office-card-bg-dark: #0a2430;
-  --office-section-bg-light: rgba(15, 52, 70, 0.45);
-  --office-section-bg-dark: rgba(15, 52, 70, 0.55);
-  --office-card-text: #ffffff;
-  --office-shadow-light: rgba(19, 19, 19, 0.18);
-  --office-shadow-dark: rgba(19, 19, 19, 0.58);
-  --office-faq-bg-light: rgba(255, 255, 255, 0.1);
-  --office-faq-active-bg-light: rgba(255, 255, 255, 0.15);
-  --office-faq-bg-dark: rgba(255, 255, 255, 0.05);
-  --office-faq-active-bg-dark: rgba(255, 255, 255, 0.1);
-  --office-title-bg-light: #0f3446;
-  --office-title-bg-dark: #2c2c2e;
+  --office-text-dark: #e0e0e0;
+  --office-card-bg-light: #2e5bbb; /* Updated to match accent color */
+  --office-card-bg-dark: #2e5bbb; /* Kept similar to light mode for consistency */
+  --office-section-bg-light: rgba(46, 91, 187, 0.12); /* Lighter version of accent */
+  --office-section-bg-dark: rgba(91, 142, 255, 0.15); /* Dark mode version */
+  --office-card-text: #ffffff; /* Always white text for file cards */
+  --office-shadow-light: rgba(19, 19, 19, 0.08);
+  --office-shadow-dark: rgba(19, 19, 19, 0.3);
+  --office-faq-bg-light: rgba(46, 91, 187, 0.05);
+  --office-faq-active-bg-light: rgba(46, 91, 187, 0.1);
+  --office-faq-bg-dark: rgba(91, 142, 255, 0.08);
+  --office-faq-active-bg-dark: rgba(91, 142, 255, 0.12);
+  --office-title-bg-light: #21438f; /* Match theme accent color */
+  --office-title-bg-dark: #5b8eff; /* Dark mode accent color */
   
   /* Use light mode variables by default */
   --office-bg: var(--office-bg-light);
@@ -41,16 +42,58 @@
   padding-top: 40px;
 }
 
+/* Office Page Variables - Formal dark, white, gray theme */
+.office-page {
+  /* Updated formal color variables */
+  --office-bg-light: #f8f9fa;
+  --office-bg-dark: #121212;
+  --office-text-light: #333333;
+  --office-text-dark: #e0e0e0;
+  --office-card-bg-light: #2c3e50; /* Formal dark blue-gray */
+  --office-card-bg-dark: #1a2530; /* Darker version for dark mode */
+  --office-section-bg-light: #5b8fff19; /* Light gray section */
+  --office-section-bg-dark: rgba(34, 40, 49, 0.9); /* Dark gray section */
+  --office-card-text: #ffffff; /* Always white text for file cards */
+  --office-shadow-light: rgba(0, 0, 0, 0.08);
+  --office-shadow-dark: rgba(0, 0, 0, 0.15);
+  --office-faq-bg-light: rgba(255, 255, 255, 0.6);
+  --office-faq-active-bg-light: rgba(255, 255, 255, 0.9);
+  --office-faq-bg-dark: rgba(40, 45, 50, 0.6);
+  --office-faq-active-bg-dark: rgba(45, 52, 58, 0.8);
+  --office-title-bg-light: #34495e; /* Formal dark blue-gray for titles */
+  --office-title-bg-dark: #2c3e50; /* Similar shade for dark mode */
+  
+  /* Use light mode variables by default */
+  --office-bg: var(--office-bg-light);
+  --office-text: var(--office-text-light);
+  --office-card-bg: var(--office-card-bg-light);
+  --office-section-bg: var(--office-section-bg-light);
+  --office-shadow: var(--office-shadow-light);
+  --office-faq-bg: var(--office-faq-bg-light);
+  --office-faq-active-bg: var(--office-faq-active-bg-light);
+  --office-title-bg: var(--office-title-bg-light);
+}
+
 /* Dark mode styles */
 .office-page.dark-mode {
   --office-bg: var(--office-bg-dark);
   --office-text: var(--office-text-dark);
-  --office-card-bg: var(--office-card-bg-dark);
+  --office-card-bg: var(--office-title-bg-dark);
   --office-section-bg: var(--office-section-bg-dark);
   --office-shadow: var(--office-shadow-dark);
   --office-faq-bg: var(--office-faq-bg-dark);
   --office-faq-active-bg: var(--office-faq-active-bg-dark);
   --office-title-bg: var(--office-title-bg-dark);
+}
+
+/* Page Title */
+.office-page-title {
+  color: var(--office-text);
+  font-size: clamp(28px, 5vw, 38px);
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: clamp(4px, 1vw, 6.27px);
+  margin-bottom: 40px;
 }
 
 /* Page Title */
@@ -91,14 +134,14 @@
 .file-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Reduced from 220px to 180px */
-  gap: 10px; /* Reduced from 15px */
+  gap: 1.4rem; /* Reduced from 15px */
   width: 100%;
   padding: 0 5px; /* Reduced padding */
 }
 
-/* File Item - More compact */
+/* File Item - More compact with better contrast */
 .file-item {
-  background-color: var(--office-card-bg);
+  background-color: var(--office-card-bg) !important;
   border-radius: 8px; /* Reduced from 10px */
   padding: 10px 8px;
   color: var(--office-card-text);
@@ -109,22 +152,24 @@
   text-align: center;
   height: 60px; /* Reduced from 90px */
   cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* Added subtle shadow for better depth */
 }
 
 .file-item:hover {
   transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
 }
 
 .file-title {
-  font-size: 15px; /* Reduced from 16px */
-  font-weight: 600;
-  letter-spacing: 1px; /* Reduced from 1.5px */
+  font-size: 16px !important;
+  font-weight: 400 !important; /* Reduced from 600 */ 
+  letter-spacing: 0.8px; /* Reduced from 1px */
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px; /* Reduced from 200px */
+  max-width: 200px; /* Kept the same */
+  color: var(--office-card-text) !important;
 }
 
 /* File link styling - removing default link styling */
@@ -132,6 +177,7 @@
   text-decoration: none;
   color: inherit;
   display: block;
+  position: relative;
 }
 
 /* FAQ Section */
@@ -170,6 +216,7 @@
   background-color: var(--office-faq-bg);
   overflow: hidden;
   transition: background-color 0.3s;
+  background-color: var(--office-card-bg) !important;
 }
 
 .faq-question {
@@ -179,8 +226,8 @@
   text-align: left;
   padding: 20px 25px;
   color: #fff;
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 500;
   letter-spacing: 1.5px;
   display: flex;
   justify-content: space-between;
@@ -191,7 +238,7 @@
 
 .faq-icon {
   font-size: 24px;
-  font-weight: 700;
+  font-weight: 600;
   transition: transform 0.3s ease;
 }
 
@@ -240,7 +287,7 @@
   }
   
   .file-title {
-    font-size: 14px; /* Further reduced */
+    font-size: 13px; /* Further reduced */
     max-width: 130px; /* Further reduced */
   }
 }
@@ -263,8 +310,9 @@
   }
   
   .file-title {
-    font-size: 13px; /* Further reduced */
+    font-size: 12px; /* Further reduced */
     max-width: 110px; /* Further reduced */
+    font-weight: 600; /* Consistent with desktop */
   }
   
   .faq-question {
@@ -315,22 +363,6 @@
 [title] {
   position: relative;
   cursor: help;
-}
-
-.file-link {
-  position: relative;
-  display: block;
-  text-decoration: none;
-  color: inherit;
-}
-
-.file-title {
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  gap: 8px;
 }
 
 /* Version dialogue styling */
@@ -436,4 +468,123 @@
 
 .version-link:hover {
   text-decoration: underline;
+}
+
+.add-file-button {
+  padding: 6px 12px;
+  border-radius: 20px;
+  background-color: var(--office-title-bg);
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.add-file-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  opacity: 0.95;
+}
+
+.dark-mode .add-file-button {
+  background-color: var(--office-title-bg-dark);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .section-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .add-file-button {
+    margin-left: 0;
+    font-size: 13px;
+    padding: 5px 10px;
+  }
+}
+
+/* CSS for section header with centered title and right-aligned button */
+
+.section-header {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+/* Keep the title centered */
+.offices-section-title {
+  margin: 0 auto 20px; /* Maintain original margins but use auto for left/right */
+  position: relative;
+  z-index: 1;
+}
+
+/* Position the add button to the right */
+.add-file-button {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 6px 12px;
+  border-radius: 20px;
+  background-color: var(--office-title-bg);
+  color: white;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  z-index: 2;
+}
+
+.add-file-button:hover {
+  transform: translateY(calc(-50% - 2px));
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  opacity: 0.95;
+}
+
+.dark-mode .add-file-button {
+  background-color: var(--office-title-bg-dark);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .add-file-button {
+    font-size: 13px;
+    padding: 5px 10px;
+    right: 10px;
+  }
+  
+  /* For very small screens, adjust positioning to avoid overlap */
+  @media (max-width: 500px) {
+    .section-header {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .add-file-button {
+      position: static;
+      transform: none;
+      margin-top: 10px;
+      margin-bottom: 5px;
+    }
+    
+    .add-file-button:hover {
+      transform: translateY(-2px);
+    }
+  }
 }

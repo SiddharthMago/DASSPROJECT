@@ -118,7 +118,7 @@ const AdminOfficePage = ({ darkMode }) => {
         <AdminOfficeSection
           key={category}
           title={category}
-          category={category}
+          category={officeName} // Pass the office name
           cards={categoryFiles.map(file => ({
             id: file._id,
             title: file.name,

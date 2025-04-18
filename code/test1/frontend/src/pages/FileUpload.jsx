@@ -1,10 +1,12 @@
 "use client";
 import * as React from "react";
 import { useState, useCallback, useEffect } from "react";
+import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import '../css/file_upload.css';  // Import the external CSS file
 
 const FileUpload = ({ darkMode }) => {
+  const location = useLocation();
   const [fileName, setFileName] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState([]);
@@ -30,6 +32,24 @@ const FileUpload = ({ darkMode }) => {
   const [allOfficeFiles, setAllOfficeFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState("");
   const [isNewVersion, setIsNewVersion] = useState(false);
+
+  // Parse URL parameters on component mount
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const officeParam = queryParams.get('office');
+    const categoryParam = queryParams.get('category');
+    
+    if (officeParam) {
+      // We'll use this temporarily until the actual user profile is loaded
+      // Don't set the user office directly, as it should come from the profile
+      console.log('Office from URL:', officeParam);
+    }
+    
+    if (categoryParam) {
+      console.log('Category from URL:', categoryParam);
+      setSelectedCategory(categoryParam);
+    }
+  }, [location]);
 
   // Fetch user profile and offices when component mounts
   useEffect(() => {
@@ -58,7 +78,17 @@ const FileUpload = ({ darkMode }) => {
         
         setUserOffice(office);
         setUserRole(role);
-        setSelectedOffice(office); // Default selected office to user's office
+        
+        // Parse URL parameters again (now that we have user data)
+        const queryParams = new URLSearchParams(location.search);
+        const officeParam = queryParams.get('office');
+        
+        // Set the selected office based on URL or user's default
+        if (officeParam && (role === 'superadmin' || officeParam === office)) {
+          setSelectedOffice(officeParam);
+        } else {
+          setSelectedOffice(office); // Default to user's office
+        }
         
         // If superadmin, set all available offices from the User model enum
         if (role === 'superadmin') {
@@ -90,7 +120,12 @@ const FileUpload = ({ darkMode }) => {
         }
         
         // Fetch existing categories for this office
-        await fetchCategories(office, token);
+        // Use selected office (from URL or user profile)
+        const officeToUse = officeParam && (role === 'superadmin' || officeParam === office) 
+          ? officeParam 
+          : office;
+          
+        await fetchCategories(officeToUse, token);
       } catch (error) {
         console.error('Error fetching user profile:', error);
         
@@ -107,7 +142,7 @@ const FileUpload = ({ darkMode }) => {
     };
   
     fetchUserProfileAndOffices();
-  }, []);
+  }, [location]);
 
   // Function to fetch categories for an office
   const fetchCategories = async (office, token) => {

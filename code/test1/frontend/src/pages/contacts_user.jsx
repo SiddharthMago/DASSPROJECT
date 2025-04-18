@@ -56,6 +56,12 @@ function ContactsUser({ darkMode }) {
 		return matchesRole && matchesSearch;
 	});
 
+	const roles = {
+		admin: "Admin",
+		user: "User",
+		superadmin: "Super admin"
+	};
+
 	return (
 		<div className={`contacts-container ${darkMode ? 'dark-mode' : ''}`}>
 			<link
@@ -133,7 +139,7 @@ function ContactsUser({ darkMode }) {
 									)}
 
 									{contact.role && contact.role !== "None" && (
-										<div className='office-indicator'>{contact.role}</div>
+										<div className='office-indicator'>{roles[contact.role]}</div>
 									)}
 
 									{/* Optionally display role badge */}

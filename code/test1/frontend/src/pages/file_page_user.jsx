@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from "react";
+import React, { useState, Fragment, useSyncExternalStore, useEffect } from "react";
 import "../css/file.css";
 
 function FileVersions() {
@@ -35,7 +35,7 @@ function FileActions() {
     const handleScroll = () => {
         const targetElement = document.querySelector('.ver-comparison');
         if (targetElement) {
-            targetElement.scrollIntoView({ behavior: 'smooth', block: 'start'});
+            targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     };
 
@@ -82,11 +82,60 @@ function FileContent() {
     );
 }
 
-function VersionComparison() {
+function VersionComparison({ fileID }) {
+    const [version1, setVersion1] = useState(null);
+    const [version2, setVersion2] = useState(null);
+    const [comparison, setComparison] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    const compareVersions = async () => {
+        if (!version1 || !version2) return;
+        setLoading(true);
+
+        try {
+            const response = await axios.get(`/api/files/${fileID}/compare/${version1._id}/${version2._id}`);
+            setComparison(response.data.data);
+        }
+        catch (error) {
+            console.error("Error comparing versions: ", error);
+        }
+        finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (version1 && version2) {
+            compareVersions();
+        }
+    }, [version1, version2]);
+
     return (
         <section className="ver-comparison">
-            <VersionOne />
-            <VersionTwo />
+            <VersionSelector
+                versions={versions}
+                selectedVersion={version1}
+                onSelect={setVersion1}
+                label="Version 1"
+            />
+            <VersionSelector
+                versions={versions}
+                selectedVersion={version2}
+                onSelect={setVersion2}
+                label="Version 2"
+            />
+
+            {loading && <div className="loading">Comparing versions...</div>}
+
+            {comparison && (
+                <div className="comparison-result">
+                    {comparison.type === 'text' ? (
+                        <TextComparison differences={comparison.differences} />
+                    ) : (
+                        <BinaryComparison version1={comparison.version1} version2={comparison.version2} />
+                    )}
+                </div>
+            )}
         </section>
     );
 }

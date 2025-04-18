@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const User = require('../models/User');
 const File = require('../models/Files');
 const Faq = require('../models/Faq');
 const { protect, authorize } = require('../middleware/auth');
@@ -144,6 +145,28 @@ router.delete('/faqs/:id', protect, authorize('admin', 'superadmin'), async (req
     res.status(500).json({ 
       success: false, 
       error: 'Server error' 
+    });
+  }
+});
+
+router.get('/offices', protect, async (req, res) => {
+  try {
+    // Option 1: Query your database for unique office names
+    const offices = await User.distinct('office');
+    
+    // OR Option 2: If you have a separate collection for offices
+    // const offices = await Office.find().select('name');
+    
+    res.status(200).json({
+      success: true,
+      offices: offices
+    });
+  } catch (err) {
+    console.error('Error fetching offices:', err);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Could not fetch offices',
+      details: err.message 
     });
   }
 });

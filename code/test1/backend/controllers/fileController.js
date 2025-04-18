@@ -20,24 +20,38 @@ module.exports.upload = upload;
 
 exports.addFile = async (req, res, next) => {
 	try {
-		if (!req.file) {
-			return next(new ErrorResponse(`Please upload a file`, 400));
-		}
+		const { name, office, category, url } = req.body;
 
-		const { name, office, category } = req.body;
+		// Check if either a file or URL is provided
+		if (!req.file && !url) {
+			return next(new ErrorResponse(`Please upload a file or provide a URL`, 400));
+		}
 
 		if (!name || !office || !category) {
 			return next(new ErrorResponse(`Please provide all required fields`, 400));
 		}
 
-		const file = await File.create({
+		// Create file document with the provided data
+		const fileData = {
 			name,
-			filePath: req.file.path,
-			url: req.file.filename,
 			office,
 			category,
 			author: req.user.id // Use the authenticated user's ID
-		});
+		};
+
+		// If a file was uploaded, add its path
+		if (req.file) {
+			// Store relative path instead of absolute path
+			fileData.filePath = `uploads/files/${req.file.filename}`;
+			fileData.url = req.file.filename;
+		}
+
+		// If URL was provided, add it
+		if (url) {
+			fileData.url = url;
+		}
+
+		const file = await File.create(fileData);
 
 		res.status(200).json({
 			success: true,
@@ -59,13 +73,14 @@ exports.deleteFile = async (req, res, next) => {
 			return res.status(404).json({ success: false, error: 'File not found' });
 		}
 
-		if (file.filePath) {
-			const filePath = path.join(__dirname, '..', file.filePath);
-			if (fs.existsSync(filePath)) {
-				fs.unlinkSync(filePath);
-				console.log(`[DELETE FILE] File deleted from disk: ${filePath}`);
-			}
-		}
+    if (file.filePath) {
+      // Construct absolute path from relative path
+      const filePath = path.join(__dirname, '..', file.filePath);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.log(`[DELETE FILE] File deleted from disk: ${filePath}`);
+      }
+    }
 
 		// Replace .remove() with .findByIdAndDelete()
 		await File.findByIdAndDelete(req.params.id);
@@ -201,7 +216,13 @@ exports.addFileVersion = async (req, res, next) => {
 			return res.status(404).json({ success: false, error: 'File not found' });
 		}
 
-		let filePath = req.file ? `/uploads/files/${req.file.filename}` : null;
+		// Check if either a file or URL is provided
+		if (!req.file && !url) {
+			return next(new ErrorResponse(`Please upload a file or provide a URL`, 400));
+		}
+
+		// Use relative path
+		let filePath = req.file ? `uploads/files/${req.file.filename}` : null;
 
 		const newVersion = {
 			name,
@@ -211,8 +232,12 @@ exports.addFileVersion = async (req, res, next) => {
 
 		file.versions.push(newVersion);
 		file.name = name;
-		file.url = url || null;
-		file.filePath = filePath;
+		file.url = url || file.url; // Keep existing URL if no new one is provided
+		
+		// Update filePath only if a new file was uploaded
+		if (req.file) {
+			file.filePath = filePath;
+		}
 
 		await file.save();
 		console.log(`[ADD FILE VERSION] Version added successfully to file: ${file._id}`);
@@ -310,82 +335,51 @@ exports.getFilesByCurrentUser = async (req, res, next) => {
 	}
 };
 
-// // @desc Compare two version of a file
-// exports.createFileVersion = async (req, res, next) => {
-// 	const { fileID } = req.params;
+// @desc    View/download a file by ID
+exports.viewFile = async (req, res, next) => {
+  console.log(`[VIEW FILE] Request to view/download file: ${req.params.id}`);
+  try {
+    const file = await File.findById(req.params.id);
+    
+    if (!file) {
+      console.warn(`[VIEW FILE] File not found: ${req.params.id}`);
+      return res.status(404).json({ success: false, error: 'File not found' });
+    }
 
-// 	try {
-// 		const originalFile = await File.findById(fileID);
-// 		if (!originalFile) {
-// 			return res.status(404).json({ success: false, error: "Original file not found." });
-// 		}
+    // If this is a URL-only entry, redirect to the URL
+    if (file.url && !file.filePath) {
+      console.log(`[VIEW FILE] Redirecting to URL: ${file.url}`);
+      return res.redirect(file.url);
+    }
 
-// 		if (!req.file) {
-// 			return next(new ErrorResponse("Please upload a file.", 400));
-// 		}
+    // Check if file has a physical path
+    if (!file.filePath) {
+      console.warn(`[VIEW FILE] No file path found: ${req.params.id}`);
+      return res.status(404).json({ success: false, error: 'No file path associated with this record' });
+    }
 
-// 		const newVersion = await file.create({
-// 			name: originalFile.name,
-// 			filePath
-// 		});
-//   }
-// }
+    // Construct the absolute file path from the stored relative path
+    const filePath = path.join(__dirname, '..', file.filePath);
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      console.error(`[VIEW FILE] File not found on disk: ${filePath}`);
+      return res.status(404).json({ success: false, error: 'File not found on disk' });
+    }
 
-//@desc Compare two versions of a file
-exports.compareVersions = async (req, res, next) => {
-	const { version1_ID, version2_ID } = req.params;
-
-	try {
-		const version1 = await File.findById(version1_ID);
-		const version2 = await File.findById(version2_ID);
-
-		if (!version1 || !version2) {
-			return res.status(404).json({ success: false, error: "One or more versions not found" });
-		}
-
-		if (!version1.allVersions.includes(version2_ID)) {
-			return res.status(400).json({ success: false, error: "Versions must belong to the same file" });
-		}
-
-		let comparisonResult;
-		if (version1.content && version2.content){
-			comparisonResult = compareText(version1.content, version2.content);
-		}
-		else {
-			comparisonResult = {
-				type: 'binary',
-				version1: {
-					name: version1.name,
-					url: version1.url,
-					createdAt: version1.createdAt
-				},
-				version2: {
-					name: version2.name,
-					url: version2.url,
-					createdAt: version2.createdAt
-				}
-			};
-		}
-
-		res.status(200).json({ success: true, data: comparisonResult });
-	}
-
-	catch(err) {
-		console.error("Error: ", err.message);
-		res.status(500).json({ success: false, error: "Server error" });
-	}
+    // Get file name from path
+    const fileName = path.basename(filePath);
+    
+    // Set appropriate headers
+    res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+    
+    // Stream the file to the client
+    const fileStream = fs.createReadStream(filePath);
+    fileStream.pipe(res);
+    
+    console.log(`[VIEW FILE] Successfully streaming file: ${fileName}`);
+  } catch (err) {
+    console.error(`[VIEW FILE] Error: ${err.message}`);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
 };
-
-function compareText(text1, text2) {
-	const diff = require("diff");
-	const differences = diff.diffWords(text1, text2);
-
-	return {
-		type: "text",
-		differences: differences.map(part => ({
-			value: part.value,
-			added: part.added,
-			removed: part.removed
-		}))
-	};
-}

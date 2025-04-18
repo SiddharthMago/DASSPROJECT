@@ -117,6 +117,8 @@ function Archive({ darkMode, userRole }) {
 
   // Update the file mapping to use author ObjectId
   const mapFileData = (file) => {
+    // Standardize the file path construction for both view and download
+    const filePath = file.filePath ? `/${file.filePath.replace(/\\/g, '/')}` : '';
     const mappedFile = {
       id: file._id,
       fileName: file.name,
@@ -125,7 +127,10 @@ function Archive({ darkMode, userRole }) {
       office: file.office,
       modifiedDate: new Date(file.createdAt).toLocaleDateString(),
       category: 'Files',
-      downloadUrl: file.url || `http://localhost:5000/${file.filePath?.replace(/\\/g, '/')}`,
+      // Only set viewUrl if there's a filePath
+      viewUrl: filePath ? `http://localhost:5000${filePath}` : null,
+      // Use URL if available, otherwise use filepath
+      downloadUrl: file.url || (filePath ? `http://localhost:5000${filePath}` : null),
     };
 
     // If we have the author details, update the author name
@@ -177,7 +182,7 @@ function Archive({ darkMode, userRole }) {
           }));
 
           // Combine all items and sort by date
-          const allItems = [...files, ...announcements, ...quickLinks].sort((a, b) => 
+          const allItems = [...files, ...announcements, ...quickLinks].sort((a, b) =>
             new Date(b.modifiedDate) - new Date(a.modifiedDate)
           );
           setArchiveItems(allItems);
@@ -205,17 +210,23 @@ function Archive({ darkMode, userRole }) {
             return;
           }
 
-          const mapped = res.data.data.map((file) => ({
-            id: file._id,
-            fileName: file.name,
-            author: file.author?.name || 'Unknown',
-            office: file.office,
-            modifiedDate: new Date(file.createdAt).toLocaleDateString(),
-            category: 'Files',
-            status: file.status,
-            comments: file.comments || [],
-            downloadUrl: file.url || `http://localhost:5000/${file.filePath?.replace(/\\/g, '/')}`,
-          }));
+          const mapped = res.data.data.map((file) => {
+            // Standardize the file path construction for both view and download
+            const filePath = file.filePath ? `/${file.filePath.replace(/\\/g, '/')}` : '';
+            
+            return {
+              id: file._id,
+              fileName: file.name,
+              author: file.author?.name || 'Unknown',
+              office: file.office,
+              modifiedDate: new Date(file.createdAt).toLocaleDateString(),
+              category: 'Files',
+              status: file.status,
+              comments: file.comments || [],
+              viewUrl: filePath ? `http://localhost:5000${filePath}` : null,
+              downloadUrl: file.url || (filePath ? `http://localhost:5000${filePath}` : null),
+            };
+          });
           setArchiveItems(mapped);
         } else if (activeTab === 'Announcements') {
           const res = await axios.get('http://localhost:5000/api/announcements');
@@ -257,7 +268,7 @@ function Archive({ darkMode, userRole }) {
 
   // Filter items based on search query, office selection, and active tab
   const filteredItems = archiveItems.filter((item) => {
-    const matchesCategory = activeTab === 'All' || 
+    const matchesCategory = activeTab === 'All' ||
       (activeTab === 'Uploaded by Me' ? item.category === 'Files' : item.category === activeTab);
     const matchesOffice =
       selectedOffice === 'All' || item.office.toLowerCase().includes(selectedOffice.toLowerCase());
@@ -283,7 +294,7 @@ function Archive({ darkMode, userRole }) {
     try {
       const token = localStorage.getItem('token');
       let endpoint;
-      
+
       // Determine the correct endpoint based on the category
       switch (category) {
         case 'Files':
@@ -304,7 +315,7 @@ function Archive({ darkMode, userRole }) {
           Authorization: `Bearer ${token}`
         }
       });
-      
+
       if (response.data.success) {
         // Refresh the items list based on the current tab
         if (activeTab === 'All') {
@@ -321,7 +332,7 @@ function Archive({ darkMode, userRole }) {
             office: file.office,
             modifiedDate: new Date(file.createdAt).toLocaleDateString(),
             category: 'Files',
-            downloadUrl: file.url || `http://localhost:5000/${file.filePath?.replace(/\\/g, '/')}`,
+            downloadUrl: file.url || `http://localhost:5000${file.filePath?.replace(/\\/g, '/')}`,
           }));
 
           const announcements = announcementsRes.data.data.map((announcement) => ({
@@ -346,7 +357,7 @@ function Archive({ darkMode, userRole }) {
             pinned: quickLink.pinned
           }));
 
-          const allItems = [...files, ...announcements, ...quickLinks].sort((a, b) => 
+          const allItems = [...files, ...announcements, ...quickLinks].sort((a, b) =>
             new Date(b.modifiedDate) - new Date(a.modifiedDate)
           );
           setArchiveItems(allItems);
@@ -385,11 +396,11 @@ function Archive({ darkMode, userRole }) {
             office: file.office,
             modifiedDate: new Date(file.createdAt).toLocaleDateString(),
             category: 'Files',
-            downloadUrl: file.url || `http://localhost:5000/${file.filePath?.replace(/\\/g, '/')}`,
+            downloadUrl: file.url || `http://localhost:5000${file.filePath?.replace(/\\/g, '/')}`,
           }));
           setArchiveItems(mapped);
         }
-        
+
         setDeleteModal({ show: false, itemId: null, itemName: '', category: '' });
       } else {
         alert('Failed to delete item: ' + response.data.error);
@@ -420,7 +431,7 @@ function Archive({ darkMode, userRole }) {
     try {
       const token = localStorage.getItem('token');
       const formData = new FormData();
-      
+
       formData.append('title', announcementModal.title);
       formData.append('office', userRole === 'superadmin' ? announcementModal.office : userOffice);
       formData.append('link', announcementModal.link);
@@ -449,7 +460,7 @@ function Archive({ darkMode, userRole }) {
           image: announcement.image
         }));
         setArchiveItems(mapped);
-        
+
         // Close modal and reset form
         setAnnouncementModal({
           show: false,
@@ -508,7 +519,7 @@ function Archive({ darkMode, userRole }) {
           pinned: quickLink.pinned
         }));
         setArchiveItems(mapped);
-        
+
         // Close modal and reset form
         setLinkModal({
           show: false,
@@ -532,7 +543,7 @@ function Archive({ darkMode, userRole }) {
     try {
       const token = localStorage.getItem('token');
       const formData = new FormData();
-      
+
       formData.append('title', editAnnouncementModal.title);
       formData.append('office', editAnnouncementModal.office);
       formData.append('link', editAnnouncementModal.link);
@@ -565,7 +576,7 @@ function Archive({ darkMode, userRole }) {
           image: announcement.image
         }));
         setArchiveItems(mapped);
-        
+
         // Close modal and reset form
         setEditAnnouncementModal({
           show: false,
@@ -618,7 +629,7 @@ function Archive({ darkMode, userRole }) {
           pinned: quickLink.pinned
         }));
         setArchiveItems(mapped);
-        
+
         // Close modal and reset form
         setEditLinkModal({
           show: false,
@@ -643,7 +654,7 @@ function Archive({ darkMode, userRole }) {
         rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;700&display=swap"
       />
-      
+
       {/* Header Section */}
       <header className="archive-header">
         <h1 className="page-title">Archive</h1>
@@ -672,14 +683,14 @@ function Archive({ darkMode, userRole }) {
       {(userRole === 'admin' || userRole === 'superadmin') && activeTab !== 'All' && activeTab !== 'Events' && activeTab !== 'Uploaded by Me' && (
         <div className="add-new-container">
           {activeTab === 'Links' ? (
-            <button 
+            <button
               className="add-new-button"
               onClick={() => setLinkModal({ ...linkModal, show: true })}
             >
               <FaPlus /> Add New Link
             </button>
           ) : activeTab === 'Announcements' ? (
-            <button 
+            <button
               className="add-new-button"
               onClick={() => setAnnouncementModal({ ...announcementModal, show: true })}
             >
@@ -696,45 +707,45 @@ function Archive({ darkMode, userRole }) {
       {/* Search and Filter Section */}
       <section className="archive-filters">
         <div className="search-container">
-        <div className="search-bar">
-          <input
-            type="text"
+          <div className="search-bar">
+            <input
+              type="text"
               placeholder="Search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
 
           <div className="filter-container">
-        <div className="office-filter">
-          <label htmlFor="office-filter">Office: </label>
-          <select
-            id="office-filter"
-            value={selectedOffice}
-            onChange={(e) => setSelectedOffice(e.target.value)}
-          >
+            <div className="office-filter">
+              <label htmlFor="office-filter">Office: </label>
+              <select
+                id="office-filter"
+                value={selectedOffice}
+                onChange={(e) => setSelectedOffice(e.target.value)}
+              >
                 <option value="All">All Offices</option>
-            <option value="Admissions Office">Admissions Office</option>
-            <option value="Library Office">Library Office</option>
-            <option value="Examinations Office">Examinations Office</option>
-            <option value="Academic Office">Academic Office</option>
-            <option value="Student Affairs Office">Student Affairs Office</option>
-            <option value="Mess Office">Mess Office</option>
-            <option value="Hostel Office">Hostel Office</option>
-            <option value="Alumni Cell">Alumni Cell</option>
-            <option value="Faculty Portal">Faculty Portal</option>
-            <option value="Placement Cell">Placement Cell</option>
-            <option value="Outreach Office">Outreach Office</option>
-            <option value="Statistical Cell">Statistical Cell</option>
-            <option value="R&D Office">R&D Office</option>
-            <option value="General Administration">General Administration</option>
-            <option value="Accounts Office">Accounts Office</option>
-            <option value="IT Services Office">IT Services Office</option>
-            <option value="Communication Office">Communication Office</option>
-            <option value="Engineering Office">Engineering Office</option>
-            <option value="HR & Personnel">HR & Personnel</option>
-          </select>
-        </div>
+                <option value="Admissions Office">Admissions Office</option>
+                <option value="Library Office">Library Office</option>
+                <option value="Examinations Office">Examinations Office</option>
+                <option value="Academic Office">Academic Office</option>
+                <option value="Student Affairs Office">Student Affairs Office</option>
+                <option value="Mess Office">Mess Office</option>
+                <option value="Hostel Office">Hostel Office</option>
+                <option value="Alumni Cell">Alumni Cell</option>
+                <option value="Faculty Portal">Faculty Portal</option>
+                <option value="Placement Cell">Placement Cell</option>
+                <option value="Outreach Office">Outreach Office</option>
+                <option value="Statistical Cell">Statistical Cell</option>
+                <option value="R&D Office">R&D Office</option>
+                <option value="General Administration">General Administration</option>
+                <option value="Accounts Office">Accounts Office</option>
+                <option value="IT Services Office">IT Services Office</option>
+                <option value="Communication Office">Communication Office</option>
+                <option value="Engineering Office">Engineering Office</option>
+                <option value="HR & Personnel">HR & Personnel</option>
+              </select>
+            </div>
           </div>
         </div>
       </section>
@@ -775,14 +786,14 @@ function Archive({ darkMode, userRole }) {
         ) : error ? (
           <div className="error-state">
             <p>{error}</p>
-        </div>
+          </div>
         ) : filteredItems.length === 0 ? (
           <div className="empty-state">
             <p>No items found matching your criteria</p>
           </div>
         ) : layout === 'grid' ? (
           <div className="archive-grid">
-          {filteredItems.map((item) => (
+            {filteredItems.map((item) => (
               <div key={item.id} className="archive-card">
                 <div className="card-header">
                   <h3 className="card-title">{item.fileName}</h3>
@@ -790,7 +801,7 @@ function Archive({ darkMode, userRole }) {
                     {item.category}
                   </span>
                 </div>
-                
+
                 <div className="card-content">
                   <div className="card-info">
                     <div className="info-row">
@@ -805,13 +816,13 @@ function Archive({ darkMode, userRole }) {
                       <span className="info-label">Date:</span>
                       <span className="info-value">{item.modifiedDate}</span>
                     </div>
-                {activeTab === 'Uploaded by Me' && (
+                    {activeTab === 'Uploaded by Me' && (
                       <div className="info-row">
                         <span className="info-label">Status:</span>
                         <span className={`status-badge ${item.status}`}>
-                      {item.status}
+                          {item.status}
                         </span>
-                    </div>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -820,7 +831,7 @@ function Archive({ darkMode, userRole }) {
                   {item.category === 'Announcements' ? (
                     <>
                       {canManageItem(item.office) && (
-                        <button 
+                        <button
                           className="action-button edit"
                           onClick={() => setEditAnnouncementModal({
                             show: true,
@@ -845,7 +856,7 @@ function Archive({ darkMode, userRole }) {
                   ) : item.category === 'Links' ? (
                     <>
                       {canManageItem(item.office) && (
-                        <button 
+                        <button
                           className="action-button edit"
                           onClick={() => setEditLinkModal({
                             show: true,
@@ -869,30 +880,30 @@ function Archive({ darkMode, userRole }) {
                     </>
                   ) : (
                     <>
-                      <button 
+                      <button
                         className="action-button preview"
-                        onClick={() => window.open(item.downloadUrl, '_blank')}
-                  >
-                    Preview
+                        onClick={() => window.open(item.viewUrl, '_blank')}
+                      >
+                        Preview
                       </button>
-                  <a
-                    href={item.downloadUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                      <a
+                        href={item.downloadUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="action-button download"
-                  >
-                    Download
-                  </a>
+                      >
+                        Download
+                      </a>
                     </>
                   )}
                   {canManageItem(item.office) && (
                     <button
                       className="action-button delete"
-                      onClick={() => setDeleteModal({ 
-                        show: true, 
-                        itemId: item.id, 
+                      onClick={() => setDeleteModal({
+                        show: true,
+                        itemId: item.id,
                         itemName: item.fileName,
-                        category: item.category 
+                        category: item.category
                       })}
                     >
                       <FaTrash />
@@ -902,7 +913,7 @@ function Archive({ darkMode, userRole }) {
 
                 {activeTab === 'Uploaded by Me' && item.status === 'rejected' && (
                   <div className="comments-section">
-                    <button 
+                    <button
                       className="comments-toggle"
                       onClick={() => toggleComments(item.id)}
                     >
@@ -910,25 +921,25 @@ function Archive({ darkMode, userRole }) {
                     </button>
                     {expandedFileId === item.id && (
                       <div className="comments-content">
-                  {item.comments && item.comments.length > 0 ? (
-                    item.comments.map((comment, index) => (
-                      <div key={index} className="comment-item">
+                        {item.comments && item.comments.length > 0 ? (
+                          item.comments.map((comment, index) => (
+                            <div key={index} className="comment-item">
                               <div className="comment-header">
                                 <span className="comment-author">
                                   {comment.author?.name || 'Unknown'}
                                 </span>
                                 <span className="comment-date">
-                          {new Date(comment.createdAt).toLocaleDateString()}
+                                  {new Date(comment.createdAt).toLocaleDateString()}
                                 </span>
-                        </div>
+                              </div>
                               <p className="comment-text">{comment.content}</p>
-                      </div>
-                    ))
-                  ) : (
+                            </div>
+                          ))
+                        ) : (
                           <p className="no-comments">No comments available</p>
-                  )}
-                </div>
-              )}
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -966,14 +977,14 @@ function Archive({ darkMode, userRole }) {
                           {item.status}
                         </span>
                         {item.status?.toLowerCase() === 'rejected' && item.comments && (
-                          <button 
+                          <button
                             className="comments-toggle"
                             onClick={() => toggleComments(item.id)}
                           >
                             View Comments
                           </button>
-          )}
-        </div>
+                        )}
+                      </div>
                       {expandedFileId === item.id && item.comments && (
                         <div className="comments-content">
                           {item.comments.map((comment, index) => (
@@ -998,7 +1009,7 @@ function Archive({ darkMode, userRole }) {
                       {item.category === 'Announcements' ? (
                         <>
                           {canManageItem(item.office) && (
-                            <button 
+                            <button
                               className="action-button edit"
                               onClick={() => setEditAnnouncementModal({
                                 show: true,
@@ -1023,7 +1034,7 @@ function Archive({ darkMode, userRole }) {
                       ) : item.category === 'Links' ? (
                         <>
                           {canManageItem(item.office) && (
-                            <button 
+                            <button
                               className="action-button edit"
                               onClick={() => setEditLinkModal({
                                 show: true,
@@ -1047,9 +1058,9 @@ function Archive({ darkMode, userRole }) {
                         </>
                       ) : (
                         <>
-                          <button 
+                          <button
                             className="action-button preview"
-                            onClick={() => window.open(item.downloadUrl, '_blank')}
+                            onClick={() => window.open(item.viewUrl, '_blank')}
                           >
                             Preview
                           </button>
@@ -1066,11 +1077,11 @@ function Archive({ darkMode, userRole }) {
                       {canManageItem(item.office) && (
                         <button
                           className="action-button delete"
-                          onClick={() => setDeleteModal({ 
-                            show: true, 
-                            itemId: item.id, 
+                          onClick={() => setDeleteModal({
+                            show: true,
+                            itemId: item.id,
                             itemName: item.fileName,
-                            category: item.category 
+                            category: item.category
                           })}
                         >
                           <FaTrash />
@@ -1091,7 +1102,7 @@ function Archive({ darkMode, userRole }) {
           <div className="delete-modal">
             <div className="modal-header">
               <h3>Confirm Deletion</h3>
-              <button 
+              <button
                 className="close-button"
                 onClick={() => setDeleteModal({ show: false, itemId: null, itemName: '', category: '' })}
               >
@@ -1103,13 +1114,13 @@ function Archive({ darkMode, userRole }) {
               <p className="warning-text">This action cannot be undone.</p>
             </div>
             <div className="modal-actions">
-              <button 
+              <button
                 className="cancel-button"
                 onClick={() => setDeleteModal({ show: false, itemId: null, itemName: '', category: '' })}
               >
                 Cancel
               </button>
-              <button 
+              <button
                 className="delete-confirm-button"
                 onClick={() => handleDelete(deleteModal.itemId, deleteModal.category)}
               >
@@ -1126,7 +1137,7 @@ function Archive({ darkMode, userRole }) {
           <div className="announcement-modal">
             <div className="modal-header">
               <h3>Create New Announcement</h3>
-              <button 
+              <button
                 className="close-button"
                 onClick={() => setAnnouncementModal({ ...announcementModal, show: false })}
               >
@@ -1193,14 +1204,14 @@ function Archive({ darkMode, userRole }) {
                 />
               </div>
               <div className="modal-actions">
-                <button 
+                <button
                   type="button"
                   className="cancel-button"
                   onClick={() => setAnnouncementModal({ ...announcementModal, show: false })}
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
                   className="submit-button"
                 >
@@ -1218,7 +1229,7 @@ function Archive({ darkMode, userRole }) {
           <div className="link-modal">
             <div className="modal-header">
               <h3>Create New Link</h3>
-              <button 
+              <button
                 className="close-button"
                 onClick={() => setLinkModal({ ...linkModal, show: false })}
               >
@@ -1287,14 +1298,14 @@ function Archive({ darkMode, userRole }) {
                 </label>
               </div>
               <div className="modal-actions">
-                <button 
+                <button
                   type="button"
                   className="cancel-button"
                   onClick={() => setLinkModal({ ...linkModal, show: false })}
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
                   className="submit-button"
                 >
@@ -1312,7 +1323,7 @@ function Archive({ darkMode, userRole }) {
           <div className="announcement-modal">
             <div className="modal-header">
               <h3>Edit Announcement</h3>
-              <button 
+              <button
                 className="close-button"
                 onClick={() => setEditAnnouncementModal({ ...editAnnouncementModal, show: false })}
               >
@@ -1387,14 +1398,14 @@ function Archive({ darkMode, userRole }) {
                 />
               </div>
               <div className="modal-actions">
-                <button 
+                <button
                   type="button"
                   className="cancel-button"
                   onClick={() => setEditAnnouncementModal({ ...editAnnouncementModal, show: false })}
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
                   className="submit-button"
                 >
@@ -1412,7 +1423,7 @@ function Archive({ darkMode, userRole }) {
           <div className="link-modal">
             <div className="modal-header">
               <h3>Edit Link</h3>
-              <button 
+              <button
                 className="close-button"
                 onClick={() => setEditLinkModal({ ...editLinkModal, show: false })}
               >
@@ -1481,14 +1492,14 @@ function Archive({ darkMode, userRole }) {
                 </label>
               </div>
               <div className="modal-actions">
-                <button 
+                <button
                   type="button"
                   className="cancel-button"
                   onClick={() => setEditLinkModal({ ...editLinkModal, show: false })}
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
                   className="submit-button"
                 >

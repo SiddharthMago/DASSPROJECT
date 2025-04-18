@@ -286,27 +286,33 @@ function HomeAdmin({ darkMode }) {
   const getAnnouncementBackground = (announcement) => {
     // If there's a valid imageUrl, use it
     if (announcement.imageUrl && !announcement.imageUrl.includes('undefined')) {
-      console.log('Using image URL:', announcement.imageUrl);
+      const baseUrl = import.meta.env.VITE_CLIENT_URL || 'http://localhost:5000'; // Use Vite's environment variable or fallback to localhost
+      const fullImageUrl = announcement.imageUrl.startsWith('http')
+        ? announcement.imageUrl // If it's already a full URL, use it as is
+        : `${baseUrl}${announcement.imageUrl}`; // Prepend the base URL for relative paths
+  
+      console.log('Using image URL:', fullImageUrl);
       return {
-        backgroundImage: `url(${announcement.imageUrl})`,
+        backgroundImage: `url(${fullImageUrl})`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center'
+        backgroundPosition: 'center',
       };
     }
-    
+  
+    // Otherwise, use the office logo
     const officeName = announcement.office;
     const logoUrl = officeLogos[officeName];
-    
+  
     if (logoUrl) {
       console.log('Using office logo for', officeName, logoUrl);
       return {
         backgroundImage: `url(${logoUrl})`,
         backgroundSize: 'contain',
         backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'no-repeat',
       };
     }
-    
+  
     // Fallback - use a class-based background
     console.log('Using class-based background for', officeName);
     return {};
@@ -897,15 +903,16 @@ function HomeAdmin({ darkMode }) {
               className={`announcement-container ${editOffice}`}
               style={editImageUrl ? { backgroundImage: `url(${editImageUrl})` } : {}}
             >
-              <div className="announcement-edit-mode">
+               <div className="announcement-edit-mode">
                 <div className="edit-form-group">
                   <label htmlFor="office-select">Office:</label>
                   <select
                     id="office-select"
-                    value={editOffice}
-                    onChange={(e) => setEditOffice(e.target.value)}
+                    value={editOffice} // Bind to the editOffice state
+                    onChange={(e) => setEditOffice(e.target.value)} // Update the state on change
                     className="office-select"
                   >
+                    <option value="None">Select Office</option>
                     <option value="Admissions Office">Admissions Office</option>
                     <option value="Academic Office">Academic Office</option>
                     <option value="Library Office">Library Office</option>
@@ -917,7 +924,7 @@ function HomeAdmin({ darkMode }) {
                     <option value="Faculty Portal">Faculty Portal</option>
                     <option value="Outreach Office">Outreach Office</option>
                     <option value="R&D Office">R&D Office</option>
-                    <option value="Placements Cell">Placement Cell</option>
+                    <option value="Placements Cell">Placements Cell</option>
                     <option value="Statistical Cell">Statistical Cell</option>
                     <option value="General Administration">General Administration</option>
                     <option value="Accounts Office">Accounts Office</option>
@@ -994,6 +1001,7 @@ function HomeAdmin({ darkMode }) {
                     onChange={(e) => setNewAnnouncementOffice(e.target.value)}
                     className="office-select"
                   >
+                    <option value="None">None</option>
                     <option value="Admissions Office">Admissions Office</option>
                     <option value="Academic Office">Academic Office</option>
                     <option value="Library Office">Library Office</option>
@@ -1311,15 +1319,31 @@ function HomeAdmin({ darkMode }) {
                 />
               </div>
               <div className="edit-form-group">
-                <label htmlFor="portal-icon">Icon:</label>
-                <input
-                  id="portal-icon"
-                  type="text"
-                  value={editPortalIcon}
-                  onChange={(e) => setEditPortalIcon(e.target.value)}
-                  maxLength={2}
-                />
-              </div>
+  <label htmlFor="portal-icon">Icon:</label>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    {/* Input field for custom icon */}
+    <input
+      id="portal-icon"
+      type="text"
+      value={editPortalIcon}
+      onChange={(e) => setEditPortalIcon(e.target.value)}
+      maxLength={2}
+      placeholder="Custom Icon"
+    />
+    {/* Dropdown for predefined icons */}
+    <select
+      value={editPortalIcon}
+      onChange={(e) => setEditPortalIcon(e.target.value)}
+      className="icon-dropdown"
+    >
+      <option value="🔗">🔗</option>
+      <option value="📁">📁</option>
+      <option value="🌐">🌐</option>
+      <option value="📄">📄</option>
+      <option value="⚙️">⚙️</option>
+    </select>
+  </div>
+</div>
               <div className="edit-buttons">
                 <button onClick={saveNewPortal} className="save-btn">Save</button>
                 <button onClick={cancelEditingPortal} className="cancel-btn">Cancel</button>
@@ -1349,15 +1373,31 @@ function HomeAdmin({ darkMode }) {
                 />
               </div>
               <div className="edit-form-group">
-                <label htmlFor="portal-icon">Icon:</label>
-                <input
-                  id="portal-icon"
-                  type="text"
-                  value={editPortalIcon}
-                  onChange={(e) => setEditPortalIcon(e.target.value)}
-                  maxLength={2}
-                />
-              </div>
+  <label htmlFor="portal-icon">Icon:</label>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    {/* Input field for custom icon */}
+    <input
+      id="portal-icon"
+      type="text"
+      value={editPortalIcon}
+      onChange={(e) => setEditPortalIcon(e.target.value)}
+      maxLength={2}
+      placeholder="Custom Icon"
+    />
+    {/* Dropdown for predefined icons */}
+    <select
+      value={editPortalIcon}
+      onChange={(e) => setEditPortalIcon(e.target.value)}
+      className="icon-dropdown"
+    >
+      <option value="🔗">🔗</option>
+      <option value="📁">📁</option>
+      <option value="🌐">🌐</option>
+      <option value="📄">📄</option>
+      <option value="⚙️">⚙️</option>
+    </select>
+  </div>
+</div>
               <div className="edit-buttons">
                 <button onClick={savePortal} className="save-btn">Save</button>
                 <button onClick={cancelEditingPortal} className="cancel-btn">Cancel</button>

@@ -239,6 +239,10 @@ exports.addFileVersion = async (req, res, next) => {
 			file.filePath = filePath;
 		}
 
+		// Set status to 'pending' to require approval for the new version
+		file.status = 'pending';
+		console.log(`[ADD FILE VERSION] Setting file status to pending for approval`);
+
 		await file.save();
 		console.log(`[ADD FILE VERSION] Version added successfully to file: ${file._id}`);
 		res.status(201).json({ success: true, data: file });

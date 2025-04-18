@@ -338,7 +338,7 @@ const FileUpload = ({ darkMode }) => {
             },
           });
 
-          setSuccessMessage("New version added successfully");
+          setSuccessMessage("New version sent for approval");
         } else {
           // Handle new file upload
           const formData = new FormData();

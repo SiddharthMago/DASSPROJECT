@@ -329,15 +329,15 @@ function Archive({ darkMode, userRole }) {
 						axios.get('http://localhost:5000/api/quicklinks')
 					]);
 
-					const files = filesRes.data.data.map((file) => ({
-						id: file._id,
-						fileName: file.name,
-						author: file.author?.name || 'Unknown',
-						office: file.office,
-						modifiedDate: new Date(file.createdAt).toLocaleDateString(),
-						category: 'Files',
-						downloadUrl: file.url || `http://localhost:5000${file.filePath?.replace(/\\/g, '/')}`,
-					}));
+          const files = filesRes.data.data.map((file) => ({
+            id: file._id,
+            fileName: file.name,
+            author: file.author?.name || 'Unknown',
+            office: file.office,
+            modifiedDate: new Date(file.createdAt).toLocaleDateString(),
+            category: 'Files',
+            downloadUrl: file.url || `http://localhost:5000${file.filePath?.replace(/\\/g, '/')}`,
+          }));
 
 					const announcements = announcementsRes.data.data.map((announcement) => ({
 						id: announcement._id,
@@ -415,19 +415,23 @@ function Archive({ darkMode, userRole }) {
 		}
 	};
 
-	// Function to get the appropriate "Add New" route based on category
-	const getAddNewRoute = () => {
-		switch (activeTab) {
-			case 'Files':
-				return '/upload';
-			case 'Announcements':
-				return '/create-announcement';
-			case 'Links':
-				return '/create-link';
-			default:
-				return '#';
-		}
-	};
+  // Function to get the appropriate "Add New" route based on category
+  const getAddNewRoute = () => {
+    // For Files category, return role-specific upload route
+    if (activeTab === 'Files') {
+      return userRole === 'superadmin' ? '/superadmin/add-file' : '/admin/add-file';
+    }
+    
+    // For other categories, use existing routes
+    switch (activeTab) {
+      case 'Announcements':
+        return '/create-announcement';
+      case 'Links':
+        return '/create-link';
+      default:
+        return '#';
+    }
+  };
 
 	// Function to handle announcement creation
 	const handleCreateAnnouncement = async (e) => {
@@ -831,276 +835,274 @@ function Archive({ darkMode, userRole }) {
 									</div>
 								</div>
 
-								<div className="card-actions">
-									{item.category === 'Announcements' ? (
-										<>
-											{canManageItem(item.office) && (
-												<button
-													className="action-button edit"
-													onClick={() => setEditAnnouncementModal({
-														show: true,
-														id: item.id,
-														title: item.fileName,
-														office: item.office,
-														link: item.downloadUrl,
-														image: null
-													})}
-												>
-													Edit
-												</button>
-											)}
-											<button
-												className="action-button open-link"
-												onClick={() => window.open(item.downloadUrl, '_blank')}
-												disabled={!item.downloadUrl || item.downloadUrl === '#'}
-											>
-												Open Link
-											</button>
-										</>
-									) : item.category === 'Links' ? (
-										<>
-											{canManageItem(item.office) && (
-												<button
-													className="action-button edit"
-													onClick={() => setEditLinkModal({
-														show: true,
-														id: item.id,
-														title: item.fileName,
-														office: item.office,
-														url: item.downloadUrl,
-														pinned: item.pinned
-													})}
-												>
-													Edit
-												</button>
-											)}
-											<button
-												className="action-button open-link"
-												onClick={() => window.open(item.downloadUrl, '_blank')}
-												disabled={!item.downloadUrl || item.downloadUrl === '#'}
-											>
-												Open Link
-											</button>
-										</>
-									) : (
-										<>
-											<Link
-												className="action-button preview"
-												to={item.viewURL}
-												onClick={() => console.log("[archive] Naviagting to: ", item.viewURL, "for file: ", item.id)}
-											>
-												Preview
-											</Link>
-											<a
-												href={item.downloadUrl}
-												target="_blank"
-												rel="noopener noreferrer"
-												className="action-button download"
-											>
-												Download
-											</a>
-										</>
-									)}
-									{canManageItem(item.office) && (
-										<button
-											className="action-button delete"
-											onClick={() => setDeleteModal({
-												show: true,
-												itemId: item.id,
-												itemName: item.fileName,
-												category: item.category
-											})}
-										>
-											<FaTrash />
-										</button>
-									)}
-								</div>
+                <div className="card-actions">
+                  {item.category === 'Announcements' ? (
+                    <>
+                      {canManageItem(item.office) && (
+                        <button
+                          className="action-button edit"
+                          onClick={() => setEditAnnouncementModal({
+                            show: true,
+                            id: item.id,
+                            title: item.fileName,
+                            office: item.office,
+                            link: item.downloadUrl,
+                            image: null
+                          })}
+                        >
+                          Edit
+                        </button>
+                      )}
+                      <button
+                        className="action-button open-link"
+                        onClick={() => window.open(item.downloadUrl, '_blank')}
+                        disabled={!item.downloadUrl || item.downloadUrl === '#'}
+                      >
+                        Open Link
+                      </button>
+                    </>
+                  ) : item.category === 'Links' ? (
+                    <>
+                      {canManageItem(item.office) && (
+                        <button
+                          className="action-button edit"
+                          onClick={() => setEditLinkModal({
+                            show: true,
+                            id: item.id,
+                            title: item.fileName,
+                            office: item.office,
+                            url: item.downloadUrl,
+                            pinned: item.pinned
+                          })}
+                        >
+                          Edit
+                        </button>
+                      )}
+                      <button
+                        className="action-button open-link"
+                        onClick={() => window.open(item.downloadUrl, '_blank')}
+                        disabled={!item.downloadUrl || item.downloadUrl === '#'}
+                      >
+                        Open Link
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        className="action-button preview"
+                        onClick={() => window.open(item.viewUrl, '_blank')}
+                      >
+                        Preview
+                      </button>
+                      <a
+                        href={item.downloadUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="action-button download"
+                      >
+                        Download
+                      </a>
+                    </>
+                  )}
+                  {canManageItem(item.office) && (
+                    <button
+                      className="action-button delete"
+                      onClick={() => setDeleteModal({
+                        show: true,
+                        itemId: item.id,
+                        itemName: item.fileName,
+                        category: item.category
+                      })}
+                    >
+                      <FaTrash />
+                    </button>
+                  )}
+                </div>
 
-								{activeTab === 'Uploaded by Me' && item.status === 'rejected' && (
-									<div className="comments-section">
-										<button
-											className="comments-toggle"
-											onClick={() => toggleComments(item.id)}
-										>
-											View Rejection Comments
-										</button>
-										{expandedFileId === item.id && (
-											<div className="comments-content">
-												{item.comments && item.comments.length > 0 ? (
-													item.comments.map((comment, index) => (
-														<div key={index} className="comment-item">
-															<div className="comment-header">
-																<span className="comment-author">
-																	{comment.author?.name || 'Unknown'}
-																</span>
-																<span className="comment-date">
-																	{new Date(comment.createdAt).toLocaleDateString()}
-																</span>
-															</div>
-															<p className="comment-text">{comment.content}</p>
-														</div>
-													))
-												) : (
-													<p className="no-comments">No comments available</p>
-												)}
-											</div>
-										)}
-									</div>
-								)}
-							</div>
-						))}
-					</div>
-				) : (
-					<table className="archive-table">
-						<thead>
-							<tr>
-								<th>Name</th>
-								<th>Category</th>
-								<th>Author</th>
-								<th>Office</th>
-								<th>Date</th>
-								{activeTab === 'Uploaded by Me' && <th>Status</th>}
-								<th className="actions-cell">Actions</th>
-							</tr>
-						</thead>
-						<tbody>
-							{filteredItems.map((item) => (
-								<tr key={item.id}>
-									<td className="name-cell">{item.fileName}</td>
-									<td className="category-cell">
-										<span className={`category-badge ${item.category.toLowerCase()}`}>
-											{item.category}
-										</span>
-									</td>
-									<td className="author-cell">{item.author}</td>
-									<td className="office-cell">{item.office}</td>
-									<td className="date-cell">{item.modifiedDate}</td>
-									{activeTab === 'Uploaded by Me' && (
-										<td className="status-cell">
-											<div className="status-container">
-												<span className={`status-badge ${item.status?.toLowerCase()}`}>
-													{item.status}
-												</span>
-												{item.status?.toLowerCase() === 'rejected' && item.comments && (
-													<button
-														className="comments-toggle"
-														onClick={() => toggleComments(item.id)}
-													>
-														View Comments
-													</button>
-												)}
-											</div>
-											{expandedFileId === item.id && item.comments && (
-												<div className="comments-content">
-													{item.comments.map((comment, index) => (
-														<div key={index} className="comment-item">
-															<div className="comment-header">
-																<span className="comment-author">
-																	{comment.author?.name || 'Unknown'}
-																</span>
-																<span className="comment-date">
-																	{new Date(comment.createdAt).toLocaleDateString()}
-																</span>
-															</div>
-															<p className="comment-text">{comment.content}</p>
-														</div>
-													))}
-												</div>
-											)}
-										</td>
-									)}
-									<td className="actions-cell">
-										<div className="card-actions">
-											{item.category === 'Announcements' ? (
-												<>
-													{canManageItem(item.office) && (
-														<button
-															className="action-button edit"
-															onClick={() => setEditAnnouncementModal({
-																show: true,
-																id: item.id,
-																title: item.fileName,
-																office: item.office,
-																link: item.downloadUrl,
-																image: null
-															})}
-														>
-															Edit
-														</button>
-													)}
-													<button
-														className="action-button open-link"
-														onClick={() => window.open(item.downloadUrl, '_blank')}
-														disabled={!item.downloadUrl || item.downloadUrl === '#'}
-													>
-														Open Link
-													</button>
-												</>
-											) : item.category === 'Links' ? (
-												<>
-													{canManageItem(item.office) && (
-														<button
-															className="action-button edit"
-															onClick={() => setEditLinkModal({
-																show: true,
-																id: item.id,
-																title: item.fileName,
-																office: item.office,
-																url: item.downloadUrl,
-																pinned: item.pinned
-															})}
-														>
-															Edit
-														</button>
-													)}
-													<button
-														className="action-button open-link"
-														onClick={() => window.open(item.downloadUrl, '_blank')}
-														disabled={!item.downloadUrl || item.downloadUrl === '#'}
-													>
-														Open Link
-													</button>
-												</>
-											) : (
-												<>
-													<Link
-														className="action-button preview"
-														to={item.viewURL}
-														onClick={() => console.log("[archive] Naviagting to: ", item.viewURL, "for file: ", item.id)}
-													>
-														Preview
-													</Link>
-													<a
-														href={item.downloadUrl}
-														target="_blank"
-														rel="noopener noreferrer"
-														className="action-button download"
-													>
-														Download
-													</a>
-												</>
-											)}
-											{canManageItem(item.office) && (
-												<button
-													className="action-button delete"
-													onClick={() => setDeleteModal({
-														show: true,
-														itemId: item.id,
-														itemName: item.fileName,
-														category: item.category
-													})}
-												>
-													<FaTrash />
-												</button>
-											)}
-										</div>
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				)}
-			</section>
+                {activeTab === 'Uploaded by Me' && item.status === 'rejected' && (
+                  <div className="comments-section">
+                    <button
+                      className="comments-toggle"
+                      onClick={() => toggleComments(item.id)}
+                    >
+                      View Rejection Comments
+                    </button>
+                    {expandedFileId === item.id && (
+                      <div className="comments-content">
+                        {item.comments && item.comments.length > 0 ? (
+                          item.comments.map((comment, index) => (
+                            <div key={index} className="comment-item">
+                              <div className="comment-header">
+                                <span className="comment-author">
+                                  {comment.author?.name || 'Unknown'}
+                                </span>
+                                <span className="comment-date">
+                                  {new Date(comment.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p className="comment-text">{comment.content}</p>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="no-comments">No comments available</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <table className="archive-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Author</th>
+                <th>Office</th>
+                <th>Date</th>
+                {activeTab === 'Uploaded by Me' && <th>Status</th>}
+                <th className="actions-cell">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredItems.map((item) => (
+                <tr key={item.id}>
+                  <td className="name-cell">{item.fileName}</td>
+                  <td className="category-cell">
+                    <span className={`category-badge ${item.category.toLowerCase()}`}>
+                      {item.category}
+                    </span>
+                  </td>
+                  <td className="author-cell">{item.author}</td>
+                  <td className="office-cell">{item.office}</td>
+                  <td className="date-cell">{item.modifiedDate}</td>
+                  {activeTab === 'Uploaded by Me' && (
+                    <td className="status-cell">
+                      <div className="status-container">
+                        <span className={`status-badge ${item.status?.toLowerCase()}`}>
+                          {item.status}
+                        </span>
+                        {item.status?.toLowerCase() === 'rejected' && item.comments && (
+                          <button
+                            className="comments-toggle"
+                            onClick={() => toggleComments(item.id)}
+                          >
+                            View Comments
+                          </button>
+                        )}
+                      </div>
+                      {expandedFileId === item.id && item.comments && (
+                        <div className="comments-content">
+                          {item.comments.map((comment, index) => (
+                            <div key={index} className="comment-item">
+                              <div className="comment-header">
+                                <span className="comment-author">
+                                  {comment.author?.name || 'Unknown'}
+                                </span>
+                                <span className="comment-date">
+                                  {new Date(comment.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p className="comment-text">{comment.content}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </td>
+                  )}
+                  <td className="actions-cell">
+                    <div className="card-actions">
+                      {item.category === 'Announcements' ? (
+                        <>
+                          {canManageItem(item.office) && (
+                            <button
+                              className="action-button edit"
+                              onClick={() => setEditAnnouncementModal({
+                                show: true,
+                                id: item.id,
+                                title: item.fileName,
+                                office: item.office,
+                                link: item.downloadUrl,
+                                image: null
+                              })}
+                            >
+                              Edit
+                            </button>
+                          )}
+                          <button
+                            className="action-button open-link"
+                            onClick={() => window.open(item.downloadUrl, '_blank')}
+                            disabled={!item.downloadUrl || item.downloadUrl === '#'}
+                          >
+                            Open Link
+                          </button>
+                        </>
+                      ) : item.category === 'Links' ? (
+                        <>
+                          {canManageItem(item.office) && (
+                            <button
+                              className="action-button edit"
+                              onClick={() => setEditLinkModal({
+                                show: true,
+                                id: item.id,
+                                title: item.fileName,
+                                office: item.office,
+                                url: item.downloadUrl,
+                                pinned: item.pinned
+                              })}
+                            >
+                              Edit
+                            </button>
+                          )}
+                          <button
+                            className="action-button open-link"
+                            onClick={() => window.open(item.downloadUrl, '_blank')}
+                            disabled={!item.downloadUrl || item.downloadUrl === '#'}
+                          >
+                            Open Link
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            className="action-button preview"
+                            onClick={() => window.open(item.viewUrl, '_blank')}
+                          >
+                            Preview
+                          </button>
+                          <a
+                            href={item.downloadUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="action-button download"
+                          >
+                            Download
+                          </a>
+                        </>
+                      )}
+                      {canManageItem(item.office) && (
+                        <button
+                          className="action-button delete"
+                          onClick={() => setDeleteModal({
+                            show: true,
+                            itemId: item.id,
+                            itemName: item.fileName,
+                            category: item.category
+                          })}
+                        >
+                          <FaTrash />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
 
 			{/* Delete Confirmation Modal */}
 			{deleteModal.show && (

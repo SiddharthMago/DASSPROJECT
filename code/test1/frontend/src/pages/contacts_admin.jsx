@@ -252,6 +252,12 @@ function ContactsAdmin({ darkMode }) {
         });
     };
 
+    const roles = {
+		admin: "Admin",
+		user: "User",
+		superadmin: "Super admin"
+	};
+
     return (
         <div className={`contacts-container ${darkMode ? 'dark-mode' : ''}`}>
             <link
@@ -556,7 +562,7 @@ function ContactsAdmin({ darkMode }) {
                                     )}
 
                                     <div className="role-indicator">
-                                        Role: <span className={`role-badge ${contact.role || 'user'}`}>{contact.role || 'user'}</span>
+                                        Role: <span className={`role-badge ${contact.role || 'user'}`}>{roles[contact.role] || 'user'}</span>
                                     </div>
 
                                     <div className="contact-actions">

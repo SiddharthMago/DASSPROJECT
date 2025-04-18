@@ -43,7 +43,7 @@ exports.addFile = async (req, res, next) => {
 		if (req.file) {
 			// Store relative path instead of absolute path
 			fileData.filePath = `uploads/files/${req.file.filename}`;
-			fileData.url = req.file.filename;
+			fileData.url = null; // Clear URL if a file is uploaded
 		}
 
 		// If URL was provided, add it
@@ -238,6 +238,10 @@ exports.addFileVersion = async (req, res, next) => {
 		if (req.file) {
 			file.filePath = filePath;
 		}
+
+		// Set status to 'pending' to require approval for the new version
+		file.status = 'pending';
+		console.log(`[ADD FILE VERSION] Setting file status to pending for approval`);
 
 		await file.save();
 		console.log(`[ADD FILE VERSION] Version added successfully to file: ${file._id}`);

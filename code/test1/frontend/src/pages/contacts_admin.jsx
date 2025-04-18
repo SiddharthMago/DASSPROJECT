@@ -563,17 +563,8 @@ function ContactsAdmin({ darkMode }) {
 
                                     <div className="role-indicator">
                                         Role: <span className={`role-badge ${contact.role || 'user'}`}>{roles[contact.role] || 'user'}</span>
-                                    </div>
 
-                                    <div className="contact-actions">
-                                        <button
-                                            className="action-edit"
-                                            onClick={() => startEditing(contact)}
-                                            title="Edit contact"
-                                        >
-                                            ✏️
-                                        </button>
-                                        <div className="role-dropdown">
+                                    <div className="role-dropdown">
                                             <select
                                                 value={contact.role || 'user'}
                                                 onChange={(e) => changeRole(contact.email, e.target.value)}
@@ -585,12 +576,23 @@ function ContactsAdmin({ darkMode }) {
                                                 <option value="superadmin">Super admin</option>
                                             </select>
                                         </div>
+                                        </div>
+
+                                    <div className="contact-actions">
+                                        <button
+                                            className="action-edit"
+                                            onClick={() => startEditing(contact)}
+                                            title="Edit contact"
+                                        >
+                                            Edit
+                                        </button>
+                                        
                                         <button
                                             className="action-delete"
                                             onClick={() => deleteContact(contact.email)}
                                             title="Delete contact"
                                         >
-                                            🗑️
+                                            Delete
                                         </button>
                                     </div>
                                 </div>

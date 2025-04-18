@@ -415,24 +415,6 @@ function Archive({ darkMode, userRole }) {
 		}
 	};
 
-  // Function to get the appropriate "Add New" route based on category
-  const getAddNewRoute = () => {
-    // For Files category, return role-specific upload route
-    if (activeTab === 'Files') {
-      return userRole === 'superadmin' ? '/superadmin/add-file' : '/admin/add-file';
-    }
-    
-    // For other categories, use existing routes
-    switch (activeTab) {
-      case 'Announcements':
-        return '/create-announcement';
-      case 'Links':
-        return '/create-link';
-      default:
-        return '#';
-    }
-  };
-
 	// Function to handle announcement creation
 	const handleCreateAnnouncement = async (e) => {
 		e.preventDefault();
@@ -656,44 +638,6 @@ function Archive({ darkMode, userRole }) {
 		}
 	};
 
-  // Function to handle link pinning/unpinning
-  const handlePinLink = async (id, currentPinnedStatus) => {
-    try {
-      const token = localStorage.getItem('token');
-      const endpoint = currentPinnedStatus ? 'unpin' : 'pin';
-      const response = await axios.put(
-        `http://localhost:5000/api/quicklinks/${id}/${endpoint}`,
-        {},
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
-
-      if (response.data.success) {
-        // Refresh the links list
-        const linksRes = await axios.get('http://localhost:5000/api/quicklinks');
-        const mapped = linksRes.data.data.map((quickLink) => ({
-          id: quickLink._id,
-          fileName: quickLink.title,
-          author: quickLink.office,
-          office: quickLink.office,
-          modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
-          category: 'Links',
-          downloadUrl: quickLink.url,
-          pinned: quickLink.pinned
-        }));
-        setArchiveItems(mapped);
-      } else {
-        alert('Failed to update pin status: ' + response.data.error);
-      }
-    } catch (err) {
-      console.error('Error updating pin status:', err);
-      alert('Failed to update pin status: ' + (err.response?.data?.error || err.message));
-    }
-  };
-
 	return (
 		<div className={`archive-container ${darkMode ? 'dark-mode' : ''}`}>
 			<link
@@ -706,6 +650,27 @@ function Archive({ darkMode, userRole }) {
 				<h1 className="page-title">Archive</h1>
 				<p className="page-subtitle">Browse and access all institutional resources</p>
 			</header>
+
+			{/* Add New Buttons - Fixed Position */}
+			{(userRole === 'admin' || userRole === 'superadmin') && (
+				<div className="add-new-container">
+					<Link to={userRole === 'superadmin' ? '/superadmin/add-file' : '/admin/add-file'} className="add-new-button">
+						<FaPlus /> Add New File
+					</Link>
+					<button
+						className="add-new-button"
+						onClick={() => setAnnouncementModal({ ...announcementModal, show: true })}
+					>
+						<FaPlus /> Add New Announcement
+					</button>
+					<button
+						className="add-new-button"
+						onClick={() => setLinkModal({ ...linkModal, show: true })}
+					>
+						<FaPlus /> Add New Link
+					</button>
+				</div>
+			)}
 
 			{/* Layout Toggle */}
 			<div className="layout-toggle">
@@ -724,31 +689,6 @@ function Archive({ darkMode, userRole }) {
 					<FaList />
 				</button>
 			</div>
-
-			{/* Add New Button */}
-			{(userRole === 'admin' || userRole === 'superadmin') && activeTab !== 'All' && activeTab !== 'Events' && activeTab !== 'Uploaded by Me' && (
-				<div className="add-new-container">
-					{activeTab === 'Links' ? (
-						<button
-							className="add-new-button"
-							onClick={() => setLinkModal({ ...linkModal, show: true })}
-						>
-							<FaPlus /> Add New Link
-						</button>
-					) : activeTab === 'Announcements' ? (
-						<button
-							className="add-new-button"
-							onClick={() => setAnnouncementModal({ ...announcementModal, show: true })}
-						>
-							<FaPlus /> Add New Announcement
-						</button>
-					) : (
-						<Link to={getAddNewRoute()} className="add-new-button">
-							<FaPlus /> Add New {activeTab.slice(0, -1)}
-						</Link>
-					)}
-				</div>
-			)}
 
 			{/* Search and Filter Section */}
 			<section className="archive-filters">
@@ -885,7 +825,7 @@ function Archive({ darkMode, userRole }) {
                             title: item.fileName,
                             office: item.office,
                             link: item.downloadUrl,
-                            image: null
+                            image: item.image
                           })}
                         >
                           Edit
@@ -904,6 +844,39 @@ function Archive({ darkMode, userRole }) {
                       {canManageItem(item.office) && (
                         <>
                           <button
+                            className="action-button pin"
+                            onClick={() => {
+                              const endpoint = item.pinned ? 'unpin' : 'pin';
+                              axios.put(
+                                `http://localhost:5000/api/quicklinks/${item.id}/${endpoint}`,
+                                {},
+                                {
+                                  headers: {
+                                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                  }
+                                }
+                              ).then(() => {
+                                // Refresh the links list
+                                axios.get('http://localhost:5000/api/quicklinks')
+                                  .then(res => {
+                                    const mapped = res.data.data.map((quickLink) => ({
+                                      id: quickLink._id,
+                                      fileName: quickLink.title,
+                                      author: quickLink.office,
+                                      office: quickLink.office,
+                                      modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
+                                      category: 'Links',
+                                      downloadUrl: quickLink.url,
+                                      pinned: quickLink.pinned
+                                    }));
+                                    setArchiveItems(mapped);
+                                  });
+                              });
+                            }}
+                          >
+                            {item.pinned ? 'Unpin' : 'Pin'}
+                          </button>
+                          <button
                             className="action-button edit"
                             onClick={() => setEditLinkModal({
                               show: true,
@@ -915,12 +888,6 @@ function Archive({ darkMode, userRole }) {
                             })}
                           >
                             Edit
-                          </button>
-                          <button
-                            className={`action-button ${item.pinned ? 'unpin' : 'pin'}`}
-                            onClick={() => handlePinLink(item.id, item.pinned)}
-                          >
-                            {item.pinned ? 'Unpin' : 'Pin'}
                           </button>
                         </>
                       )}
@@ -1071,7 +1038,7 @@ function Archive({ darkMode, userRole }) {
                                 title: item.fileName,
                                 office: item.office,
                                 link: item.downloadUrl,
-                                image: null
+                                image: item.image
                               })}
                             >
                               Edit
@@ -1090,6 +1057,39 @@ function Archive({ darkMode, userRole }) {
                           {canManageItem(item.office) && (
                             <>
                               <button
+                                className="action-button pin"
+                                onClick={() => {
+                                  const endpoint = item.pinned ? 'unpin' : 'pin';
+                                  axios.put(
+                                    `http://localhost:5000/api/quicklinks/${item.id}/${endpoint}`,
+                                    {},
+                                    {
+                                      headers: {
+                                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                      }
+                                    }
+                                  ).then(() => {
+                                    // Refresh the links list
+                                    axios.get('http://localhost:5000/api/quicklinks')
+                                      .then(res => {
+                                        const mapped = res.data.data.map((quickLink) => ({
+                                          id: quickLink._id,
+                                          fileName: quickLink.title,
+                                          author: quickLink.office,
+                                          office: quickLink.office,
+                                          modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
+                                          category: 'Links',
+                                          downloadUrl: quickLink.url,
+                                          pinned: quickLink.pinned
+                                        }));
+                                        setArchiveItems(mapped);
+                                      });
+                                  });
+                                }}
+                              >
+                                {item.pinned ? 'Unpin' : 'Pin'}
+                              </button>
+                              <button
                                 className="action-button edit"
                                 onClick={() => setEditLinkModal({
                                   show: true,
@@ -1101,12 +1101,6 @@ function Archive({ darkMode, userRole }) {
                                 })}
                               >
                                 Edit
-                              </button>
-                              <button
-                                className={`action-button ${item.pinned ? 'unpin' : 'pin'}`}
-                                onClick={() => handlePinLink(item.id, item.pinned)}
-                              >
-                                {item.pinned ? 'Unpin' : 'Pin'}
                               </button>
                             </>
                           )}

@@ -63,28 +63,45 @@
 .post-filters {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 1rem;
     margin-bottom: 1rem;
+    justify-content: center;
+    width: 100%;
 }
 
 .post-filters button {
-    padding: 0.5rem 1rem;
-    background: var(--card-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 20px;
-    cursor: pointer;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    background: none;
     color: var(--text-primary);
-    transition: all 0.3s;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    min-width: 120px;
+    text-align: center;
+    position: relative;
 }
 
 .post-filters button:hover {
-    border-color: var(--accent-color);
+    background-color: rgba(46, 91, 187, 0.05);
 }
 
 .post-filters button.active {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.post-filters button.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 2px;
     background-color: var(--accent-color);
-    color: white;
-    border-color: var(--accent-color);
 }
 
 .contacts-grid {
@@ -106,8 +123,6 @@
     padding: 1.5rem;
     border: 1px solid var(--card-border);
 }
-
-
 
 .contact-name {
     margin-top: 60px; /* Add space to avoid overlap with the role badge */
@@ -246,10 +261,18 @@
         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     }
 
-    .post-filters {
+    .post-filters,
+    .role-filters {
         overflow-x: auto;
         padding-bottom: 0.5rem;
         flex-wrap: nowrap;
+        justify-content: flex-start;
+    }
+    
+    .post-filters button,
+    .role-filters button {
+        min-width: 100px;
+        padding: 0.6rem 1.2rem;
     }
 }
 
@@ -265,8 +288,14 @@
     .search-bar {
         max-width: 100%;
     }
-}
 
+    .post-filters button,
+    .role-filters button {
+        min-width: 80px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+}
 
 /* Admin-specific styles for contacts page */
 .admin-header {
@@ -315,26 +344,52 @@
 
 .role-filters {
     display: flex;
-    gap: 0.5rem;
+    gap: 1rem;
     flex-wrap: wrap;
-    justify-content: center; /* Center the role filters horizontally */
-    align-items: center; /* Center the role filters vertically */
+    justify-content: center;
+    width: 100%;
     margin-top: 1rem;
 }
 
 .role-filters button {
-    background-color: var(--gray-bg);
+    padding: 0.8rem 1.5rem;
     border: none;
-    border-radius: 20px;
-    padding: 4px 19px;
-    color: var(--text-white);
-    font-size: 20px;
-    letter-spacing: 3px;
+    background: none;
+    color: var(--text-primary);
+    font-weight: 500;
     cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    min-width: 120px;
+    text-align: center;
+    position: relative;
 }
 
-.role-filters .active {
-    background-color: var(--primary-bg);
+.role-filters button:hover {
+    background-color: rgba(46, 91, 187, 0.05);
+}
+
+.role-filters button.active {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.role-filters button.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 2px;
+    background-color: var(--accent-color);
+}
+
+/* Dark mode adjustments */
+.dark-mode .post-filters button:hover,
+.dark-mode .role-filters button:hover {
+    background-color: rgba(46, 91, 187, 0.1);
 }
 
 .admin-contact-card {
@@ -564,11 +619,7 @@
     font-weight: 600;
   }
   
-
-
-
-
-  .role-badge.superadmin {
+.role-badge.superadmin {
     background-color: #fff1f0; /* Light red background */
     color: #f5222d; /* Red text */
 }
@@ -655,8 +706,6 @@
 .action-delete {
     color: #f5222d;
 }
-
-
 
 /* Responsive styles for admin view */
 @media (max-width: 768px) {

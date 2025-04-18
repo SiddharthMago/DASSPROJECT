@@ -1162,7 +1162,7 @@ function HomeAdmin({ darkMode }) {
                     aria-label="Edit announcement"
                     title="Edit announcement"
                   >
-                    ✏️
+                    <img src={editIcon} alt="Edit" className="action-icon" />
                   </button>
                   <button
                     className="add-announcement-icon-btn"
@@ -1173,7 +1173,7 @@ function HomeAdmin({ darkMode }) {
                     aria-label="Add new announcement"
                     title="Add new announcement"
                   >
-                    ➕
+                    <img src={addIcon} alt="Add" className="action-icon" />
                   </button>
                   <button
                     className="delete-announcement-btn"
@@ -1184,7 +1184,7 @@ function HomeAdmin({ darkMode }) {
                     aria-label="Delete announcement"
                     title="Delete announcement"
                   >
-                    🗑️
+                    <img src={deleteIcon} alt="Delete" className="action-icon" />
                   </button>
                 </div>
               </div>

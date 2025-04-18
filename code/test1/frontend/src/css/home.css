@@ -788,20 +788,7 @@
 	margin-bottom: 1rem;
   }
   
-  .edit-announcement-btn {
-	background: none;
-	border: none;
-	cursor: pointer;
-	font-size: 1.2rem;
-	color: var(--text-primary);
-	transition: transform 0.2s;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 32px;
-	height: 32px;
-	border-radius: 50%;
-  }
+
   
   .edit-announcement-btn:hover {
 	transform: scale(1.1);
@@ -960,6 +947,7 @@
 	font-size: 1rem;
 	border-radius: 4px;
 	transition: all 0.2s;
+	
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
@@ -982,57 +970,35 @@
 	right: 10px;
   }
   
-  .edit-announcement-btn{
-
-  border-radius: 100%;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 20px;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  margin-left: 10px;
-  transition: transform 0.3s ease;
-
-
-  }
-
-  
-  .delete-announcement-btn,
-  .add-announcement-icon-btn {
-
-  border-radius: 100%;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 10px;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  margin-left: 10px;
-  /* transition: color 0.3s ease; */
-  /* transition: all 0.3s ease; */
-  transition: transform 0.3s ease;
-
-
-	/* b
-	border: none;
-	
-	width: 30px;
-	height: 30px;
-	
-	
-	 */
+  .announcement-actions {
+	display: flex;
+	gap: 5px; /* Reduce the distance between buttons */
+	position: absolute;
+	top: 10px;
+	right: 10px;
   }
   
-  .edit-announcement-btn:hover,
-  .delete-announcement-btn:hover,
-  .add-announcement-icon-btn:hover {
-	transform: scale(1.1); /* Scale effect on hover */
-	background:  rgba(255, 255, 255, 0.5); /* Translucent background *//* Make the background transparent */
-	color: rgba(0, 0, 0, 0.9); /* Optional: Adjust text/icon color for better visibility */}
-  
-  .delete-announcement-btn {
-	color: #ff4444;
+  .announcement-actions button {
+	background: none; /* Remove background color */
+	border: none; /* Remove border */
+	cursor: pointer;
+	padding: 10px; /* Increase padding for larger buttons */
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: transform 0.2s ease;
   }
   
+  .announcement-actions button:hover {
+	transform: scale(1.1); /* Slight zoom effect on hover */
+  }
+  
+  .action-icon {
+	width: 40px; /* Increase size of the icons */
+	height: 40px;
+	object-fit: contain; /* Ensure the image fits properly */
+  }
+
 
   
   /* No Announcements State */

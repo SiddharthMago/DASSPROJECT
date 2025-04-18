@@ -8,6 +8,10 @@ import studentsLogo from '../assets/students-logo.png';
 import researchLogo from '../assets/research-logo.png';
 import adminLogo from '../assets/admin-logo.png';
 
+import editIcon from '../assets/edit-icon.jpg';
+import addIcon from '../assets/add-icon.jpg';
+import deleteIcon from '../assets/delete-icon.jpg';
+
 // Home component - Admin landing page for IIIT-Hyderabad website
 function HomeAdmin({ darkMode }) {
   // State for announcements
@@ -1180,7 +1184,7 @@ function HomeAdmin({ darkMode }) {
                     aria-label="Edit announcement"
                     title="Edit announcement"
                   >
-                    ✏️
+                    <img src={editIcon} alt="Edit" className="action-icon" />
                   </button>
                   <button
                     className="add-announcement-icon-btn"
@@ -1191,7 +1195,7 @@ function HomeAdmin({ darkMode }) {
                     aria-label="Add new announcement"
                     title="Add new announcement"
                   >
-                    ➕
+                    <img src={addIcon} alt="Add" className="action-icon" />
                   </button>
                   <button
                     className="delete-announcement-btn"
@@ -1202,7 +1206,7 @@ function HomeAdmin({ darkMode }) {
                     aria-label="Delete announcement"
                     title="Delete announcement"
                   >
-                    🗑️
+                    <img src={deleteIcon} alt="Delete" className="action-icon" />
                   </button>
                 </div>
 
@@ -1219,7 +1223,7 @@ function HomeAdmin({ darkMode }) {
                   />
                 ))}
               </div>
-              
+
             </div>
           )
         ) : (

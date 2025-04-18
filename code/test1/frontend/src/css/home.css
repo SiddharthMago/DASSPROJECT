@@ -213,8 +213,8 @@
 	text-align: center;
 	margin-bottom: 1rem;
 	color: white;
-	font-weight: 500;
-	text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+	font-weight: bold; /* Make the text bold */
+	text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7); /* Keep the text shadow for better readability */
   }
   
   .announcement-dots {
@@ -255,8 +255,9 @@
 	font-weight: 600;
 	margin-bottom: 0.8rem;
 	text-transform: capitalize;
-	background-color: rgba(255,255,255,0.9);
+	background-color: rgba(255, 255, 255, 0.9);
 	border: none;
+	color: #1a4ba8; /* Updated color */
   }
   
   .office-tag.academics {
@@ -981,47 +982,58 @@
 	right: 10px;
   }
   
-  .edit-announcement-btn,
-  .delete-announcement-btn {
-	background: rgba(255, 255, 255, 0.9);
+  .edit-announcement-btn{
+
+  border-radius: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: transform 0.3s ease;
+
+
+  }
+
+  
+  .delete-announcement-btn,
+  .add-announcement-icon-btn {
+
+  border-radius: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 10px;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: 10px;
+  /* transition: color 0.3s ease; */
+  /* transition: all 0.3s ease; */
+  transition: transform 0.3s ease;
+
+
+	/* b
 	border: none;
-	border-radius: 50%;
+	
 	width: 30px;
 	height: 30px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	transition: all 0.3s ease;
+	
+	
+	 */
   }
   
   .edit-announcement-btn:hover,
-  .delete-announcement-btn:hover {
-	background: rgba(255, 255, 255, 1);
-	transform: scale(1.1);
-  }
+  .delete-announcement-btn:hover,
+  .add-announcement-icon-btn:hover {
+	transform: scale(1.1); /* Scale effect on hover */
+	background:  rgba(255, 255, 255, 0.5); /* Translucent background *//* Make the background transparent */
+	color: rgba(0, 0, 0, 0.9); /* Optional: Adjust text/icon color for better visibility */}
   
   .delete-announcement-btn {
 	color: #ff4444;
   }
   
-  /* Add Announcement Button */
-  .add-announcement-btn {
-	background-color: #4CAF50;
-	color: white;
-	border: none;
-	padding: 10px 20px;
-	border-radius: 5px;
-	cursor: pointer;
-	font-size: 14px;
-	margin-top: 20px;
-	transition: all 0.3s ease;
-  }
-  
-  .add-announcement-btn:hover {
-	background-color: #45a049;
-	transform: translateY(-2px);
-  }
+
   
   /* No Announcements State */
   .no-announcements {
@@ -1077,4 +1089,32 @@
   transform: scale(1.2); 
   transition: transform 0.2s ease-in-out;
 } 
-
+/* Announcement Navigation Buttons */
+.announcement-navigation {
+	position: absolute;
+	top: 50%;
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	transform: translateY(-50%);
+	pointer-events: none; /* Prevent blocking other interactions */
+  }
+  
+  .prev-announcement-btn,
+  .next-announcement-btn {
+	background-color: rgba(0, 0, 0, 0.5);
+	color: white;
+	border: none;
+	padding: 10px;
+	border-radius: 50%;
+	cursor: pointer;
+	font-size: 18px;
+	pointer-events: auto; /* Enable interaction for buttons */
+	transition: background-color 0.3s ease;
+  }
+  
+  .prev-announcement-btn:hover,
+  .next-announcement-btn:hover {
+	background-color: rgba(0, 0, 0, 0.8);
+  }
+  

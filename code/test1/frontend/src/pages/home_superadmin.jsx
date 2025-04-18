@@ -292,7 +292,7 @@ function HomeAdmin({ darkMode }) {
       const fullImageUrl = announcement.imageUrl.startsWith('http')
         ? announcement.imageUrl // If it's already a full URL, use it as is
         : `${baseUrl}${announcement.imageUrl}`; // Prepend the base URL for relative paths
-  
+
       console.log('Using image URL:', fullImageUrl);
       return {
         backgroundImage: `url(${fullImageUrl})`,
@@ -300,11 +300,11 @@ function HomeAdmin({ darkMode }) {
         backgroundPosition: 'center',
       };
     }
-  
+
     // Otherwise, use the office logo
     const officeName = announcement.office;
     const logoUrl = officeLogos[officeName];
-  
+
     if (logoUrl) {
       console.log('Using office logo for', officeName, logoUrl);
       return {
@@ -314,7 +314,7 @@ function HomeAdmin({ darkMode }) {
         backgroundRepeat: 'no-repeat',
       };
     }
-  
+
     // Fallback - use a class-based background
     console.log('Using class-based background for', officeName);
     return {};
@@ -1128,6 +1128,34 @@ function HomeAdmin({ darkMode }) {
                 }
               }}
             >
+              <div className="announcement-navigation">
+                <button
+                  className="prev-announcement-btn"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent container click
+                    setCurrentAnnouncementIndex((prevIndex) =>
+                      prevIndex === 0 ? announcements.length - 1 : prevIndex - 1
+                    );
+                  }}
+                  aria-label="Previous Announcement"
+                  title="Previous Announcement"
+                >
+                  ◀
+                </button>
+                <button
+                  className="next-announcement-btn"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent container click
+                    setCurrentAnnouncementIndex((prevIndex) =>
+                      (prevIndex + 1) % announcements.length
+                    );
+                  }}
+                  aria-label="Next Announcement"
+                  title="Next Announcement"
+                >
+                  ▶
+                </button>
+              </div>
               <div className="announcement-header">
                 <div className="announcement-content">
                   <span className={`office-tag ${announcements[currentAnnouncementIndex].office}`}>
@@ -1138,6 +1166,10 @@ function HomeAdmin({ darkMode }) {
                     <div className="link-indicator">Click to open link</div>
                   )}
                 </div>
+
+
+
+
                 <div className="announcement-actions">
                   <button
                     className="edit-announcement-btn"
@@ -1151,6 +1183,17 @@ function HomeAdmin({ darkMode }) {
                     ✏️
                   </button>
                   <button
+                    className="add-announcement-icon-btn"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent container click
+                      setIsAddingAnnouncement(true);
+                    }}
+                    aria-label="Add new announcement"
+                    title="Add new announcement"
+                  >
+                    ➕
+                  </button>
+                  <button
                     className="delete-announcement-btn"
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent container click
@@ -1162,6 +1205,7 @@ function HomeAdmin({ darkMode }) {
                     🗑️
                   </button>
                 </div>
+
               </div>
               <div className="announcement-dots">
                 {announcements.map((_, index) => (
@@ -1175,15 +1219,7 @@ function HomeAdmin({ darkMode }) {
                   />
                 ))}
               </div>
-              <button
-                className="add-announcement-btn"
-                onClick={(e) => {
-                  e.stopPropagation(); // Prevent container click
-                  setIsAddingAnnouncement(true);
-                }}
-              >
-                + Add New Announcement
-              </button>
+              
             </div>
           )
         ) : (
@@ -1481,16 +1517,16 @@ function HomeAdmin({ darkMode }) {
           </div>
 
           {isEditingQuickLinks && !isAddingQuickLink && selectedQuickLinkIndex === null && (
-            <div className="quick-links-edit-panel">
-              <div className="edit-actions">
-                <button onClick={startAddingQuickLink} className="add-btn">
-                  Add New Link
-                </button>
-                {/* <button onClick={cancelEditingQuickLink} className="cancel-btn">
+
+            <div className="edit-actions">
+              <button onClick={startAddingQuickLink} className="add-btn">
+                Add New Link
+              </button>
+              {/* <button onClick={cancelEditingQuickLink} className="cancel-btn">
                   Done Editing
                 </button> */}
-              </div>
             </div>
+
           )}
 
           {isEditingQuickLinks && isAddingQuickLink && (

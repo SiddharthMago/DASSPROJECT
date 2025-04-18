@@ -48,6 +48,10 @@ const UserSchema = new mongoose.Schema({
 		type: Date,
 		default: Date.now,
 	},
+	profile_pic: {
+		type: String,
+		default: "/uploads/user_pics/default.jpeg",
+	}
 });
 
 // Extract name from email before saving

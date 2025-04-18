@@ -4,15 +4,18 @@ const axios = require('axios');
 const { parseStringPromise } = require('xml2js');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { getUserDetails, getCurrentUserDetails, changeUserRole, getAllUsers } = require('../controllers/authController');
-const { protect } = require('../middleware/auth');
+const { getUserDetails, getCurrentUserDetails, changeUserRole, getAllUsers, addUser, updateUser, deleteUser } = require('../controllers/authController');
+const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
 router.get('/user', getUserDetails);
 router.get('/current', protect, getCurrentUserDetails);
-router.put('/user/:email/role', protect, changeUserRole);
+router.put('/user/:email/role', protect, authorize("superadmin"), changeUserRole);
 router.get('/users', getAllUsers);
+router.post('/addUser', protect, authorize("superadmin"), addUser);
+router.put('/user/:email', protect, authorize("superadmin"), updateUser);
+router.delete('/user/:email', protect, authorize("superadmin"), deleteUser);
 
 router.get('/cas-callback', async (req, res) => {
     const { ticket } = req.query;
@@ -89,7 +92,6 @@ router.get('/user-profile', protect, async (req, res) => {
 
 async function determineRole(userDetails) {
     const email = userDetails?.["cas:E-Mail"]?.[0];
-    const role = User.findById(email).role;
     const user = await User.findOne({ email: email });
     return user ? user.role : "user";
 }

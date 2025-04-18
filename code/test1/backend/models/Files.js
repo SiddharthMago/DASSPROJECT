@@ -1,24 +1,5 @@
 const mongoose = require('mongoose');
 
-const FileVersionSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: [true, 'Please add a name for the file version'],
-  },
-  url: {
-    type: String,
-    required: false,
-  },
-  filePath: {
-    type: String,
-    required: false,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
 const CommentSchema = new mongoose.Schema({
   author: {
     type: mongoose.Schema.Types.ObjectId,
@@ -94,7 +75,7 @@ const FileSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
-    versions: [FileVersionSchema],
+    allVersions: [FileSchema],
     comments: {
       type: [CommentSchema],
       default: null,

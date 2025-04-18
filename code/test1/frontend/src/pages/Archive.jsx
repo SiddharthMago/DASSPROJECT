@@ -60,6 +60,9 @@ function Archive({ darkMode, userRole }) {
   // Add userOffice state to store the admin's office
   const [userOffice, setUserOffice] = useState('');
 
+  // Add new state for author details
+  const [authorDetails, setAuthorDetails] = useState({});
+
   // Set active tab from URL parameter on component mount
   useEffect(() => {
     const tabParam = searchParams.get('tab');
@@ -91,6 +94,51 @@ function Archive({ darkMode, userRole }) {
     }
   }, [userRole]);
 
+  // Function to fetch author details
+  const fetchAuthorDetails = async (authorId) => {
+    if (!authorId || authorDetails[authorId]) return;
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:5000/api/auth_cas/user?id=${authorId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.data.success) {
+        setAuthorDetails(prev => ({
+          ...prev,
+          [authorId]: response.data.data.name
+        }));
+      }
+    } catch (err) {
+      console.error('Error fetching author details:', err);
+    }
+  };
+
+  // Update the file mapping to use author ObjectId
+  const mapFileData = (file) => {
+    const mappedFile = {
+      id: file._id,
+      fileName: file.name,
+      authorId: file.author, // Store the author ObjectId
+      author: 'Loading...', // Initial state
+      office: file.office,
+      modifiedDate: new Date(file.createdAt).toLocaleDateString(),
+      category: 'Files',
+      downloadUrl: file.url || `http://localhost:5000/${file.filePath?.replace(/\\/g, '/')}`,
+    };
+
+    // If we have the author details, update the author name
+    if (file.author && authorDetails[file.author]) {
+      mappedFile.author = authorDetails[file.author];
+    } else if (file.author) {
+      // Fetch author details if we don't have them
+      fetchAuthorDetails(file.author);
+    }
+
+    return mappedFile;
+  };
+
   // Fetch data based on active tab
   useEffect(() => {
     const fetchData = async () => {
@@ -104,15 +152,7 @@ function Archive({ darkMode, userRole }) {
             axios.get('http://localhost:5000/api/quicklinks')
           ]);
 
-          const files = filesRes.data.data.map((file) => ({
-            id: file._id,
-            fileName: file.name,
-            author: file.authorName,
-            office: file.office,
-            modifiedDate: new Date(file.createdAt).toLocaleDateString(),
-            category: 'Files',
-            downloadUrl: file.url || `http://localhost:5000/${file.filePath?.replace(/\\/g, '/')}`,
-          }));
+          const files = filesRes.data.data.map(mapFileData);
 
           const announcements = announcementsRes.data.data.map((announcement) => ({
             id: announcement._id,
@@ -143,15 +183,7 @@ function Archive({ darkMode, userRole }) {
           setArchiveItems(allItems);
         } else if (activeTab === 'Files') {
           const res = await axios.get('http://localhost:5000/api/files/approved');
-          const mapped = res.data.data.map((file) => ({
-            id: file._id,
-            fileName: file.name,
-            author: file.author?.name || 'Unknown',
-            office: file.office,
-            modifiedDate: new Date(file.createdAt).toLocaleDateString(),
-            category: 'Files',
-            downloadUrl: file.url || `http://localhost:5000/${file.filePath?.replace(/\\/g, '/')}`,
-          }));
+          const mapped = res.data.data.map(mapFileData);
           setArchiveItems(mapped);
         } else if (activeTab === 'Uploaded by Me') {
           const token = localStorage.getItem('token');
@@ -221,7 +253,7 @@ function Archive({ darkMode, userRole }) {
     };
 
     fetchData();
-  }, [activeTab]);
+  }, [activeTab, authorDetails]);
 
   // Filter items based on search query, office selection, and active tab
   const filteredItems = archiveItems.filter((item) => {
@@ -285,7 +317,7 @@ function Archive({ darkMode, userRole }) {
           const files = filesRes.data.data.map((file) => ({
             id: file._id,
             fileName: file.name,
-            author: file.authorName,
+            author: file.author?.name || 'Unknown',
             office: file.office,
             modifiedDate: new Date(file.createdAt).toLocaleDateString(),
             category: 'Files',

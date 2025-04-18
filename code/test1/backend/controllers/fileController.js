@@ -36,7 +36,7 @@ exports.addFile = async (req, res, next) => {
     const file = await File.create({
       name,
       filePath: relativePath,
-      url: req.file.filename,
+      url: null, // Set url to null instead of using filename
       office,
       category,
       author: req.user.id // Use the authenticated user's ID
@@ -313,47 +313,4 @@ exports.getFilesByCurrentUser = async (req, res, next) => {
 		console.error(`[GET USER FILES] Error: ${err.message}`);
 		res.status(500).json({ success: false, error: 'Server error' });
 	}
-};
-
-// @desc    View/download a file by ID
-exports.viewFile = async (req, res, next) => {
-  console.log(`[VIEW FILE] Request to view/download file: ${req.params.id}`);
-  try {
-    const file = await File.findById(req.params.id);
-    
-    if (!file) {
-      console.warn(`[VIEW FILE] File not found: ${req.params.id}`);
-      return res.status(404).json({ success: false, error: 'File not found' });
-    }
-
-    // Check if file has a physical path (not a URL-only entry)
-    if (!file.filePath) {
-      console.warn(`[VIEW FILE] No file path found: ${req.params.id}`);
-      return res.status(404).json({ success: false, error: 'No file path associated with this record' });
-    }
-
-    // Construct the absolute file path from the stored relative path
-    const filePath = path.join(__dirname, '..', file.filePath);
-    
-    // Check if file exists
-    if (!fs.existsSync(filePath)) {
-      console.error(`[VIEW FILE] File not found on disk: ${filePath}`);
-      return res.status(404).json({ success: false, error: 'File not found on disk' });
-    }
-
-    // Get file name from path
-    const fileName = path.basename(filePath);
-    
-    // Set appropriate headers
-    res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
-    
-    // Stream the file to the client
-    const fileStream = fs.createReadStream(filePath);
-    fileStream.pipe(res);
-    
-    console.log(`[VIEW FILE] Successfully streaming file: ${fileName}`);
-  } catch (err) {
-    console.error(`[VIEW FILE] Error: ${err.message}`);
-    res.status(500).json({ success: false, error: 'Server error' });
-  }
 };

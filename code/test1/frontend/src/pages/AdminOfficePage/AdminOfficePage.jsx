@@ -124,7 +124,9 @@ const AdminOfficePage = ({ darkMode }) => {
             title: file.name,
             url: file.url,
             filePath: file.filePath,
-            status: file.status
+            status: file.status,
+            versions: file.versions || [],
+            createdAt: file.createdAt
           }))}
           darkMode={darkMode}
           canEdit={canEdit}

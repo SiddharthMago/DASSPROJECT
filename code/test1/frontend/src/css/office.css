@@ -68,7 +68,7 @@
   width: 90%;
   max-width: 1373px;
   margin: 0 auto 40px;
-  padding: 40px;
+  padding: 30px; /* Reduced padding from 40px to 30px */
   border-radius: 40px;
   box-shadow: 0px 4px 162px 828px var(--office-shadow) inset;
   background-color: var(--office-section-bg);
@@ -76,38 +76,38 @@
 
 .offices-section-title {
   width: fit-content;
-  margin: 0 auto 40px;
-  padding: 10px 40px;
+  margin: 0 auto 20px; /* Reduced margin from 40px to 30px */
+  padding: 8px 30px; /* Reduced padding */
   border-radius: 64px;
   color: #fff;
-  font-size: 24px;
+  font-size: 22px; /* Reduced from 24px */
   font-weight: 600;
   letter-spacing: 3.96px;
   background-color: var(--office-title-bg);
   text-align: center;
 }
 
-/* Hybrid Grid-List Layout */
+/* Hybrid Grid-List Layout - More compact with more columns */
 .file-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Reduced from 220px to 180px */
+  gap: 10px; /* Reduced from 15px */
   width: 100%;
-  padding: 0 10px;
+  padding: 0 5px; /* Reduced padding */
 }
 
-/* File Item */
+/* File Item - More compact */
 .file-item {
   background-color: var(--office-card-bg);
-  border-radius: 10px;
-  padding: 15px 10px; /* Reduced padding */
+  border-radius: 8px; /* Reduced from 10px */
+  padding: 10px 8px;
   color: var(--office-card-text);
   transition: transform 0.3s, box-shadow 0.3s;
   display: flex;
   align-items: center;
-  justify-content: center; /* Center the content */
+  justify-content: center;
   text-align: center;
-  height: 90px; /* Slightly reduced height */
+  height: 60px; /* Reduced from 90px */
   cursor: pointer;
 }
 
@@ -117,14 +117,14 @@
 }
 
 .file-title {
-  font-size: 16px;
+  font-size: 15px; /* Reduced from 16px */
   font-weight: 600;
-  letter-spacing: 1.5px;
-  line-height: 1.3;
-  white-space: nowrap; /* Prevent wrapping */
+  letter-spacing: 1px; /* Reduced from 1.5px */
+  line-height: 1.2;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px; /* Control maximum width */
+  max-width: 200px; /* Reduced from 200px */
 }
 
 /* File link styling - removing default link styling */
@@ -139,7 +139,7 @@
   width: 90%;
   max-width: 1373px;
   margin: 0 auto 40px;
-  padding: 40px;
+  padding: 30px; /* Reduced from 40px to 30px */
   border-radius: 40px;
   box-shadow: 0px 4px 162px 828px var(--office-shadow) inset;
   background-color: var(--office-section-bg);
@@ -147,13 +147,13 @@
 
 .faq-title {
   color: #fff;
-  font-size: 24px;
+  font-size: 22px; /* Reduced from 24px */
   font-weight: 600;
   text-align: center;
   letter-spacing: 3.96px;
   width: fit-content;
-  margin: 0 auto 40px;
-  padding: 10px 40px;
+  margin: 0 auto 30px; /* Reduced from 40px */
+  padding: 8px 30px; /* Reduced padding */
   border-radius: 64px;
   background-color: var(--office-title-bg);
 }
@@ -224,53 +224,56 @@
 @media (max-width: 991px) {
   .admission-section,
   .faq-section {
-    padding: 25px;
+    padding: 20px; /* Further reduced */
   }
   
   .offices-section-title,
   .faq-title {
-    font-size: 20px;
-    padding: 8px 20px;
+    font-size: 18px; /* Further reduced */
+    padding: 6px 16px; /* Further reduced */
+    margin-bottom: 14px; /* Further reduced */
   }
   
   .file-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Further reduced */
+    gap: 8px; /* Further reduced */
   }
   
   .file-title {
-    font-size: 15px;
-    max-width: 160px;
+    font-size: 14px; /* Further reduced */
+    max-width: 130px; /* Further reduced */
   }
 }
 
 @media (max-width: 640px) {
   .office-page-title {
-    font-size: 28px;
-    letter-spacing: 4px;
+    font-size: 24px; /* Further reduced */
+    letter-spacing: 3px; /* Further reduced */
+    margin-bottom: 30px; /* Further reduced */
   }
   
   .file-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); /* Further reduced */
+    gap: 8px; /* Further reduced */
   }
   
   .file-item {
-    padding: 12px 8px;
-    height: 80px;
+    padding: 8px 6px; /* Further reduced */
+    height: 60px; /* Further reduced */
   }
   
   .file-title {
-    font-size: 14px;
-    max-width: 120px;
+    font-size: 13px; /* Further reduced */
+    max-width: 110px; /* Further reduced */
   }
   
   .faq-question {
-    font-size: 18px;
+    font-size: 16px; /* Further reduced */
+    padding: 16px 20px; /* Further reduced */
   }
   
   .faq-answer p {
-    font-size: 16px;
+    font-size: 14px; /* Further reduced */
   }
 }
 
@@ -279,23 +282,23 @@
     position: absolute;
     top: -8px;
     right: -8px;
-    width: 26px;
-    height: 26px;
+    width: 24px; /* Slightly reduced */
+    height: 24px; /* Slightly reduced */
     background-color: var(--office-title-bg-light);
     color: white;
-    border-radius: 4px;  /* More square-ish */
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
+    font-size: 16px; /* Slightly reduced */
     font-weight: bold;
     cursor: pointer;
     z-index: 2;
     transition: background-color 0.3s, transform 0.2s;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    padding: 4px;  /* Add padding */
-    opacity: 1;    /* Always visible */
-    visibility: visible;  /* Always visible */
+    padding: 3px; /* Slightly reduced */
+    opacity: 1;
+    visibility: visible;
 }
 
 .delete-btn:hover {
@@ -307,4 +310,130 @@
 .dark-mode .delete-btn {
     background-color: var(--office-title-bg-dark);
     color: white;
+}
+
+[title] {
+  position: relative;
+  cursor: help;
+}
+
+.file-link {
+  position: relative;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.file-title {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  gap: 8px;
+}
+
+/* Version dialogue styling */
+.version-dialogue {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
+  width: 300px; /* Increased width for better alignment */
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  margin-top: 5px;
+  pointer-events: auto;
+}
+
+/* Dark mode styles for dialogue */
+.dark-mode .version-dialogue {
+  background-color: #333;
+  border-color: #555;
+  color: #f5f5f5;
+}
+
+.version-dialogue h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}
+
+.dark-mode .version-dialogue h3 {
+  border-bottom-color: #555;
+}
+
+.version-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.version-item {
+  padding: 6px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.dark-mode .version-item {
+  border-bottom-color: #444;
+}
+
+.version-item:last-child {
+  border-bottom: none;
+}
+
+.current-version {
+  font-weight: bold;
+  background-color: #f5f5f5;
+  padding: 6px;
+  border-radius: 3px;
+}
+
+.dark-mode .current-version {
+  background-color: #444;
+}
+
+/* Fixed width for version names to ensure uniform layout */
+.version-name {
+  flex: 1;
+  min-width: 0; /* Ensures text-overflow works properly */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 10px;
+}
+
+/* Fixed width for version dates */
+.version-date {
+  flex: 0 0 90px; /* Fixed width for dates */
+  font-size: 12px;
+  color: #777;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.dark-mode .version-date {
+  color: #aaa;
+}
+
+.version-link {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  color: inherit;
+  text-decoration: none;
+  align-items: center;
+}
+
+.version-link:hover {
+  text-decoration: underline;
 }

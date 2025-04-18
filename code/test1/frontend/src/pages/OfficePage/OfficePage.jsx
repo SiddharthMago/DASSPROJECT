@@ -56,7 +56,15 @@ const OfficePage = ({ darkMode }) => {
     if (!acc[file.category]) {
       acc[file.category] = [];
     }
-    acc[file.category].push(file);
+    // Create a card object with all necessary properties including versions
+    acc[file.category].push({
+      title: file.name,
+      url: file.url,
+      filePath: file.filePath,
+      versions: file.versions || [], // Include versions array
+      createdAt: file.createdAt, // Include creation date for current version
+      _id: file._id // Include ID for potential API calls
+    });
     return acc;
   }, {});
 
@@ -73,11 +81,7 @@ const OfficePage = ({ darkMode }) => {
         <OfficeSection
           key={category}
           title={category}
-          cards={categoryFiles.map(file => ({
-            title: file.name,
-            url: file.url,
-            filePath: file.filePath
-          }))}
+          cards={categoryFiles}
           darkMode={darkMode}
         />
       ))}

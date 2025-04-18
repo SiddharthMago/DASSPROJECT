@@ -30,7 +30,6 @@ function ContactsAdmin({ darkMode }) {
     });
 
     // Image upload state
-    const [selectedImage, setSelectedImage] = useState(null);
     const [formSubmitting, setFormSubmitting] = useState(false);
 
     const fetchContacts = async () => {
@@ -79,7 +78,6 @@ function ContactsAdmin({ darkMode }) {
         const fresh = contacts.find(c => c.email === contact.email);
         setEditingContact({ ...fresh });
         setIsEditing(true);
-        setSelectedImage(null);
     };
 
     // Handle edit form input changes
@@ -123,7 +121,6 @@ function ContactsAdmin({ darkMode }) {
 
             setIsEditing(false);
             setEditingContact(null);
-            setSelectedImage(null);
 
             fetchContacts();
         }
@@ -140,7 +137,6 @@ function ContactsAdmin({ darkMode }) {
     const cancelEditing = () => {
         setIsEditing(false);
         setEditingContact(null);
-        setSelectedImage(null);
     };
 
     // Change role function
@@ -184,7 +180,6 @@ function ContactsAdmin({ darkMode }) {
             role: 'user',
             // profile_pic: null
         });
-        setSelectedImage(null);
     };
 
     // Handle new contact form changes
@@ -233,7 +228,6 @@ function ContactsAdmin({ darkMode }) {
                 role: 'user',
                 // profile_pic: null
             });
-            setSelectedImage(null);
 
             fetchContacts();
         }
@@ -256,7 +250,6 @@ function ContactsAdmin({ darkMode }) {
             role: 'user',
             // profile_pic: null
         });
-        setSelectedImage(null);
     };
 
     return (

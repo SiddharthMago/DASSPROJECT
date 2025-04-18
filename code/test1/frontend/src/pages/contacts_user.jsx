@@ -15,23 +15,23 @@ function ContactsUser({ darkMode }) {
 	const [filterRole, setFilterRole] = useState('all');
 	const [searchTerm, setSearchTerm] = useState('');
 
-	useEffect(() => {
-		const fetchContacts = async () => {
-			try {
-				setLoading(true);
-				const response = await contactService.getAllUsers();
-				setContacts(response.data.data);
-				setError(null);
-			}
-			catch (err) {
-				console.error("Error fetching contacts: ", err);
-				setError("Failed to load contacts.");
-			}
-			finally {
-				setLoading(false);
-			}
-		};
+	const fetchContacts = async () => {
+		try {
+			setLoading(true);
+			const response = await contactService.getAllUsers();
+			setContacts(response.data.data);
+			setError(null);
+		}
+		catch (err) {
+			console.error("Error fetching contacts: ", err);
+			setError("Failed to load contacts.");
+		}
+		finally {
+			setLoading(false);
+		}
+	};
 
+	useEffect(() => {
 		fetchContacts();
 	}, []);
 
@@ -44,15 +44,15 @@ function ContactsUser({ darkMode }) {
 	const filteredContacts = contacts.filter(contact => {
 		// Check if contact is valid
 		if (!contact) return false;
-		
+
 		// Check for role match
 		const matchesRole = filterRole === 'all' || contact.role === filterRole;
-		
+
 		// Check for search term match with null checks
-		const matchesSearch = 
+		const matchesSearch =
 			(contact.name ? contact.name.toLowerCase().includes(searchTerm.toLowerCase()) : false) ||
 			(contact.email ? contact.email.toLowerCase().includes(searchTerm.toLowerCase()) : false);
-		
+
 		return matchesRole && matchesSearch;
 	});
 
@@ -110,7 +110,7 @@ function ContactsUser({ darkMode }) {
 
 				{/* Loading state */}
 				{loading && <div className="loading-message">Loading contacts...</div>}
-				
+
 				{/* Error state */}
 				{error && <div className="error-message">{error}</div>}
 
@@ -119,26 +119,29 @@ function ContactsUser({ darkMode }) {
 					{!loading && filteredContacts.length > 0 ? (
 						filteredContacts.map(contact => (
 							<div key={contact.email || Math.random()} className="contact-card">
-								<div className="contact-image-container">
-									{/* Image placeholder */}
-								</div>
+								{/* <div className="contact-image-container">
+								</div> */}
 								<div className="contact-details">
 									<h2 className="contact-name">{contact.name || 'No Name'}</h2>
-									
+
 									<a href={`mailto:${contact.email}`} className="contact-email">
 										{contact.email || 'No Email'}
 									</a>
 
 									{contact.office && contact.office !== "None" && (
-                                        <div className='office-indicator'>{contact.office}</div>
-                                    )}
-                                    
-                                    {/* Optionally display role badge */}
-                                    <div className="role-indicator">
-                                        <span className={`role-badge ${contact.role || 'user'}`}>
-                                            {contact.role || 'user'}
-                                        </span>
-                                    </div>
+										<div className='office-indicator'>{contact.office}</div>
+									)}
+
+									{contact.role && contact.role !== "None" && (
+										<div className='office-indicator'>{contact.role}</div>
+									)}
+
+									{/* Optionally display role badge */}
+									<div className="role-indicator">
+										<span className={`role-badge ${contact.role || 'user'}`}>
+											{contact.role || 'user'}
+										</span>
+									</div>
 								</div>
 							</div>
 						))

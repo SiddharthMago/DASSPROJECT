@@ -549,54 +549,64 @@ function HomeAdmin({ darkMode }) {
     setIsAddingPortal(false);
   };
 
-  const savePortal = async () => {
-    if (selectedPortalIndex === null) return;
+  // Function to save portal edits
+const savePortal = async () => {
+  if (selectedPortalIndex === null) return;
 
-    try {
-      const portal = portals[selectedPortalIndex];
+  try {
+    const portal = portals[selectedPortalIndex];
 
-      // Make API call to update the portal
-      const response = await fetch(`/api/portals/${portal._id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}` // Add auth token
-        },
-        body: JSON.stringify({
-          title: editPortalTitle,
-          url: editPortalUrl,
-          icon: editPortalIcon
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update portal');
-      }
-
-      // Update local state
-      const updatedPortals = [...portals];
-      updatedPortals[selectedPortalIndex] = {
-        ...portal,
+    // Make API call to update the portal
+    const response = await fetch(`/api/portals/${portal._id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}` // Add auth token
+      },
+      body: JSON.stringify({
         title: editPortalTitle,
         url: editPortalUrl,
         icon: editPortalIcon
-      };
+      })
+    });
 
-      setPortals(updatedPortals);
-      setIsEditingPortals(false);
-      setSelectedPortalIndex(null);
-
-      // Refetch to get updated data
-      const refreshResponse = await fetch('/api/portals');
-      if (refreshResponse.ok) {
-        const data = await refreshResponse.json();
-        setPortals(data.data);
-      }
-    } catch (err) {
-      console.error('Error updating portal:', err);
-      alert('Failed to update portal. Please try again.');
+    if (!response.ok) {
+      throw new Error('Failed to update portal');
     }
-  };
+
+    // Update local state
+    const updatedPortals = [...portals];
+    updatedPortals[selectedPortalIndex] = {
+      ...portal,
+      title: editPortalTitle,
+      url: editPortalUrl,
+      icon: editPortalIcon
+    };
+
+    setPortals(updatedPortals);
+    
+    // Show success message
+    setSuccessMessage("Portal updated successfully");
+    
+    // Close editing mode
+    setIsEditingPortals(false);
+    setSelectedPortalIndex(null);
+    
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
+
+    // Refetch to get updated data
+    const refreshResponse = await fetch('/api/portals');
+    if (refreshResponse.ok) {
+      const data = await refreshResponse.json();
+      setPortals(data.data);
+    }
+  } catch (err) {
+    console.error('Error updating portal:', err);
+    alert('Failed to update portal. Please try again.');
+  }
+};
 
   const startAddingPortal = () => {
     setIsAddingPortal(true);
@@ -606,58 +616,60 @@ function HomeAdmin({ darkMode }) {
     setSelectedPortalIndex(null);
   };
 
-  const saveNewPortal = async () => {
-    if (editPortalTitle.trim() === "" || editPortalUrl.trim() === "") {
-      alert("Title and URL are required");
-      return;
+  // Function to save a new portal
+const saveNewPortal = async () => {
+  if (editPortalTitle.trim() === "" || editPortalUrl.trim() === "") {
+    alert("Title and URL are required");
+    return;
+  }
+
+  try {
+    // Make API call to create a new portal
+    const response = await fetch('/api/portals', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        title: editPortalTitle.trim(),
+        url: editPortalUrl.trim(),
+        icon: editPortalIcon,
+        approved: false, // Explicitly set to unapproved
+        pinned: false    // Explicitly set to unpinned
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create portal');
     }
 
-    try {
-      // Make API call to create a new portal
-      const response = await fetch('/api/portals', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-          title: editPortalTitle.trim(),
-          url: editPortalUrl.trim(),
-          icon: editPortalIcon,
-          approved: false, // Explicitly set to unapproved
-          pinned: false    // Explicitly set to unpinned
-        })
-      });
+    // Show success message for approval process
+    setSuccessMessage("Portal sent for approval");
 
-      if (!response.ok) {
-        throw new Error('Failed to create portal');
-      }
+    // Reset form state and close editing mode
+    setIsAddingPortal(false);
+    setEditPortalTitle("");
+    setEditPortalUrl("");
+    setEditPortalIcon("🔗");
+    setIsEditingPortals(false);
 
-      // Show success message for approval process
-      setSuccessMessage("Portal sent for approval");
+    // Clear success message after 3 seconds
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
 
-      // Reset form state
-      setIsAddingPortal(false);
-      setEditPortalTitle("");
-      setEditPortalUrl("");
-      setEditPortalIcon("🔗");
-
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setSuccessMessage("");
-      }, 3000);
-
-      // Refetch to get updated data
-      const refreshResponse = await fetch('/api/portals');
-      if (refreshResponse.ok) {
-        const data = await refreshResponse.json();
-        setPortals(data.data);
-      }
-    } catch (err) {
-      console.error('Error creating portal:', err);
-      alert('Failed to create portal. Please try again.');
+    // Refetch to get updated data
+    const refreshResponse = await fetch('/api/portals');
+    if (refreshResponse.ok) {
+      const data = await refreshResponse.json();
+      setPortals(data.data);
     }
-  };
+  } catch (err) {
+    console.error('Error creating portal:', err);
+    alert('Failed to create portal. Please try again.');
+  }
+};
 
   const cancelEditingPortal = () => {
     setIsEditingPortals(false);
@@ -668,62 +680,92 @@ function HomeAdmin({ darkMode }) {
     setEditPortalIcon("🔗");
   };
 
-  const removePortal = async (index) => {
-    const portal = portals[index];
+  // Function to delete a portal
+const removePortal = async (index) => {
+  const portal = portals[index];
 
-    if (window.confirm(`Are you sure you want to delete "${portal.title}"?`)) {
-      try {
-        // Make API call to delete the portal
-        const response = await fetch(`/api/portals/${portal._id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${authToken}` // Add auth token
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to delete portal');
-        }
-
-        // Update local state
-        const updatedPortals = portals.filter((_, i) => i !== index);
-        setPortals(updatedPortals);
-      } catch (err) {
-        console.error('Error deleting portal:', err);
-        alert('Failed to delete portal. Please try again.');
-      }
-    }
-  };
-
-  const togglePortalPin = async (index) => {
-    const portal = portals[index];
-
+  if (window.confirm(`Are you sure you want to delete "${portal.title}"?`)) {
     try {
-      // Make API call to toggle pin status
-      const response = await fetch(`/api/portals/${portal._id}/pin`, {
-        method: 'PUT',
+      // Make API call to delete the portal
+      const response = await fetch(`/api/portals/${portal._id}`, {
+        method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${authToken}` // Add auth token
         }
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update pin status');
+        throw new Error('Failed to delete portal');
       }
 
       // Update local state
-      const updatedPortals = [...portals];
-      updatedPortals[index] = {
-        ...portal,
-        pinned: !portal.pinned
-      };
-
+      const updatedPortals = portals.filter((_, i) => i !== index);
       setPortals(updatedPortals);
+      
+      // Show success message
+      setSuccessMessage("Portal deleted successfully");
+      
+      // Close editing mode
+      setIsEditingPortals(false);
+      setSelectedPortalIndex(null);
+      
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 3000);
     } catch (err) {
-      console.error('Error toggling pin status:', err);
-      alert('Failed to update pin status. Please try again.');
+      console.error('Error deleting portal:', err);
+      alert('Failed to delete portal. Please try again.');
     }
-  };
+  }
+};
+
+  // Function to toggle the pinned status of a portal
+const togglePortalPin = async (index) => {
+  const portal = portals[index];
+  const confirmMsg = portal.pinned
+    ? `Are you sure you want to unpin "${portal.title}"?`
+    : `Are you sure you want to pin "${portal.title}"?`;
+
+  if (!window.confirm(confirmMsg)) return;
+
+  try {
+    // Make API call to toggle pin status
+    const response = await fetch(`/api/portals/${portal._id}/pin`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${authToken}` // Add auth token
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update pin status');
+    }
+
+    // Update local state
+    const updatedPortals = [...portals];
+    updatedPortals[index] = {
+      ...portal,
+      pinned: !portal.pinned
+    };
+
+    setPortals(updatedPortals);
+    
+    // Show success message
+    const actionType = portal.pinned ? 'unpinned' : 'pinned';
+    setSuccessMessage(`Portal ${actionType} successfully`);
+    
+    // Close editing mode
+    setIsEditingPortals(false);
+    setSelectedPortalIndex(null);
+    
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
+  } catch (err) {
+    console.error('Error toggling pin status:', err);
+    alert('Failed to update pin status. Please try again.');
+  }
+};
 
   const location = useLocation();
   useEffect(() => {
@@ -1475,9 +1517,11 @@ function HomeAdmin({ darkMode }) {
                     )}
                   </div>
                 )) :
-                portals.map((portal, index) =>
-                  renderLinkComponent(portal, index, "portal-link", false)
-                )
+                portals
+                  .filter(portal => portal.pinned) // Only display pinned portals
+                  .map((portal, index) =>
+                    renderLinkComponent(portal, index, "portal-link", false)
+                  )
               }
             </div>
           ) : (

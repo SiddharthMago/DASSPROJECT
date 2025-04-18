@@ -560,10 +560,10 @@ useEffect(() => {
 
   const savePortal = async () => {
     if (selectedPortalIndex === null) return;
-
+  
     try {
       const portal = portals[selectedPortalIndex];
-
+  
       // Make API call to update the portal
       const response = await fetch(`/api/portals/${portal._id}`, {
         method: 'PUT',
@@ -577,11 +577,11 @@ useEffect(() => {
           icon: editPortalIcon
         })
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to update portal');
       }
-
+  
       // Update local state
       const updatedPortals = [...portals];
       updatedPortals[selectedPortalIndex] = {
@@ -590,14 +590,18 @@ useEffect(() => {
         url: editPortalUrl,
         icon: editPortalIcon
       };
-
+  
       setPortals(updatedPortals);
+      
+      // Show success message
+      setSuccessMessage("Portal updated successfully");
+      
+      // Close editing mode
       setIsEditingPortals(false);
       setSelectedPortalIndex(null);
-
-      setSuccessMessage("Portal updated successfully");
+      
       setTimeout(() => setSuccessMessage(""), 3000);
-
+  
       // Refetch to get updated data
       const refreshResponse = await fetch('/api/portals');
       if (refreshResponse.ok) {
@@ -623,7 +627,7 @@ useEffect(() => {
       alert("Title and URL are required");
       return;
     }
-
+  
     try {
       // Make API call to create a new portal
       const response = await fetch('/api/portals', {
@@ -636,29 +640,30 @@ useEffect(() => {
           title: editPortalTitle.trim(),
           url: editPortalUrl.trim(),
           icon: editPortalIcon,
-          approved: false, // Explicitly set to unapproved
-          pinned: false    // Explicitly set to unpinned
+          approved: true,  // As superadmin, auto-approve
+          pinned: false    // But not auto-pinned
         })
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to create portal');
       }
-
-      // Show success message for approval process
-      setSuccessMessage("Portal sent for approval");
-
-      // Reset form state
+  
+      // Show success message
+      setSuccessMessage("Portal created successfully");
+  
+      // Reset form state and close editing mode
       setIsAddingPortal(false);
       setEditPortalTitle("");
       setEditPortalUrl("");
       setEditPortalIcon("🔗");
-
+      setIsEditingPortals(false);
+  
       // Clear success message after 3 seconds
       setTimeout(() => {
         setSuccessMessage("");
       }, 3000);
-
+  
       // Refetch to get updated data
       const refreshResponse = await fetch('/api/portals');
       if (refreshResponse.ok) {
@@ -682,7 +687,7 @@ useEffect(() => {
 
   const removePortal = async (index) => {
     const portal = portals[index];
-
+  
     if (window.confirm(`Are you sure you want to delete "${portal.title}"?`)) {
       try {
         // Make API call to delete the portal
@@ -692,16 +697,22 @@ useEffect(() => {
             'Authorization': `Bearer ${authToken}` // Add auth token
           }
         });
-
+  
         if (!response.ok) {
           throw new Error('Failed to delete portal');
         }
-
+  
         // Update local state
         const updatedPortals = portals.filter((_, i) => i !== index);
         setPortals(updatedPortals);
-
+        
+        // Show success message
         setSuccessMessage("Portal deleted successfully");
+        
+        // Close editing mode
+        setIsEditingPortals(false);
+        setSelectedPortalIndex(null);
+        
         setTimeout(() => setSuccessMessage(""), 3000);
       } catch (err) {
         console.error('Error deleting portal:', err);
@@ -715,9 +726,9 @@ useEffect(() => {
     const confirmMsg = portal.pinned
       ? `Are you sure you want to unpin "${portal.title}"?`
       : `Are you sure you want to pin "${portal.title}"?`;
-
+  
     if (!window.confirm(confirmMsg)) return;
-
+  
     try {
       const response = await fetch(`/api/portals/${portal._id}/pin`, {
         method: 'PUT',
@@ -725,18 +736,23 @@ useEffect(() => {
           'Authorization': `Bearer ${authToken}`
         }
       });
-
+  
       if (!response.ok) throw new Error('Failed to update pin status');
-
+  
       const updatedPortals = [...portals];
       updatedPortals[index] = {
         ...portal,
         pinned: !portal.pinned
       };
       setPortals(updatedPortals);
-
+  
       const actionType = portal.pinned ? 'unpinned' : 'pinned';
       setSuccessMessage(`Portal ${actionType} successfully`);
+      
+      // Close editing mode
+      setIsEditingPortals(false);
+      setSelectedPortalIndex(null);
+      
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error('Error toggling pin status:', err);
@@ -1499,9 +1515,11 @@ useEffect(() => {
                     )}
                   </div>
                 )) :
-                portals.map((portal, index) =>
-                  renderLinkComponent(portal, index, "portal-link", false)
-                )
+                portals
+                  .filter(portal => portal.pinned) // Only display pinned portals
+                  .map((portal, index) =>
+                    renderLinkComponent(portal, index, "portal-link", false)
+                  )
               }
             </div>
           ) : (

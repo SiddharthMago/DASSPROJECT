@@ -29,7 +29,6 @@ function Admin({ darkMode, setDarkMode }) {
             <Routes>
                 <Route path='/' element={<Navigate to="home" />} />
                 <Route path="home" element={<HomeAdmin darkMode={actualDarkMode} />} />
-                <Route path="file" element={<FilePageAdmin darkMode={actualDarkMode} />} />
                 <Route path='office' element={<AdminOfficePage darkMode={actualDarkMode} />} />
                 <Route path='archive' element={<Archive darkMode={actualDarkMode} userRole="admin" />} />
                 <Route path='search' element={<Archive darkMode={actualDarkMode} userRole="admin" />} />
@@ -37,6 +36,7 @@ function Admin({ darkMode, setDarkMode }) {
                 <Route path='contacts' element={<ContactsUser darkMode={actualDarkMode} />} />
                 <Route path='office' element={<AdminOfficePage darkMode={actualDarkMode} />} />
                 <Route path="/offices/:officeName" element={<AdminOfficePage darkMode={actualDarkMode} />} />
+                <Route path="/file/:id" element={<FilePageAdmin darkMode={actualDarkMode} />} />
             </Routes>
             <Footer darkMode={actualDarkMode} />
         </div>

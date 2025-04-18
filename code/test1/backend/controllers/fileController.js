@@ -20,27 +20,38 @@ module.exports.upload = upload;
 
 exports.addFile = async (req, res, next) => {
 	try {
-		if (!req.file) {
-			return next(new ErrorResponse(`Please upload a file`, 400));
+		const { name, office, category, url } = req.body;
+
+		// Check if either a file or URL is provided
+		if (!req.file && !url) {
+			return next(new ErrorResponse(`Please upload a file or provide a URL`, 400));
 		}
 
-		const { name, office, category } = req.body;
+		if (!name || !office || !category) {
+			return next(new ErrorResponse(`Please provide all required fields`, 400));
+		}
 
-    if (!name || !office || !category) {
-      return next(new ErrorResponse(`Please provide all required fields`, 400));
-    }
+		// Create file document with the provided data
+		const fileData = {
+			name,
+			office,
+			category,
+			author: req.user.id // Use the authenticated user's ID
+		};
 
-    // Store relative path instead of absolute path
-    const relativePath = `uploads/files/${req.file.filename}`;
+		// If a file was uploaded, add its path
+		if (req.file) {
+			// Store relative path instead of absolute path
+			fileData.filePath = `uploads/files/${req.file.filename}`;
+			fileData.url = null; // Clear URL if a file is uploaded
+		}
 
-    const file = await File.create({
-      name,
-      filePath: relativePath,
-      url: req.file.filename,
-      office,
-      category,
-      author: req.user.id // Use the authenticated user's ID
-    });
+		// If URL was provided, add it
+		if (url) {
+			fileData.url = url;
+		}
+
+		const file = await File.create(fileData);
 
 		res.status(200).json({
 			success: true,
@@ -205,8 +216,13 @@ exports.addFileVersion = async (req, res, next) => {
 			return res.status(404).json({ success: false, error: 'File not found' });
 		}
 
-    // Use relative path
-    let filePath = req.file ? `uploads/files/${req.file.filename}` : null;
+		// Check if either a file or URL is provided
+		if (!req.file && !url) {
+			return next(new ErrorResponse(`Please upload a file or provide a URL`, 400));
+		}
+
+		// Use relative path
+		let filePath = req.file ? `uploads/files/${req.file.filename}` : null;
 
 		const newVersion = {
 			name,
@@ -216,8 +232,12 @@ exports.addFileVersion = async (req, res, next) => {
 
 		file.versions.push(newVersion);
 		file.name = name;
-		file.url = url || null;
-		file.filePath = filePath;
+		file.url = url || file.url; // Keep existing URL if no new one is provided
+		
+		// Update filePath only if a new file was uploaded
+		if (req.file) {
+			file.filePath = filePath;
+		}
 
 		await file.save();
 		console.log(`[ADD FILE VERSION] Version added successfully to file: ${file._id}`);
@@ -326,7 +346,13 @@ exports.viewFile = async (req, res, next) => {
       return res.status(404).json({ success: false, error: 'File not found' });
     }
 
-    // Check if file has a physical path (not a URL-only entry)
+    // If this is a URL-only entry, redirect to the URL
+    if (file.url && !file.filePath) {
+      console.log(`[VIEW FILE] Redirecting to URL: ${file.url}`);
+      return res.redirect(file.url);
+    }
+
+    // Check if file has a physical path
     if (!file.filePath) {
       console.warn(`[VIEW FILE] No file path found: ${req.params.id}`);
       return res.status(404).json({ success: false, error: 'No file path associated with this record' });

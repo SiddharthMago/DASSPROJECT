@@ -12,6 +12,9 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
   const [editForm, setEditForm] = useState({ question: "", answer: "" });
   const [newFaq, setNewFaq] = useState({ question: "", answer: "" });
   const [showAddForm, setShowAddForm] = useState(false);
+  // State for similar FAQs
+  const [similarFaqs, setSimilarFaqs] = useState([]);
+  const [isSearchingSimilar, setIsSearchingSimilar] = useState(false);
 
   // Load FAQs from localStorage on component mount
   useEffect(() => {
@@ -30,6 +33,13 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
     localStorage.setItem('faqs', JSON.stringify(faqData));
   }, [faqData]);
 
+  // Clear similar FAQs when new FAQ form is hidden
+  useEffect(() => {
+    if (!showAddForm) {
+      setSimilarFaqs([]);
+    }
+  }, [showAddForm]);
+
   const toggleFAQ = (index) => {
     if (isEditing !== null) return; // Don't toggle while editing
     setActiveIndex(activeIndex === index ? null : index);
@@ -47,6 +57,42 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
     setIsEditing(null);
     setEditForm({ question: "", answer: "" });
   };
+
+  const searchSimilarFaqs = async () => {
+    if (newFaq.question.trim() === "") {
+      return;
+    }
+
+    setIsSearchingSimilar(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post('/api/faqs/search-similar', {
+        question: newFaq.question,
+        office: officeName
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      setSimilarFaqs(response.data.data);
+    } catch (error) {
+      console.error('Error searching similar FAQs:', error);
+    } finally {
+      setIsSearchingSimilar(false);
+    }
+  };
+
+  // Debounce function to limit API calls while typing
+  useEffect(() => {
+    const debounceTimeout = setTimeout(() => {
+      if (showAddForm && newFaq.question.trim().length > 5) {
+        searchSimilarFaqs();
+      }
+    }, 500); // Wait for 500ms after typing stops
+
+    return () => clearTimeout(debounceTimeout);
+  }, [newFaq.question, showAddForm]);
 
   const addNewFaq = async () => {
     if (newFaq.question.trim() === "" || newFaq.answer.trim() === "") {
@@ -68,6 +114,7 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
       // Add the new FAQ returned from the server
       setFaqData([...faqData, response.data.data]);
       setNewFaq({ question: "", answer: "" });
+      setSimilarFaqs([]); // Clear similar FAQs
       setShowAddForm(false);
     } catch (error) {
       console.error('Error adding FAQ:', error);
@@ -141,6 +188,14 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
     setEditForm(prev => ({ ...prev, [name]: value }));
   };
 
+  const useSimilarFaq = (similarFaq) => {
+    setNewFaq({
+      question: similarFaq.question,
+      answer: similarFaq.answer
+    });
+    setSimilarFaqs([]); // Clear similar FAQs list after selection
+  };
+
   return (
     <div className="faq-container">
       {/* Only show add button if user can edit */}
@@ -170,6 +225,29 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
               placeholder="Enter new question"
             />
           </div>
+          
+          {/* Similar FAQs section */}
+          {newFaq.question.trim().length > 0 && (
+            <div className="similar-faqs-container">
+              <h4>Similar FAQs {isSearchingSimilar && <span className="searching">Searching...</span>}</h4>
+              {similarFaqs.length > 0 ? (
+                <div className="similar-faqs-list">
+                  {similarFaqs.map((faq, idx) => (
+                    <div key={idx} className="similar-faq-item">
+                      <p className="similar-faq-question">{faq.question}</p>
+                      <div className="similar-faq-buttons">
+                        <button onClick={() => useSimilarFaq(faq)}>Use This FAQ</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                !isSearchingSimilar && newFaq.question.trim().length > 5 && 
+                <p className="no-similar">No similar FAQs found.</p>
+              )}
+            </div>
+          )}
+          
           <div className="form-group">
             <label htmlFor="newAnswer">Answer:</label>
             <textarea
@@ -401,6 +479,91 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
           opacity: 0.9;
         }
         
+        /* Similar FAQs styling */
+        .similar-faqs-container {
+          margin-bottom: 20px;
+          padding: 15px;
+          border-radius: 5px;
+          background-color: rgba(0, 0, 0, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .similar-faqs-container h4 {
+          margin-top: 0;
+          margin-bottom: 15px;
+          color: var(--office-text);
+          font-family: "Barlow", sans-serif;
+          font-size: 16px;
+          display: flex;
+          align-items: center;
+        }
+        
+        .searching {
+          font-size: 0.8em;
+          margin-left: 10px;
+          color: rgba(255, 255, 255, 0.7);
+          animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+          0% { opacity: 0.5; }
+          50% { opacity: 1; }
+          100% { opacity: 0.5; }
+        }
+        
+        .similar-faqs-list {
+          max-height: 300px;
+          overflow-y: auto;
+        }
+        
+        .similar-faq-item {
+          padding: 10px;
+          border-radius: 5px;
+          margin-bottom: 10px;
+          background-color: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .similar-faq-question {
+          margin: 0 0 5px 0;
+          color: var(--office-text);
+          font-family: "Barlow", sans-serif;
+          font-weight: 600;
+        }
+        
+        .similarity-score {
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.7);
+          margin: 5px 0;
+        }
+        
+        .similar-faq-buttons {
+          display: flex;
+          justify-content: flex-end;
+        }
+        
+        .similar-faq-buttons button {
+          padding: 6px 12px;
+          border-radius: 4px;
+          border: none;
+          background-color: var(--office-title-bg);
+          color: white;
+          font-family: "Barlow", sans-serif;
+          font-size: 12px;
+          cursor: pointer;
+          transition: opacity 0.2s;
+        }
+        
+        .similar-faq-buttons button:hover {
+          opacity: 0.9;
+        }
+        
+        .no-similar {
+          color: rgba(255, 255, 255, 0.7);
+          font-style: italic;
+          text-align: center;
+        }
+        
         /* Responsive Styling */
         @media (max-width: 768px) {
           .admin-controls {
@@ -409,6 +572,14 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
           }
           
           .admin-button, .admin-btn {
+            width: 100%;
+          }
+          
+          .form-buttons {
+            flex-direction: column;
+          }
+          
+          .save-button, .cancel-button {
             width: 100%;
           }
         }

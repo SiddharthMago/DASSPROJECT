@@ -1,19 +1,38 @@
 const mongoose = require('mongoose');
 
+const FileVersionSchema = new mongoose.Schema({
+	name: {
+		type: String,
+		required: [true, 'Please add a name for the file version'],
+	},
+	url: {
+		type: String,
+		required: false,
+	},
+	filePath: {
+		type: String,
+		required: false,
+	},
+	createdAt: {
+		type: Date,
+		default: Date.now,
+	},
+});
+
 const CommentSchema = new mongoose.Schema({
-  author: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  content: {
-    type: String,
-    required: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
+	author: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'User',
+		required: true
+	},
+	content: {
+		type: String,
+		required: true
+	},
+	createdAt: {
+		type: Date,
+		default: Date.now
+	}
 });
 
 const FileSchema = new mongoose.Schema(
@@ -75,7 +94,7 @@ const FileSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
-    allVersions: [FileSchema],
+    versions: [FileVersionSchema],
     comments: {
       type: [CommentSchema],
       default: null,

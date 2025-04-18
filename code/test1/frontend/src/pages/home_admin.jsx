@@ -55,6 +55,7 @@ function HomeAdmin({ darkMode }) {
   const [selectedQuickLinkIndex, setSelectedQuickLinkIndex] = useState(null);
   const [editQuickLinkTitle, setEditQuickLinkTitle] = useState("");
   const [editQuickLinkUrl, setEditQuickLinkUrl] = useState("");
+  const [editQuickLinkOffice, setEditQuickLinkOffice] = useState("Admissions Office");
   const [isAddingQuickLink, setIsAddingQuickLink] = useState(false);
 
   // Portals editing state
@@ -125,8 +126,7 @@ function HomeAdmin({ darkMode }) {
       try {
         setQuickLinksLoading(true);
         console.log('Fetching quick links...');
-        // For admin, fetch all quick links regardless of pinned status
-        const response = await fetch('/api/quicklinks');
+        const response = await fetch('/api/quicklinks/pinned');
 
         console.log('Quick links response status:', response.status);
         if (!response.ok) {
@@ -327,6 +327,7 @@ function HomeAdmin({ darkMode }) {
     setSelectedQuickLinkIndex(index);
     setEditQuickLinkTitle(quickLink.title);
     setEditQuickLinkUrl(quickLink.url);
+    setEditQuickLinkOffice(quickLink.office);
     setIsEditingQuickLinks(true);
     setIsAddingQuickLink(false);
   };
@@ -348,6 +349,7 @@ function HomeAdmin({ darkMode }) {
         body: JSON.stringify({
           title: editQuickLinkTitle,
           url: editQuickLinkUrl,
+          office: editQuickLinkOffice,
         }),
       });
 
@@ -359,6 +361,7 @@ function HomeAdmin({ darkMode }) {
         ...quickLink,
         title: editQuickLinkTitle,
         url: editQuickLinkUrl,
+        office: editQuickLinkOffice,
       };
 
       setQuickLinks(updatedQuickLinks);
@@ -381,6 +384,7 @@ function HomeAdmin({ darkMode }) {
     setIsAddingQuickLink(true);
     setEditQuickLinkTitle("");
     setEditQuickLinkUrl("");
+    setEditQuickLinkOffice("Admissions Office");
     setSelectedQuickLinkIndex(null);
   };
 
@@ -401,7 +405,7 @@ function HomeAdmin({ darkMode }) {
         body: JSON.stringify({
           title: editQuickLinkTitle.trim(),
           url: editQuickLinkUrl.trim(),
-          office: 'Administration',
+          office: editQuickLinkOffice,
         })
       });
 
@@ -427,6 +431,7 @@ function HomeAdmin({ darkMode }) {
       setIsAddingQuickLink(false);
       setEditQuickLinkTitle("");
       setEditQuickLinkUrl("");
+      setEditQuickLinkOffice("Admissions Office");
 
       // Clear success message after 3 seconds
       setTimeout(() => {
@@ -458,6 +463,7 @@ function HomeAdmin({ darkMode }) {
     setSelectedQuickLinkIndex(null);
     setEditQuickLinkTitle("");
     setEditQuickLinkUrl("");
+    setEditQuickLinkOffice("Admissions Office");
   };
 
   // Function to remove a quick link
@@ -504,14 +510,14 @@ function HomeAdmin({ darkMode }) {
     if (!window.confirm(confirmMsg)) return;
 
     try {
-      // API call to toggle the pin status
-      const response = await fetch(`/api/quicklinks/${quickLink._id}/pin`, {
+      // Use the correct endpoint based on the action
+      const endpoint = quickLink.pinned ? 'unpin' : 'pin';
+      const response = await fetch(`/api/quicklinks/${quickLink._id}/${endpoint}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ pinned: !quickLink.pinned }), // Toggle the pinned status
+        }
       });
 
       if (!response.ok) throw new Error('Failed to update pin status');
@@ -697,28 +703,32 @@ function HomeAdmin({ darkMode }) {
 
   const togglePortalPin = async (index) => {
     const portal = portals[index];
+    const confirmMsg = portal.pinned
+      ? `Are you sure you want to unpin "${portal.title}"?`
+      : `Are you sure you want to pin "${portal.title}"?`;
+
+    if (!window.confirm(confirmMsg)) return;
 
     try {
-      // Make API call to toggle pin status
       const response = await fetch(`/api/portals/${portal._id}/pin`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${authToken}` // Add auth token
+          'Authorization': `Bearer ${authToken}`
         }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update pin status');
-      }
+      if (!response.ok) throw new Error('Failed to update pin status');
 
-      // Update local state
       const updatedPortals = [...portals];
       updatedPortals[index] = {
         ...portal,
         pinned: !portal.pinned
       };
-
       setPortals(updatedPortals);
+
+      const actionType = portal.pinned ? 'unpinned' : 'pinned';
+      setSuccessMessage(`Portal ${actionType} successfully`);
+      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error('Error toggling pin status:', err);
       alert('Failed to update pin status. Please try again.');
@@ -1542,7 +1552,6 @@ function HomeAdmin({ darkMode }) {
                   onChange={(e) => setEditQuickLinkOffice(e.target.value)}
                   className="office-select"
                 >
-                  <option value="None">None</option>
                   <option value="Admissions Office">Admissions Office</option>
                   <option value="Academic Office">Academic Office</option>
                   <option value="Library Office">Library Office</option>
@@ -1550,15 +1559,15 @@ function HomeAdmin({ darkMode }) {
                   <option value="Student Affairs Office">Student Affairs Office</option>
                   <option value="Hostel Office">Hostel Office</option>
                   <option value="Mess Office">Mess Office</option>
-                  <option value="Alumni Office">Alumni Office</option>
+                  <option value="Alumni Cell">Alumni Cell</option>
                   <option value="Faculty Portal">Faculty Portal</option>
+                  <option value="Placement Cell">Placement Cell</option>
                   <option value="Outreach Office">Outreach Office</option>
-                  <option value="R&D Office">R&D Office</option>
-                  <option value="Placements Cell">Placements Cell</option>
                   <option value="Statistical Cell">Statistical Cell</option>
+                  <option value="R&D Office">R&D Office</option>
                   <option value="General Administration">General Administration</option>
                   <option value="Accounts Office">Accounts Office</option>
-                  <option value="IT Services Offices">IT Services Offices</option>
+                  <option value="IT Services Office">IT Services Office</option>
                   <option value="Communication Office">Communication Office</option>
                   <option value="Engineering Office">Engineering Office</option>
                   <option value="HR & Personnel">HR & Personnel</option>

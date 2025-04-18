@@ -656,6 +656,44 @@ function Archive({ darkMode, userRole }) {
 		}
 	};
 
+  // Function to handle link pinning/unpinning
+  const handlePinLink = async (id, currentPinnedStatus) => {
+    try {
+      const token = localStorage.getItem('token');
+      const endpoint = currentPinnedStatus ? 'unpin' : 'pin';
+      const response = await axios.put(
+        `http://localhost:5000/api/quicklinks/${id}/${endpoint}`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data.success) {
+        // Refresh the links list
+        const linksRes = await axios.get('http://localhost:5000/api/quicklinks');
+        const mapped = linksRes.data.data.map((quickLink) => ({
+          id: quickLink._id,
+          fileName: quickLink.title,
+          author: quickLink.office,
+          office: quickLink.office,
+          modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
+          category: 'Links',
+          downloadUrl: quickLink.url,
+          pinned: quickLink.pinned
+        }));
+        setArchiveItems(mapped);
+      } else {
+        alert('Failed to update pin status: ' + response.data.error);
+      }
+    } catch (err) {
+      console.error('Error updating pin status:', err);
+      alert('Failed to update pin status: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
 	return (
 		<div className={`archive-container ${darkMode ? 'dark-mode' : ''}`}>
 			<link
@@ -864,19 +902,27 @@ function Archive({ darkMode, userRole }) {
                   ) : item.category === 'Links' ? (
                     <>
                       {canManageItem(item.office) && (
-                        <button
-                          className="action-button edit"
-                          onClick={() => setEditLinkModal({
-                            show: true,
-                            id: item.id,
-                            title: item.fileName,
-                            office: item.office,
-                            url: item.downloadUrl,
-                            pinned: item.pinned
-                          })}
-                        >
-                          Edit
-                        </button>
+                        <>
+                          <button
+                            className="action-button edit"
+                            onClick={() => setEditLinkModal({
+                              show: true,
+                              id: item.id,
+                              title: item.fileName,
+                              office: item.office,
+                              url: item.downloadUrl,
+                              pinned: item.pinned
+                            })}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className={`action-button ${item.pinned ? 'unpin' : 'pin'}`}
+                            onClick={() => handlePinLink(item.id, item.pinned)}
+                          >
+                            {item.pinned ? 'Unpin' : 'Pin'}
+                          </button>
+                        </>
                       )}
                       <button
                         className="action-button open-link"
@@ -1042,19 +1088,27 @@ function Archive({ darkMode, userRole }) {
                       ) : item.category === 'Links' ? (
                         <>
                           {canManageItem(item.office) && (
-                            <button
-                              className="action-button edit"
-                              onClick={() => setEditLinkModal({
-                                show: true,
-                                id: item.id,
-                                title: item.fileName,
-                                office: item.office,
-                                url: item.downloadUrl,
-                                pinned: item.pinned
-                              })}
-                            >
-                              Edit
-                            </button>
+                            <>
+                              <button
+                                className="action-button edit"
+                                onClick={() => setEditLinkModal({
+                                  show: true,
+                                  id: item.id,
+                                  title: item.fileName,
+                                  office: item.office,
+                                  url: item.downloadUrl,
+                                  pinned: item.pinned
+                                })}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                className={`action-button ${item.pinned ? 'unpin' : 'pin'}`}
+                                onClick={() => handlePinLink(item.id, item.pinned)}
+                              >
+                                {item.pinned ? 'Unpin' : 'Pin'}
+                              </button>
+                            </>
                           )}
                           <button
                             className="action-button open-link"

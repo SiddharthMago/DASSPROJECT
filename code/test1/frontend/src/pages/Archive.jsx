@@ -157,16 +157,8 @@ function Archive({ darkMode, userRole }) {
             axios.get('http://localhost:5000/api/quicklinks')
           ]);
 
-          const files = filesRes.data.data.map((file) => ({
-            id: file._id,
-            fileName: file.name,
-            author: file.author?.name || 'Unknown',
-            office: file.office,
-            modifiedDate: new Date(file.createdAt).toLocaleDateString(),
-            category: 'Files',
-            viewUrl: file.filePath ? `http://localhost:5000/${file.filePath?.replace(/\\/g, '/')}` : null,
-            downloadUrl: file.url || `http://localhost:5000/api/files/download/${file._id}`,
-          }));
+          // Use mapFileData for files in the All category just like in the Files category
+          const files = filesRes.data.data.map(mapFileData);
 
           const announcements = announcementsRes.data.data.map((announcement) => ({
             id: announcement._id,

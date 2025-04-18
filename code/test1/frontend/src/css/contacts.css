@@ -1,6 +1,13 @@
 /* Import base styles from home.css */
 @import './home.css';
 
+.page-title {
+    text-align: center; /* Center the text horizontally */
+    font-size: 2rem; /* Adjust font size as needed */
+    font-weight: bold; /* Make it bold for emphasis */
+    margin-bottom: 1.5rem; /* Add spacing below the title */
+    color: var(--text-primary); /* Ensure it matches the theme */
+}
 /* Contacts Page Specific Styles */
 .contacts-container {
     min-height: 100vh;
@@ -29,6 +36,9 @@
     display: flex;
     max-width: 600px;
     width: 100%;
+    margin: 0 auto; /* Center the search bar horizontally */
+    justify-content: center; /* Center the content inside the search bar */
+    align-items: center; /* Align the content vertically */
 }
 
 .search-bar input {
@@ -84,6 +94,7 @@
 }
 
 .contact-card {
+    position: relative; /* Ensure the contact-card is the positioning context */
     background-color: var(--card-bg);
     border-radius: 10px;
     overflow: hidden;
@@ -94,6 +105,15 @@
     align-items: center;
     padding: 1.5rem;
     border: 1px solid var(--card-border);
+}
+
+
+
+.contact-name {
+    margin-top: 60px; /* Add space to avoid overlap with the role badge */
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    text-align: center;
 }
 
 .contact-card:hover {
@@ -122,9 +142,10 @@
 }
 
 .contact-name {
+    margin-top: 60px; /* Add space to avoid overlap with the role badge */
     font-size: 1.2rem;
-    margin: 0.5rem 0;
     color: var(--text-primary);
+    text-align: center;
 }
 
 .contact-post {
@@ -266,6 +287,8 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    margin: 0 auto; /* Center the button horizontally */
+    justify-content: center; /* Center the content inside the button */
 }
 
 .add-contact-btn:hover {
@@ -286,12 +309,17 @@
     flex-wrap: wrap;
     gap: 1rem;
     margin-top: 1rem;
+    justify-content: center; /* Center the filters horizontally */
+    align-items: center; /* Center the filters vertically */
 }
 
 .role-filters {
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
+    justify-content: center; /* Center the role filters horizontally */
+    align-items: center; /* Center the role filters vertically */
+    margin-top: 1rem;
 }
 
 .role-filters button {
@@ -377,17 +405,21 @@
 
 .role-badge {
     position: absolute;
-    top: 5px;
-    right: 5px;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
+    top: 10px; /* Position the badge at the top */
+    left: 50%; /* Center horizontally */
+    transform: translateX(-50%); /* Adjust for horizontal centering */
+    width: 400px; /* Adjust width */
+    height: 40px; /* Adjust height */
     background-color: var(--card-bg);
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     border: 1px solid var(--card-border);
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #f0e8e8;
+    z-index: 1; /* Ensure it appears above other elements */
 }
 
 .edit-contact-overlay {
@@ -524,26 +556,47 @@
 
 /* Role indicator and dropdown */
 .role-indicator {
-    margin: 0.5rem 0;
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    margin-top: 8px;
     font-size: 0.9rem;
-    color: var(--text-secondary);
-}
-
-.role-badge {
     font-weight: 600;
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    text-transform: capitalize;
+  }
+  
+
+
+
+
+  .role-badge.superadmin {
+    background-color: #fff1f0; /* Light red background */
+    color: #f5222d; /* Red text */
 }
 
 .role-badge.admin {
-    background-color: #fff1f0;
-    color: #f5222d;
+    background-color: #fff7e6; /* Light orange background */
+    color: #96530a; /* Orange text */
 }
 
 .role-badge.user {
-    background-color: #e6f7ff;
-    color: #0066cc;
+    background-color: #ffffe6; /* Light yellow background */
+    color: #d4b106; /* Yellow text */
+}
+
+/* Dark mode styles */
+.dark-mode .role-badge.superadmin {
+    background-color: rgba(245, 34, 45, 0.2); /* Semi-transparent red */
+    color: #bb6964; /* Light red text */
+}
+
+.dark-mode .role-badge.admin {
+    background-color: rgba(250, 140, 22, 0.2); /* Semi-transparent orange */
+    color: #d68d17; /* Light orange text */
+}
+
+.dark-mode .role-badge.user {
+    background-color: rgba(109, 98, 40, 0.2); /* Semi-transparent yellow */
+    color: #afa952; /* Light yellow text */
 }
 
 .role-dropdown {
@@ -603,15 +656,7 @@
     color: #f5222d;
 }
 
-.dark-mode .role-badge.admin {
-    background-color: rgba(245, 34, 45, 0.2);
-    color: #ffa39e;
-}
 
-.dark-mode .role-badge.user {
-    background-color: rgba(0, 102, 204, 0.2);
-    color: #91d5ff;
-}
 
 /* Responsive styles for admin view */
 @media (max-width: 768px) {

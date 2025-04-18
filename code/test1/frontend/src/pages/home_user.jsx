@@ -227,28 +227,33 @@ function HomeUser({ darkMode }) {
   const getAnnouncementBackground = (announcement) => {
     // If there's a valid imageUrl, use it
     if (announcement.imageUrl && !announcement.imageUrl.includes('undefined')) {
-      console.log('Using image URL:', announcement.imageUrl);
+      const baseUrl = import.meta.env.VITE_CLIENT_URL || 'http://localhost:5000'; // Use Vite's environment variable or fallback to localhost
+      const fullImageUrl = announcement.imageUrl.startsWith('http')
+        ? announcement.imageUrl // If it's already a full URL, use it as is
+        : `${baseUrl}${announcement.imageUrl}`; // Prepend the base URL for relative paths
+  
+      console.log('Using image URL:', fullImageUrl);
       return {
-        backgroundImage: `url(${announcement.imageUrl})`,
+        backgroundImage: `url(${fullImageUrl})`,
         backgroundSize: 'cover',
-        backgroundPosition: 'center'
+        backgroundPosition: 'center',
       };
     }
-    
+  
     // Otherwise, use the office logo
-    const officeName = announcement.office.toLowerCase();
+    const officeName = announcement.office;
     const logoUrl = officeLogos[officeName];
-    
+  
     if (logoUrl) {
       console.log('Using office logo for', officeName, logoUrl);
       return {
         backgroundImage: `url(${logoUrl})`,
         backgroundSize: 'contain',
         backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundRepeat: 'no-repeat',
       };
     }
-    
+  
     // Fallback - use a class-based background
     console.log('Using class-based background for', officeName);
     return {};

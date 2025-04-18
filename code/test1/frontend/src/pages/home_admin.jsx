@@ -286,7 +286,7 @@ function HomeAdmin({ darkMode }) {
   const getAnnouncementBackground = (announcement) => {
     // If there's a valid imageUrl, use it
     if (announcement.imageUrl && !announcement.imageUrl.includes('undefined')) {
-      const baseUrl = process.env.REACT_APP_API_BASE_URL || ''; // Use an environment variable for the base URL
+      const baseUrl = import.meta.env.VITE_CLIENT_URL || 'http://localhost:5000'; // Use Vite's environment variable or fallback to localhost
       const fullImageUrl = announcement.imageUrl.startsWith('http')
         ? announcement.imageUrl // If it's already a full URL, use it as is
         : `${baseUrl}${announcement.imageUrl}`; // Prepend the base URL for relative paths

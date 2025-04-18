@@ -34,6 +34,10 @@ exports.protect = async (req, res, next) => {
       return res.status(401).json({ success: false, error: 'User not found' });
     }
 
+    if (!decoded.userDetails || !decoded.userDetails["cas:E-Mail"]) {
+      return res.status(401).json({ success: false, error: "Invalid token payload" });
+    }
+
 		// Attach the user to the request object based on the decoded token
 		if (decoded.userDetails) {
 			const email = decoded.userDetails["cas:E-Mail"]?.[0];

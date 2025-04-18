@@ -1,31 +1,37 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const fs = require("fs");
+const path = require("path");
 
-// @desc    Register user
-// @route   POST /api/auth/register
+// @desc    Add user
+// @route   POST /api/auth_cas/addUser
 // @access  Public
-exports.register = async (req, res, next) => {
-	const { email, role, office, name } = req.body;
-
+exports.addUser = async (req, res, next) => {
 	try {
+		const { name, email, office, role } = req.body;
+
+		const existingUser = await User.findOne({ email });
+		if (existingUser){
+			return res.status(400).json({ success: false, error: "USer with this email already exists." });
+		}
+
 		const user = await User.create({
-			email,
-			role,
-			office,
 			name,
+			email,
+			office,
+			role: role || "user",
 		});
 
-		res.status(201).json({
-			success: true,
-			data: user,
-		});
-	} catch (err) {
-		res.status(400).json({ success: false, error: err.message });
+		res.status(201).json({ success: true, data: user, });
+	}
+	catch (err) {
+		console.error("Error registering user: ", err);
+		res.status(500).json({ success: false, error: err.message });
 	}
 };
 
 // @desc    Login user
-// @route   POST /api/auth/login
+// @route   POST /api/auth_cas/login
 // @access  Public
 exports.login = async (req, res, next) => {
 	const { email } = req.body;
@@ -49,7 +55,7 @@ exports.login = async (req, res, next) => {
 };
 
 // @desc    Get user details
-// @route   GET /api/auth/user
+// @route   GET /api/auth_cas/user
 // @access  Public
 exports.getUserDetails = async (req, res, next) => {
 	const userId = req.query.id; // Get user ID from query parameters
@@ -82,7 +88,7 @@ exports.getUserDetails = async (req, res, next) => {
 };
 
 // @desc    Get current logged-in user details
-// @route   GET /api/auth/current
+// @route   GET /api/auth_cas/current
 // @access  Public
 exports.getCurrentUserDetails = async (req, res, next) => {
 	try {
@@ -109,7 +115,7 @@ exports.getCurrentUserDetails = async (req, res, next) => {
 };
 
 // @desc    Get all users
-// @route   GET /api/auth/users
+// @route   GET /api/auth_cas/users
 // @access  Public
 exports.getAllUsers = async (req, res, next) => {
 	try {
@@ -126,8 +132,8 @@ exports.getAllUsers = async (req, res, next) => {
 };
 
 // @desc    Change user role
-// @route   PUT /api/auth/user/:id/role
-// @access  Admin, Superadmin
+// @route   PUT /api/auth_cas/user/:id/role
+// @access  Superadmin
 exports.changeUserRole = async (req, res, next) => {
 	const { role } = req.body;
 	const { email } = req.params;
@@ -144,7 +150,7 @@ exports.changeUserRole = async (req, res, next) => {
 		}
 
 		// Only superadmin can change roles
-		if (req.user.role === 'user') {
+		if (req.user.role !== 'superadmin') {
 			return res.status(403).json({ success: false, error: 'Not authorized to change roles' });
 		}
 
@@ -157,6 +163,68 @@ exports.changeUserRole = async (req, res, next) => {
 		});
 	} catch (err) {
 		res.status(500).json({ success: false, error: 'Server error' });
+	}
+};
+
+// @desc    Change user details
+// @route   PUT /api/auth_Cas/user/:id
+// @access  Superadmin
+exports.updateUser = async (req, res, next) => {
+	console.log("req.params: ", req.params);
+	console.log("req.body: ", req.body);
+	console.log("req.user: ", req.user);
+
+	const { name, office, role } = req.body;
+	const { email } = req.params;
+	try {
+		const user = await User.findOne({ email });
+
+		if (!user) {
+			return res.status(404).json({ success: false, error: "User not found." });
+		}
+
+		if (req.user && req.user.role !== "superadmin") {
+			return res.status(403).json({ success: false, error: "Not authorised to update users" });
+		}
+
+		if (name !== undefined) user.name = name;
+		if (office !== undefined) user.office = office;
+		if (role !== undefined && ["user", "admin", "superadmin"].includes(role)) user.role = role;
+
+		console.log(user);
+		
+		await user.save();
+
+		res.status(200).json({ success: true, data: user });
+	}
+	catch (err) {
+		console.error("Error updating user: ", err);
+		res.status(500).json({ success: false, error: err.message });
+	}
+};
+
+// @desc 	Delete user
+// @route	DELETE /api/auth_cas/user/:id
+// @access	Superadmin
+exports.deleteUser = async (req, res, next) => {
+	const  { email } = req.params;
+	try {
+		if (req.user && req.user.role !== "superadmin"){
+			return res.status(403).json({ success: false, error: "Not authorised to delete users." });
+		}
+
+		const user = await User.findOne({ email: email });
+		if (!user) {
+			return res.status(404).json({ success: false, error: "User not found." });
+		}
+
+		await User.findOneAndDelete({ email: email });
+
+		res.status(200).json({ success: true, data: {} });
+	}
+	catch (err) {
+		console.error("Error deleting user: ", err);
+		res.status(500).json({ success: false, error: err.message });
 	}
 };
 

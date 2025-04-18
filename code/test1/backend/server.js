@@ -7,6 +7,7 @@ const cookieParser = require('cookie-parser');
 const multer = require('multer');
 const connectDB = require('./config/db');
 
+
 // Connect to database
 connectDB();
 

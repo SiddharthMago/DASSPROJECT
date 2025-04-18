@@ -153,6 +153,21 @@ body {
   border-color: var(--accent-color);
 }
 
+/* Display for admin's office (non-editable) */
+.office-display {
+  padding: 10px;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.dark-mode .office-display {
+  background-color: #333;
+  border-color: #555;
+  color: #eee;
+}
+
 /* Category Tabs */
 .category-tabs {
   margin-bottom: 2rem;
@@ -230,18 +245,29 @@ body {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--card-border);
-  border-top-color: var(--accent-color);
-  border-radius: 50%;
-  margin: 0 auto 1rem;
-  animation: spin 1s linear infinite;
+/* Loading State */
+.loading-state {
+  text-align: center;
+  padding: 3rem;
+  background-color: var(--card-bg);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.loading-state p {
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Dark mode adjustments */
+.dark-mode .loading-state {
+  background-color: var(--secondary-bg, #242426);
 }
 
 /* Archive Grid */

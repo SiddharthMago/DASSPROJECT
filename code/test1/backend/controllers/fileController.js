@@ -43,7 +43,7 @@ exports.addFile = async (req, res, next) => {
 		if (req.file) {
 			// Store relative path instead of absolute path
 			fileData.filePath = `uploads/files/${req.file.filename}`;
-			fileData.url = req.file.filename;
+			fileData.url = null; // Clear URL if a file is uploaded
 		}
 
 		// If URL was provided, add it

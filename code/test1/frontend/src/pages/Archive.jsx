@@ -129,8 +129,8 @@ function Archive({ darkMode, userRole }) {
       category: 'Files',
       // Only set viewUrl if there's a filePath
       viewUrl: filePath ? `http://localhost:5000${filePath}` : null,
-      // Use URL if available, otherwise use filepath
-      downloadUrl: file.url || (filePath ? `http://localhost:5000${filePath}` : null),
+      // Use URL if available, otherwise use download endpoint
+      downloadUrl: file.url || `http://localhost:5000/api/files/download/${file._id}`,
     };
 
     // If we have the author details, update the author name
@@ -157,7 +157,16 @@ function Archive({ darkMode, userRole }) {
             axios.get('http://localhost:5000/api/quicklinks')
           ]);
 
-          const files = filesRes.data.data.map(mapFileData);
+          const files = filesRes.data.data.map((file) => ({
+            id: file._id,
+            fileName: file.name,
+            author: file.author?.name || 'Unknown',
+            office: file.office,
+            modifiedDate: new Date(file.createdAt).toLocaleDateString(),
+            category: 'Files',
+            viewUrl: file.filePath ? `http://localhost:5000/${file.filePath?.replace(/\\/g, '/')}` : null,
+            downloadUrl: file.url || `http://localhost:5000/api/files/download/${file._id}`,
+          }));
 
           const announcements = announcementsRes.data.data.map((announcement) => ({
             id: announcement._id,
@@ -224,7 +233,7 @@ function Archive({ darkMode, userRole }) {
               status: file.status,
               comments: file.comments || [],
               viewUrl: filePath ? `http://localhost:5000${filePath}` : null,
-              downloadUrl: file.url || (filePath ? `http://localhost:5000${filePath}` : null),
+              downloadUrl: file.url || `http://localhost:5000/api/files/download/${file._id}`,
             };
           });
           setArchiveItems(mapped);
@@ -332,7 +341,8 @@ function Archive({ darkMode, userRole }) {
             office: file.office,
             modifiedDate: new Date(file.createdAt).toLocaleDateString(),
             category: 'Files',
-            downloadUrl: file.url || `http://localhost:5000${file.filePath?.replace(/\\/g, '/')}`,
+            viewUrl: file.filePath ? `http://localhost:5000/${file.filePath?.replace(/\\/g, '/')}` : null,
+            downloadUrl: file.url || `http://localhost:5000/api/files/download/${file._id}`,
           }));
 
           const announcements = announcementsRes.data.data.map((announcement) => ({
@@ -396,7 +406,8 @@ function Archive({ darkMode, userRole }) {
             office: file.office,
             modifiedDate: new Date(file.createdAt).toLocaleDateString(),
             category: 'Files',
-            downloadUrl: file.url || `http://localhost:5000${file.filePath?.replace(/\\/g, '/')}`,
+            viewUrl: file.filePath ? `http://localhost:5000/${file.filePath?.replace(/\\/g, '/')}` : null,
+            downloadUrl: file.url || `http://localhost:5000/api/files/download/${file._id}`,
           }));
           setArchiveItems(mapped);
         }
@@ -413,9 +424,13 @@ function Archive({ darkMode, userRole }) {
 
   // Function to get the appropriate "Add New" route based on category
   const getAddNewRoute = () => {
+    // For Files category, return role-specific upload route
+    if (activeTab === 'Files') {
+      return userRole === 'superadmin' ? '/superadmin/add-file' : '/admin/add-file';
+    }
+    
+    // For other categories, use existing routes
     switch (activeTab) {
-      case 'Files':
-        return '/upload';
       case 'Announcements':
         return '/create-announcement';
       case 'Links':
@@ -780,8 +795,7 @@ function Archive({ darkMode, userRole }) {
       <section className="archive-content">
         {loading ? (
           <div className="loading-state">
-            <div className="loading-spinner"></div>
-            <p>Loading archive items...</p>
+            <p>Loading...</p>
           </div>
         ) : error ? (
           <div className="error-state">
@@ -888,6 +902,7 @@ function Archive({ darkMode, userRole }) {
                       </button>
                       <a
                         href={item.downloadUrl}
+                        download={item.fileName}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="action-button download"
@@ -1066,6 +1081,7 @@ function Archive({ darkMode, userRole }) {
                           </button>
                           <a
                             href={item.downloadUrl}
+                            download={item.fileName}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="action-button download"
@@ -1157,33 +1173,39 @@ function Archive({ darkMode, userRole }) {
               </div>
               <div className="form-group">
                 <label htmlFor="office">Office</label>
-                <select
-                  id="office"
-                  value={announcementModal.office}
-                  onChange={(e) => setAnnouncementModal({ ...announcementModal, office: e.target.value })}
-                  required
-                >
-                  <option value="">Select Office</option>
-                  <option value="Admissions Office">Admissions Office</option>
-                  <option value="Library Office">Library Office</option>
-                  <option value="Examinations Office">Examinations Office</option>
-                  <option value="Academic Office">Academic Office</option>
-                  <option value="Student Affairs Office">Student Affairs Office</option>
-                  <option value="Mess Office">Mess Office</option>
-                  <option value="Hostel Office">Hostel Office</option>
-                  <option value="Alumni Cell">Alumni Cell</option>
-                  <option value="Faculty Portal">Faculty Portal</option>
-                  <option value="Placement Cell">Placement Cell</option>
-                  <option value="Outreach Office">Outreach Office</option>
-                  <option value="Statistical Cell">Statistical Cell</option>
-                  <option value="R&D Office">R&D Office</option>
-                  <option value="General Administration">General Administration</option>
-                  <option value="Accounts Office">Accounts Office</option>
-                  <option value="IT Services Office">IT Services Office</option>
-                  <option value="Communication Office">Communication Office</option>
-                  <option value="Engineering Office">Engineering Office</option>
-                  <option value="HR & Personnel">HR & Personnel</option>
-                </select>
+                {userRole === 'superadmin' ? (
+                  // Dropdown for superadmin
+                  <select
+                    id="office"
+                    value={announcementModal.office}
+                    onChange={(e) => setAnnouncementModal({ ...announcementModal, office: e.target.value })}
+                    required
+                  >
+                    <option value="">Select Office</option>
+                    <option value="Admissions Office">Admissions Office</option>
+                    <option value="Library Office">Library Office</option>
+                    <option value="Examinations Office">Examinations Office</option>
+                    <option value="Academic Office">Academic Office</option>
+                    <option value="Student Affairs Office">Student Affairs Office</option>
+                    <option value="Mess Office">Mess Office</option>
+                    <option value="Hostel Office">Hostel Office</option>
+                    <option value="Alumni Cell">Alumni Cell</option>
+                    <option value="Faculty Portal">Faculty Portal</option>
+                    <option value="Placement Cell">Placement Cell</option>
+                    <option value="Outreach Office">Outreach Office</option>
+                    <option value="Statistical Cell">Statistical Cell</option>
+                    <option value="R&D Office">R&D Office</option>
+                    <option value="General Administration">General Administration</option>
+                    <option value="Accounts Office">Accounts Office</option>
+                    <option value="IT Services Office">IT Services Office</option>
+                    <option value="Communication Office">Communication Office</option>
+                    <option value="Engineering Office">Engineering Office</option>
+                    <option value="HR & Personnel">HR & Personnel</option>
+                  </select>
+                ) : (
+                  // Display readonly text for admin
+                  <div className="office-display">{userOffice}</div>
+                )}
               </div>
               <div className="form-group">
                 <label htmlFor="link">Link (Optional)</label>
@@ -1249,33 +1271,39 @@ function Archive({ darkMode, userRole }) {
               </div>
               <div className="form-group">
                 <label htmlFor="office">Office</label>
-                <select
-                  id="office"
-                  value={linkModal.office}
-                  onChange={(e) => setLinkModal({ ...linkModal, office: e.target.value })}
-                  required
-                >
-                  <option value="">Select Office</option>
-                  <option value="Admissions Office">Admissions Office</option>
-                  <option value="Library Office">Library Office</option>
-                  <option value="Examinations Office">Examinations Office</option>
-                  <option value="Academic Office">Academic Office</option>
-                  <option value="Student Affairs Office">Student Affairs Office</option>
-                  <option value="Mess Office">Mess Office</option>
-                  <option value="Hostel Office">Hostel Office</option>
-                  <option value="Alumni Cell">Alumni Cell</option>
-                  <option value="Faculty Portal">Faculty Portal</option>
-                  <option value="Placement Cell">Placement Cell</option>
-                  <option value="Outreach Office">Outreach Office</option>
-                  <option value="Statistical Cell">Statistical Cell</option>
-                  <option value="R&D Office">R&D Office</option>
-                  <option value="General Administration">General Administration</option>
-                  <option value="Accounts Office">Accounts Office</option>
-                  <option value="IT Services Office">IT Services Office</option>
-                  <option value="Communication Office">Communication Office</option>
-                  <option value="Engineering Office">Engineering Office</option>
-                  <option value="HR & Personnel">HR & Personnel</option>
-                </select>
+                {userRole === 'superadmin' ? (
+                  // Dropdown for superadmin
+                  <select
+                    id="office"
+                    value={linkModal.office}
+                    onChange={(e) => setLinkModal({ ...linkModal, office: e.target.value })}
+                    required
+                  >
+                    <option value="">Select Office</option>
+                    <option value="Admissions Office">Admissions Office</option>
+                    <option value="Library Office">Library Office</option>
+                    <option value="Examinations Office">Examinations Office</option>
+                    <option value="Academic Office">Academic Office</option>
+                    <option value="Student Affairs Office">Student Affairs Office</option>
+                    <option value="Mess Office">Mess Office</option>
+                    <option value="Hostel Office">Hostel Office</option>
+                    <option value="Alumni Cell">Alumni Cell</option>
+                    <option value="Faculty Portal">Faculty Portal</option>
+                    <option value="Placement Cell">Placement Cell</option>
+                    <option value="Outreach Office">Outreach Office</option>
+                    <option value="Statistical Cell">Statistical Cell</option>
+                    <option value="R&D Office">R&D Office</option>
+                    <option value="General Administration">General Administration</option>
+                    <option value="Accounts Office">Accounts Office</option>
+                    <option value="IT Services Office">IT Services Office</option>
+                    <option value="Communication Office">Communication Office</option>
+                    <option value="Engineering Office">Engineering Office</option>
+                    <option value="HR & Personnel">HR & Personnel</option>
+                  </select>
+                ) : (
+                  // Display readonly text for admin
+                  <div className="office-display">{userOffice}</div>
+                )}
               </div>
               <div className="form-group">
                 <label htmlFor="url">URL</label>

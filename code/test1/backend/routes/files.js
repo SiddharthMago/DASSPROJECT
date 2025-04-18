@@ -11,7 +11,8 @@ const {
   addFileVersion,
   getOfficeCategories,
   addOfficeCategory,
-  getFilesByCurrentUser
+  getFilesByCurrentUser,
+  viewFile
 } = require('../controllers/fileController');
 const { protect, authorize } = require('../middleware/auth');
 const multer = require('multer');
@@ -41,6 +42,7 @@ router.post('/:id/version', protect, authorize('admin', 'superadmin'), upload.si
 router.get('/categories/:office', protect, getOfficeCategories);
 router.post('/categories', protect, authorize('admin', 'superadmin'), addOfficeCategory);
 router.get('/my-files', protect, authorize('admin', 'superadmin'), getFilesByCurrentUser);
+router.get('/:id/view', protect, viewFile);
 router.get('/office/:office', async (req, res) => {
   try {
     const { office } = req.params;

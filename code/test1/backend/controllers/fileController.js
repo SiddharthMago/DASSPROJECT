@@ -30,9 +30,12 @@ exports.addFile = async (req, res, next) => {
       return next(new ErrorResponse(`Please provide all required fields`, 400));
     }
 
+    // Store relative path instead of absolute path
+    const relativePath = `uploads/files/${req.file.filename}`;
+
     const file = await File.create({
       name,
-      filePath: req.file.path,
+      filePath: relativePath,
       url: req.file.filename,
       office,
       category,
@@ -60,6 +63,7 @@ exports.deleteFile = async (req, res, next) => {
     }
 
     if (file.filePath) {
+      // Construct absolute path from relative path
       const filePath = path.join(__dirname, '..', file.filePath);
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
@@ -201,7 +205,8 @@ exports.addFileVersion = async (req, res, next) => {
       return res.status(404).json({ success: false, error: 'File not found' });
     }
 
-    let filePath = req.file ? `/uploads/files/${req.file.filename}` : null;
+    // Use relative path
+    let filePath = req.file ? `uploads/files/${req.file.filename}` : null;
 
     const newVersion = {
       name,
@@ -306,6 +311,49 @@ exports.getFilesByCurrentUser = async (req, res, next) => {
     res.status(200).json({ success: true, count: files.length, data: files });
   } catch (err) {
     console.error(`[GET USER FILES] Error: ${err.message}`);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+};
+
+// @desc    View/download a file by ID
+exports.viewFile = async (req, res, next) => {
+  console.log(`[VIEW FILE] Request to view/download file: ${req.params.id}`);
+  try {
+    const file = await File.findById(req.params.id);
+    
+    if (!file) {
+      console.warn(`[VIEW FILE] File not found: ${req.params.id}`);
+      return res.status(404).json({ success: false, error: 'File not found' });
+    }
+
+    // Check if file has a physical path (not a URL-only entry)
+    if (!file.filePath) {
+      console.warn(`[VIEW FILE] No file path found: ${req.params.id}`);
+      return res.status(404).json({ success: false, error: 'No file path associated with this record' });
+    }
+
+    // Construct the absolute file path from the stored relative path
+    const filePath = path.join(__dirname, '..', file.filePath);
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      console.error(`[VIEW FILE] File not found on disk: ${filePath}`);
+      return res.status(404).json({ success: false, error: 'File not found on disk' });
+    }
+
+    // Get file name from path
+    const fileName = path.basename(filePath);
+    
+    // Set appropriate headers
+    res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+    
+    // Stream the file to the client
+    const fileStream = fs.createReadStream(filePath);
+    fileStream.pipe(res);
+    
+    console.log(`[VIEW FILE] Successfully streaming file: ${fileName}`);
+  } catch (err) {
+    console.error(`[VIEW FILE] Error: ${err.message}`);
     res.status(500).json({ success: false, error: 'Server error' });
   }
 };

@@ -8,6 +8,9 @@ import studentsLogo from '../assets/students-logo.png';
 import researchLogo from '../assets/research-logo.png';
 import adminLogo from '../assets/admin-logo.png';
 
+import editIcon from '../assets/edit-icon.jpg';
+import addIcon from '../assets/add-icon.jpg';
+import deleteIcon from '../assets/delete-icon.jpg';
 // Home component - Admin landing page for IIIT-Hyderabad website
 function HomeAdmin({ darkMode }) {
   // State for announcements

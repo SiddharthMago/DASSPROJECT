@@ -96,4 +96,19 @@ router.get('/files/:office', protect, authorize('admin', 'superadmin'), async (r
   }
 });
 
+router.get("/:id", async(req, res) => {
+  console.log("[API] get /files/:id request received for ID: ", req.params.id);
+  try {
+    const file = await File.findById(req.params.id).populate('author', 'name');
+    if (!file) {
+      console.log("[API] file not found in database");
+      return res.status(404).json({ success: false, error: "File not found" });
+    }
+    res.status(200).json({ success: true, data: file });
+  }
+  catch(err) {
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+});
+
 module.exports = router;

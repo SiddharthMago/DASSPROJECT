@@ -1,21 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import axios from "axios";
 import "../css/file.css";
 
-/**
- * FilePageUser Component
- * 
- * A page component for displaying a single file with version history and comparison feature.
- * Features:
- * - Sidebar with version history
- * - Main content area for file display
- * - Version comparison option below the file viewer
- * 
- * @param {Object} props
- * @param {boolean} props.darkMode - Whether dark mode is enabled
- * @param {string} props.fileID - ID of the file to display
- */
-function FilePageUser({ darkMode, fileID }) {
+function FilePageUser({ darkMode }) {
     // State for file data
     const [file, setFile] = useState(null);
     const [versions, setVersions] = useState([]);
@@ -29,76 +17,61 @@ function FilePageUser({ darkMode, fileID }) {
     const [version2, setVersion2] = useState(null);
     
     // For development, use a hardcoded file URL
-    const sampleFileUrl = "http://localhost:5000/uploads/files/1744972682727-MDL_A4.pdf";
+    // const sampleFileUrl = "http://localhost:5000/uploads/files/1744972682727-MDL_A4.pdf";
+
+    const { id } = useParams();
 
     /**
      * Fetch file data when component mounts
      */
     useEffect(() => {
+        console.log("[filepage] useEffect triggered for ID: ", id);
         const fetchFile = async () => {
             try {
                 setLoading(true);
-                
-                // In a real implementation with actual API:
-                let response;
-                let fileData;
-                
-                try {
-                    // Try to fetch from the actual API endpoint
-                    response = await axios.get(`/api/files/${fileID || 'sample'}`);
-                    fileData = response.data.data;
-                } catch (apiError) {
-                    console.warn("API fetch failed, using sample data", apiError);
-                    
-                    // Fallback to sample data
-                    fileData = {
-                        _id: "sample-id",
-                        name: "MDL_A4.pdf",
-                        url: sampleFileUrl,
-                        filePath: "/uploads/files/1744972682727-MDL_A4.pdf",
-                        createdAt: new Date().toISOString(),
-                        // Note: In the real API implementation, versions would come from the database
-                        versions: []
-                    };
+                const response = await axios.get(`http://localhost:5000/api/files/${id}`);
+                console.log("[filePage] API response: ", response.status, response.data);
+        
+                if (!response.data.success) {
+                    console.error("[filePage] API returned unsuccessful response: ", response.data);
+                    throw new Error(response.data.error || "Failed to fetch file");
                 }
-                
+        
+                const fileData = response.data.data;
                 setFile(fileData);
-                
-                // Combine current version with past versions for display
-                // The current file itself is considered the latest version
+        
                 const allVersions = [
                     {
                         _id: fileData._id,
                         name: fileData.name,
-                        url: fileData.url || sampleFileUrl, // Fallback for development
+                        url: "http://localhost:5000/" + fileData.filePath,
                         filePath: fileData.filePath,
                         createdAt: fileData.createdAt,
-                        isCurrent: true
+                        isCurrent: true,
                     },
-                    ...(fileData.versions || []) // Add any previous versions if they exist
+                    ...(fileData.versions || []),
                 ];
-                
+        
                 setVersions(allVersions);
-                setSelectedVersion(allVersions[0]); // Select latest version by default
-                
-                // Initialize comparison versions if there are multiple versions
+                setSelectedVersion(allVersions[0]);
+        
                 if (allVersions.length >= 2) {
                     setVersion1(allVersions[0]);
                     setVersion2(allVersions[1]);
                 } else if (allVersions.length === 1) {
                     setVersion1(allVersions[0]);
                 }
-                
+        
                 setLoading(false);
             } catch (err) {
                 console.error("Error fetching file data:", err);
-                setError("Failed to load file. Please try again later.");
+                setError(err.response?.data?.message || "Failed to load file. Please try again later.");
                 setLoading(false);
             }
         };
         
-        fetchFile();
-    }, [fileID, sampleFileUrl]);
+        if (id) fetchFile();
+    }, [id]);
 
     /**
      * Format a date in a readable way
@@ -198,15 +171,7 @@ function FilePageUser({ darkMode, fileID }) {
         );
     }
 
-    /**
-     * VersionSelector - Dropdown to select a version for comparison
-     * 
-     * @param {Object} props
-     * @param {Array} props.versions - Available versions
-     * @param {Object} props.selectedVersion - Currently selected version
-     * @param {Function} props.onVersionChange - Handler for version change
-     * @param {string} props.label - Label for the selector
-     */
+    
     function VersionSelector({ versions, selectedVersion, onVersionChange, label }) {
         return (
             <div className="version-selector">

@@ -27,6 +27,8 @@ function User({ darkMode, setDarkMode }) {
         }
     }, [actualDarkMode]);
 
+    console.log("[userRouter] current path: ", window.location.pathname);
+
     return (
         <div className={`app-container ${actualDarkMode ? 'dark-mode' : ''}`}>
             <link
@@ -47,7 +49,7 @@ function User({ darkMode, setDarkMode }) {
                 <Route path="research/:officeName" element={<OfficePage darkMode={actualDarkMode} />} />
                 <Route path="admin/:officeName" element={<OfficePage darkMode={actualDarkMode} />} />
                 
-                <Route path='file' element={<FilePageUser darkMode={actualDarkMode} />} />
+                <Route path='file/:id' element={<FilePageUser darkMode={actualDarkMode} />} />
                 <Route path="archive" element={<Archive darkMode={actualDarkMode} />} />
                 <Route path='search' element={<Archive darkMode={actualDarkMode} />} />
                 <Route path='contacts' element={<ContactsUser darkMode={actualDarkMode} />} />

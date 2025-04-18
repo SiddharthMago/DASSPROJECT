@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import '../css/archive.css';
-import { FaTh, FaList } from 'react-icons/fa';
+import { FaTh, FaList, FaPlus, FaTrash } from 'react-icons/fa';
 
 function Archive({ darkMode, userRole }) {
   // State for filtering
@@ -16,6 +16,53 @@ function Archive({ darkMode, userRole }) {
   const [expandedFileId, setExpandedFileId] = useState(null);
   const [layout, setLayout] = useState('grid'); // 'grid' or 'table'
 
+  // Add new state for delete confirmation modal
+  const [deleteModal, setDeleteModal] = useState({ show: false, itemId: null, itemName: '', category: '' });
+
+  // Add new state for announcement modal
+  const [announcementModal, setAnnouncementModal] = useState({
+    show: false,
+    title: '',
+    office: '',
+    link: '',
+    image: null
+  });
+
+  // Add new state for link modal
+  const [linkModal, setLinkModal] = useState({
+    show: false,
+    title: '',
+    office: '',
+    url: '',
+    pinned: true // Set pinned to true by default
+  });
+
+  // Add new state for edit announcement modal
+  const [editAnnouncementModal, setEditAnnouncementModal] = useState({
+    show: false,
+    id: null,
+    title: '',
+    office: '',
+    link: '',
+    image: null
+  });
+
+  // Add new state for edit link modal
+  const [editLinkModal, setEditLinkModal] = useState({
+    show: false,
+    id: null,
+    title: '',
+    office: '',
+    url: '',
+    pinned: true
+  });
+
+  // Add userOffice state to store the admin's office
+  const [userOffice, setUserOffice] = useState('');
+
+  // Add new state for author details
+  const [authorDetails, setAuthorDetails] = useState({});
+
   // Set active tab from URL parameter on component mount
   useEffect(() => {
     const tabParam = searchParams.get('tab');
@@ -23,6 +70,74 @@ function Archive({ darkMode, userRole }) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
+
+  // Add useEffect to fetch user's office when component mounts
+  useEffect(() => {
+    const fetchUserOffice = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('http://localhost:5000/api/auth_cas/current', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.data.success) {
+          setUserOffice(response.data.data.office);
+        }
+      } catch (err) {
+        console.error('Error fetching user office:', err);
+      }
+    };
+
+    if (userRole === 'admin') {
+      fetchUserOffice();
+    }
+  }, [userRole]);
+
+  // Function to fetch author details
+  const fetchAuthorDetails = async (authorId) => {
+    if (!authorId || authorDetails[authorId]) return;
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:5000/api/auth_cas/user?id=${authorId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.data.success) {
+        setAuthorDetails(prev => ({
+          ...prev,
+          [authorId]: response.data.data.name
+        }));
+      }
+    } catch (err) {
+      console.error('Error fetching author details:', err);
+    }
+  };
+
+  // Update the file mapping to use author ObjectId
+  const mapFileData = (file) => {
+    const mappedFile = {
+      id: file._id,
+      fileName: file.name,
+      authorId: file.author, // Store the author ObjectId
+      author: 'Loading...', // Initial state
+      office: file.office,
+      modifiedDate: new Date(file.createdAt).toLocaleDateString(),
+      category: 'Files',
+      downloadUrl: file.url || `http://localhost:5000/${file.filePath?.replace(/\\/g, '/')}`,
+    };
+
+    // If we have the author details, update the author name
+    if (file.author && authorDetails[file.author]) {
+      mappedFile.author = authorDetails[file.author];
+    } else if (file.author) {
+      // Fetch author details if we don't have them
+      fetchAuthorDetails(file.author);
+    }
+
+    return mappedFile;
+  };
 
   // Fetch data based on active tab
   useEffect(() => {
@@ -37,15 +152,7 @@ function Archive({ darkMode, userRole }) {
             axios.get('http://localhost:5000/api/quicklinks')
           ]);
 
-          const files = filesRes.data.data.map((file) => ({
-            id: file._id,
-            fileName: file.name,
-            author: file.authorName,
-            office: file.office,
-            modifiedDate: new Date(file.createdAt).toLocaleDateString(),
-            category: 'Files',
-            downloadUrl: file.url || `http://localhost:5000/${file.filePath?.replace(/\\/g, '/')}`,
-          }));
+          const files = filesRes.data.data.map(mapFileData);
 
           const announcements = announcementsRes.data.data.map((announcement) => ({
             id: announcement._id,
@@ -76,15 +183,7 @@ function Archive({ darkMode, userRole }) {
           setArchiveItems(allItems);
         } else if (activeTab === 'Files') {
           const res = await axios.get('http://localhost:5000/api/files/approved');
-          const mapped = res.data.data.map((file) => ({
-            id: file._id,
-            fileName: file.name,
-            author: file.author?.name || 'Unknown',
-            office: file.office,
-            modifiedDate: new Date(file.createdAt).toLocaleDateString(),
-            category: 'Files',
-            downloadUrl: file.url || `http://localhost:5000/${file.filePath?.replace(/\\/g, '/')}`,
-          }));
+          const mapped = res.data.data.map(mapFileData);
           setArchiveItems(mapped);
         } else if (activeTab === 'Uploaded by Me') {
           const token = localStorage.getItem('token');
@@ -154,7 +253,7 @@ function Archive({ darkMode, userRole }) {
     };
 
     fetchData();
-  }, [activeTab]);
+  }, [activeTab, authorDetails]);
 
   // Filter items based on search query, office selection, and active tab
   const filteredItems = archiveItems.filter((item) => {
@@ -170,6 +269,372 @@ function Archive({ darkMode, userRole }) {
 
   const toggleComments = (fileId) => {
     setExpandedFileId(expandedFileId === fileId ? null : fileId);
+  };
+
+  // Helper function to check if user has permission to manage an item
+  const canManageItem = (itemOffice) => {
+    if (userRole === 'superadmin') return true;
+    if (userRole === 'admin') return itemOffice === userOffice;
+    return false;
+  };
+
+  // Function to handle item deletion
+  const handleDelete = async (id, category) => {
+    try {
+      const token = localStorage.getItem('token');
+      let endpoint;
+      
+      // Determine the correct endpoint based on the category
+      switch (category) {
+        case 'Files':
+          endpoint = `http://localhost:5000/api/files/${id}`;
+          break;
+        case 'Announcements':
+          endpoint = `http://localhost:5000/api/announcements/${id}`;
+          break;
+        case 'Links':
+          endpoint = `http://localhost:5000/api/quicklinks/${id}`;
+          break;
+        default:
+          throw new Error('Invalid category for deletion');
+      }
+
+      const response = await axios.delete(endpoint, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      
+      if (response.data.success) {
+        // Refresh the items list based on the current tab
+        if (activeTab === 'All') {
+          const [filesRes, announcementsRes, quickLinksRes] = await Promise.all([
+            axios.get('http://localhost:5000/api/files/approved'),
+            axios.get('http://localhost:5000/api/announcements'),
+            axios.get('http://localhost:5000/api/quicklinks')
+          ]);
+
+          const files = filesRes.data.data.map((file) => ({
+            id: file._id,
+            fileName: file.name,
+            author: file.author?.name || 'Unknown',
+            office: file.office,
+            modifiedDate: new Date(file.createdAt).toLocaleDateString(),
+            category: 'Files',
+            downloadUrl: file.url || `http://localhost:5000/${file.filePath?.replace(/\\/g, '/')}`,
+          }));
+
+          const announcements = announcementsRes.data.data.map((announcement) => ({
+            id: announcement._id,
+            fileName: announcement.title,
+            author: announcement.office,
+            office: announcement.office,
+            modifiedDate: new Date(announcement.createdAt).toLocaleDateString(),
+            category: 'Announcements',
+            downloadUrl: announcement.link || '#',
+            image: announcement.image
+          }));
+
+          const quickLinks = quickLinksRes.data.data.map((quickLink) => ({
+            id: quickLink._id,
+            fileName: quickLink.title,
+            author: quickLink.office,
+            office: quickLink.office,
+            modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
+            category: 'Links',
+            downloadUrl: quickLink.url,
+            pinned: quickLink.pinned
+          }));
+
+          const allItems = [...files, ...announcements, ...quickLinks].sort((a, b) => 
+            new Date(b.modifiedDate) - new Date(a.modifiedDate)
+          );
+          setArchiveItems(allItems);
+        } else if (activeTab === 'Links') {
+          const res = await axios.get('http://localhost:5000/api/quicklinks');
+          const mapped = res.data.data.map((quickLink) => ({
+            id: quickLink._id,
+            fileName: quickLink.title,
+            author: quickLink.office,
+            office: quickLink.office,
+            modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
+            category: 'Links',
+            downloadUrl: quickLink.url,
+            pinned: quickLink.pinned
+          }));
+          setArchiveItems(mapped);
+        } else if (activeTab === 'Announcements') {
+          const res = await axios.get('http://localhost:5000/api/announcements');
+          const mapped = res.data.data.map((announcement) => ({
+            id: announcement._id,
+            fileName: announcement.title,
+            author: announcement.office,
+            office: announcement.office,
+            modifiedDate: new Date(announcement.createdAt).toLocaleDateString(),
+            category: 'Announcements',
+            downloadUrl: announcement.link || '#',
+            image: announcement.image
+          }));
+          setArchiveItems(mapped);
+        } else if (activeTab === 'Files') {
+          const res = await axios.get('http://localhost:5000/api/files/approved');
+          const mapped = res.data.data.map((file) => ({
+            id: file._id,
+            fileName: file.name,
+            author: file.author?.name || 'Unknown',
+            office: file.office,
+            modifiedDate: new Date(file.createdAt).toLocaleDateString(),
+            category: 'Files',
+            downloadUrl: file.url || `http://localhost:5000/${file.filePath?.replace(/\\/g, '/')}`,
+          }));
+          setArchiveItems(mapped);
+        }
+        
+        setDeleteModal({ show: false, itemId: null, itemName: '', category: '' });
+      } else {
+        alert('Failed to delete item: ' + response.data.error);
+      }
+    } catch (err) {
+      console.error('Error deleting item:', err);
+      alert('Failed to delete item: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
+  // Function to get the appropriate "Add New" route based on category
+  const getAddNewRoute = () => {
+    switch (activeTab) {
+      case 'Files':
+        return '/upload';
+      case 'Announcements':
+        return '/create-announcement';
+      case 'Links':
+        return '/create-link';
+      default:
+        return '#';
+    }
+  };
+
+  // Function to handle announcement creation
+  const handleCreateAnnouncement = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      
+      formData.append('title', announcementModal.title);
+      formData.append('office', userRole === 'superadmin' ? announcementModal.office : userOffice);
+      formData.append('link', announcementModal.link);
+      if (announcementModal.image) {
+        formData.append('image', announcementModal.image);
+      }
+
+      const response = await axios.post('http://localhost:5000/api/announcements', formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (response.data.success) {
+        // Refresh the announcements list
+        const announcementsRes = await axios.get('http://localhost:5000/api/announcements');
+        const mapped = announcementsRes.data.data.map((announcement) => ({
+          id: announcement._id,
+          fileName: announcement.title,
+          author: announcement.office,
+          office: announcement.office,
+          modifiedDate: new Date(announcement.createdAt).toLocaleDateString(),
+          category: 'Announcements',
+          downloadUrl: announcement.link || '#',
+          image: announcement.image
+        }));
+        setArchiveItems(mapped);
+        
+        // Close modal and reset form
+        setAnnouncementModal({
+          show: false,
+          title: '',
+          office: '',
+          link: '',
+          image: null
+        });
+      } else {
+        alert('Failed to create announcement: ' + response.data.error);
+      }
+    } catch (err) {
+      console.error('Error creating announcement:', err);
+      alert('Failed to create announcement: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
+  // Function to handle file input change
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setAnnouncementModal({
+        ...announcementModal,
+        image: e.target.files[0]
+      });
+    }
+  };
+
+  // Function to handle link creation
+  const handleCreateLink = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post('http://localhost:5000/api/quicklinks', {
+        title: linkModal.title,
+        office: userRole === 'superadmin' ? linkModal.office : userOffice,
+        url: linkModal.url,
+        pinned: true,
+        approved: true
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.data.success) {
+        // Refresh the links list
+        const linksRes = await axios.get('http://localhost:5000/api/quicklinks');
+        const mapped = linksRes.data.data.map((quickLink) => ({
+          id: quickLink._id,
+          fileName: quickLink.title,
+          author: quickLink.office,
+          office: quickLink.office,
+          modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
+          category: 'Links',
+          downloadUrl: quickLink.url,
+          pinned: quickLink.pinned
+        }));
+        setArchiveItems(mapped);
+        
+        // Close modal and reset form
+        setLinkModal({
+          show: false,
+          title: '',
+          office: '',
+          url: '',
+          pinned: true
+        });
+      } else {
+        alert('Failed to create link: ' + response.data.error);
+      }
+    } catch (err) {
+      console.error('Error creating link:', err);
+      alert('Failed to create link: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
+  // Function to handle announcement edit
+  const handleEditAnnouncement = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      const formData = new FormData();
+      
+      formData.append('title', editAnnouncementModal.title);
+      formData.append('office', editAnnouncementModal.office);
+      formData.append('link', editAnnouncementModal.link);
+      if (editAnnouncementModal.image) {
+        formData.append('image', editAnnouncementModal.image);
+      }
+
+      const response = await axios.put(
+        `http://localhost:5000/api/announcements/${editAnnouncementModal.id}`,
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      if (response.data.success) {
+        // Refresh the announcements list
+        const announcementsRes = await axios.get('http://localhost:5000/api/announcements');
+        const mapped = announcementsRes.data.data.map((announcement) => ({
+          id: announcement._id,
+          fileName: announcement.title,
+          author: announcement.office,
+          office: announcement.office,
+          modifiedDate: new Date(announcement.createdAt).toLocaleDateString(),
+          category: 'Announcements',
+          downloadUrl: announcement.link || '#',
+          image: announcement.image
+        }));
+        setArchiveItems(mapped);
+        
+        // Close modal and reset form
+        setEditAnnouncementModal({
+          show: false,
+          id: null,
+          title: '',
+          office: '',
+          link: '',
+          image: null
+        });
+      } else {
+        alert('Failed to update announcement: ' + response.data.error);
+      }
+    } catch (err) {
+      console.error('Error updating announcement:', err);
+      alert('Failed to update announcement: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
+  // Function to handle link edit
+  const handleEditLink = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `http://localhost:5000/api/quicklinks/${editLinkModal.id}`,
+        {
+          title: editLinkModal.title,
+          office: editLinkModal.office,
+          url: editLinkModal.url,
+          pinned: editLinkModal.pinned
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+
+      if (response.data.success) {
+        // Refresh the links list
+        const linksRes = await axios.get('http://localhost:5000/api/quicklinks');
+        const mapped = linksRes.data.data.map((quickLink) => ({
+          id: quickLink._id,
+          fileName: quickLink.title,
+          author: quickLink.office,
+          office: quickLink.office,
+          modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
+          category: 'Links',
+          downloadUrl: quickLink.url,
+          pinned: quickLink.pinned
+        }));
+        setArchiveItems(mapped);
+        
+        // Close modal and reset form
+        setEditLinkModal({
+          show: false,
+          id: null,
+          title: '',
+          office: '',
+          url: '',
+          pinned: true
+        });
+      } else {
+        alert('Failed to update link: ' + response.data.error);
+      }
+    } catch (err) {
+      console.error('Error updating link:', err);
+      alert('Failed to update link: ' + (err.response?.data?.error || err.message));
+    }
   };
 
   return (
@@ -203,48 +668,73 @@ function Archive({ darkMode, userRole }) {
         </button>
       </div>
 
+      {/* Add New Button */}
+      {(userRole === 'admin' || userRole === 'superadmin') && activeTab !== 'All' && activeTab !== 'Events' && activeTab !== 'Uploaded by Me' && (
+        <div className="add-new-container">
+          {activeTab === 'Links' ? (
+            <button 
+              className="add-new-button"
+              onClick={() => setLinkModal({ ...linkModal, show: true })}
+            >
+              <FaPlus /> Add New Link
+            </button>
+          ) : activeTab === 'Announcements' ? (
+            <button 
+              className="add-new-button"
+              onClick={() => setAnnouncementModal({ ...announcementModal, show: true })}
+            >
+              <FaPlus /> Add New Announcement
+            </button>
+          ) : (
+            <Link to={getAddNewRoute()} className="add-new-button">
+              <FaPlus /> Add New {activeTab.slice(0, -1)}
+            </Link>
+          )}
+        </div>
+      )}
+
       {/* Search and Filter Section */}
       <section className="archive-filters">
         <div className="search-container">
-          <div className="search-bar">
-            <input
-              type="text"
+        <div className="search-bar">
+          <input
+            type="text"
               placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
           <div className="filter-container">
-            <div className="office-filter">
-              <label htmlFor="office-filter">Office: </label>
-              <select
-                id="office-filter"
-                value={selectedOffice}
-                onChange={(e) => setSelectedOffice(e.target.value)}
-              >
+        <div className="office-filter">
+          <label htmlFor="office-filter">Office: </label>
+          <select
+            id="office-filter"
+            value={selectedOffice}
+            onChange={(e) => setSelectedOffice(e.target.value)}
+          >
                 <option value="All">All Offices</option>
-                <option value="Admissions Office">Admissions Office</option>
-                <option value="Library Office">Library Office</option>
-                <option value="Examinations Office">Examinations Office</option>
-                <option value="Academic Office">Academic Office</option>
-                <option value="Student Affairs Office">Student Affairs Office</option>
-                <option value="Mess Office">Mess Office</option>
-                <option value="Hostel Office">Hostel Office</option>
-                <option value="Alumni Cell">Alumni Cell</option>
-                <option value="Faculty Portal">Faculty Portal</option>
-                <option value="Placement Cell">Placement Cell</option>
-                <option value="Outreach Office">Outreach Office</option>
-                <option value="Statistical Cell">Statistical Cell</option>
-                <option value="R&D Office">R&D Office</option>
-                <option value="General Administration">General Administration</option>
-                <option value="Accounts Office">Accounts Office</option>
-                <option value="IT Services Office">IT Services Office</option>
-                <option value="Communication Office">Communication Office</option>
-                <option value="Engineering Office">Engineering Office</option>
-                <option value="HR & Personnel">HR & Personnel</option>
-              </select>
-            </div>
+            <option value="Admissions Office">Admissions Office</option>
+            <option value="Library Office">Library Office</option>
+            <option value="Examinations Office">Examinations Office</option>
+            <option value="Academic Office">Academic Office</option>
+            <option value="Student Affairs Office">Student Affairs Office</option>
+            <option value="Mess Office">Mess Office</option>
+            <option value="Hostel Office">Hostel Office</option>
+            <option value="Alumni Cell">Alumni Cell</option>
+            <option value="Faculty Portal">Faculty Portal</option>
+            <option value="Placement Cell">Placement Cell</option>
+            <option value="Outreach Office">Outreach Office</option>
+            <option value="Statistical Cell">Statistical Cell</option>
+            <option value="R&D Office">R&D Office</option>
+            <option value="General Administration">General Administration</option>
+            <option value="Accounts Office">Accounts Office</option>
+            <option value="IT Services Office">IT Services Office</option>
+            <option value="Communication Office">Communication Office</option>
+            <option value="Engineering Office">Engineering Office</option>
+            <option value="HR & Personnel">HR & Personnel</option>
+          </select>
+        </div>
           </div>
         </div>
       </section>
@@ -285,14 +775,14 @@ function Archive({ darkMode, userRole }) {
         ) : error ? (
           <div className="error-state">
             <p>{error}</p>
-          </div>
+        </div>
         ) : filteredItems.length === 0 ? (
           <div className="empty-state">
             <p>No items found matching your criteria</p>
           </div>
         ) : layout === 'grid' ? (
           <div className="archive-grid">
-            {filteredItems.map((item) => (
+          {filteredItems.map((item) => (
               <div key={item.id} className="archive-card">
                 <div className="card-header">
                   <h3 className="card-title">{item.fileName}</h3>
@@ -315,32 +805,99 @@ function Archive({ darkMode, userRole }) {
                       <span className="info-label">Date:</span>
                       <span className="info-value">{item.modifiedDate}</span>
                     </div>
-                    {activeTab === 'Uploaded by Me' && (
+                {activeTab === 'Uploaded by Me' && (
                       <div className="info-row">
                         <span className="info-label">Status:</span>
                         <span className={`status-badge ${item.status}`}>
-                          {item.status}
+                      {item.status}
                         </span>
-                      </div>
+                    </div>
                     )}
                   </div>
                 </div>
 
                 <div className="card-actions">
-                  <button 
-                    className="action-button preview"
-                    onClick={() => window.open(item.downloadUrl, '_blank')}
+                  {item.category === 'Announcements' ? (
+                    <>
+                      {canManageItem(item.office) && (
+                        <button 
+                          className="action-button edit"
+                          onClick={() => setEditAnnouncementModal({
+                            show: true,
+                            id: item.id,
+                            title: item.fileName,
+                            office: item.office,
+                            link: item.downloadUrl,
+                            image: null
+                          })}
+                        >
+                          Edit
+                        </button>
+                      )}
+                      <button
+                        className="action-button open-link"
+                        onClick={() => window.open(item.downloadUrl, '_blank')}
+                        disabled={!item.downloadUrl || item.downloadUrl === '#'}
+                      >
+                        Open Link
+                      </button>
+                    </>
+                  ) : item.category === 'Links' ? (
+                    <>
+                      {canManageItem(item.office) && (
+                        <button 
+                          className="action-button edit"
+                          onClick={() => setEditLinkModal({
+                            show: true,
+                            id: item.id,
+                            title: item.fileName,
+                            office: item.office,
+                            url: item.downloadUrl,
+                            pinned: item.pinned
+                          })}
+                        >
+                          Edit
+                        </button>
+                      )}
+                      <button
+                        className="action-button open-link"
+                        onClick={() => window.open(item.downloadUrl, '_blank')}
+                        disabled={!item.downloadUrl || item.downloadUrl === '#'}
+                      >
+                        Open Link
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button 
+                        className="action-button preview"
+                        onClick={() => window.open(item.downloadUrl, '_blank')}
                   >
                     Preview
-                  </button>
+                      </button>
                   <a
                     href={item.downloadUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="action-button download"
+                        className="action-button download"
                   >
                     Download
                   </a>
+                    </>
+                  )}
+                  {canManageItem(item.office) && (
+                    <button
+                      className="action-button delete"
+                      onClick={() => setDeleteModal({ 
+                        show: true, 
+                        itemId: item.id, 
+                        itemName: item.fileName,
+                        category: item.category 
+                      })}
+                    >
+                      <FaTrash />
+                    </button>
+                  )}
                 </div>
 
                 {activeTab === 'Uploaded by Me' && item.status === 'rejected' && (
@@ -353,25 +910,25 @@ function Archive({ darkMode, userRole }) {
                     </button>
                     {expandedFileId === item.id && (
                       <div className="comments-content">
-                        {item.comments && item.comments.length > 0 ? (
-                          item.comments.map((comment, index) => (
-                            <div key={index} className="comment-item">
+                  {item.comments && item.comments.length > 0 ? (
+                    item.comments.map((comment, index) => (
+                      <div key={index} className="comment-item">
                               <div className="comment-header">
                                 <span className="comment-author">
                                   {comment.author?.name || 'Unknown'}
                                 </span>
                                 <span className="comment-date">
-                                  {new Date(comment.createdAt).toLocaleDateString()}
+                          {new Date(comment.createdAt).toLocaleDateString()}
                                 </span>
-                              </div>
+                        </div>
                               <p className="comment-text">{comment.content}</p>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="no-comments">No comments available</p>
-                        )}
                       </div>
-                    )}
+                    ))
+                  ) : (
+                          <p className="no-comments">No comments available</p>
+                  )}
+                </div>
+              )}
                   </div>
                 )}
               </div>
@@ -415,8 +972,8 @@ function Archive({ darkMode, userRole }) {
                           >
                             View Comments
                           </button>
-                        )}
-                      </div>
+          )}
+        </div>
                       {expandedFileId === item.id && item.comments && (
                         <div className="comments-content">
                           {item.comments.map((comment, index) => (
@@ -438,20 +995,87 @@ function Archive({ darkMode, userRole }) {
                   )}
                   <td className="actions-cell">
                     <div className="card-actions">
-                      <button 
-                        className="action-button preview"
-                        onClick={() => window.open(item.downloadUrl, '_blank')}
-                      >
-                        Preview
-                      </button>
-                      <a
-                        href={item.downloadUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="action-button download"
-                      >
-                        Download
-                      </a>
+                      {item.category === 'Announcements' ? (
+                        <>
+                          {canManageItem(item.office) && (
+                            <button 
+                              className="action-button edit"
+                              onClick={() => setEditAnnouncementModal({
+                                show: true,
+                                id: item.id,
+                                title: item.fileName,
+                                office: item.office,
+                                link: item.downloadUrl,
+                                image: null
+                              })}
+                            >
+                              Edit
+                            </button>
+                          )}
+                          <button
+                            className="action-button open-link"
+                            onClick={() => window.open(item.downloadUrl, '_blank')}
+                            disabled={!item.downloadUrl || item.downloadUrl === '#'}
+                          >
+                            Open Link
+                          </button>
+                        </>
+                      ) : item.category === 'Links' ? (
+                        <>
+                          {canManageItem(item.office) && (
+                            <button 
+                              className="action-button edit"
+                              onClick={() => setEditLinkModal({
+                                show: true,
+                                id: item.id,
+                                title: item.fileName,
+                                office: item.office,
+                                url: item.downloadUrl,
+                                pinned: item.pinned
+                              })}
+                            >
+                              Edit
+                            </button>
+                          )}
+                          <button
+                            className="action-button open-link"
+                            onClick={() => window.open(item.downloadUrl, '_blank')}
+                            disabled={!item.downloadUrl || item.downloadUrl === '#'}
+                          >
+                            Open Link
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button 
+                            className="action-button preview"
+                            onClick={() => window.open(item.downloadUrl, '_blank')}
+                          >
+                            Preview
+                          </button>
+                          <a
+                            href={item.downloadUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="action-button download"
+                          >
+                            Download
+                          </a>
+                        </>
+                      )}
+                      {canManageItem(item.office) && (
+                        <button
+                          className="action-button delete"
+                          onClick={() => setDeleteModal({ 
+                            show: true, 
+                            itemId: item.id, 
+                            itemName: item.fileName,
+                            category: item.category 
+                          })}
+                        >
+                          <FaTrash />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -460,6 +1084,421 @@ function Archive({ darkMode, userRole }) {
           </table>
         )}
       </section>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.show && (
+        <div className="modal-overlay">
+          <div className="delete-modal">
+            <div className="modal-header">
+              <h3>Confirm Deletion</h3>
+              <button 
+                className="close-button"
+                onClick={() => setDeleteModal({ show: false, itemId: null, itemName: '', category: '' })}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-content">
+              <p>Are you sure you want to delete "{deleteModal.itemName}"?</p>
+              <p className="warning-text">This action cannot be undone.</p>
+            </div>
+            <div className="modal-actions">
+              <button 
+                className="cancel-button"
+                onClick={() => setDeleteModal({ show: false, itemId: null, itemName: '', category: '' })}
+              >
+                Cancel
+              </button>
+              <button 
+                className="delete-confirm-button"
+                onClick={() => handleDelete(deleteModal.itemId, deleteModal.category)}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Announcement Creation Modal */}
+      {announcementModal.show && (
+        <div className="modal-overlay">
+          <div className="announcement-modal">
+            <div className="modal-header">
+              <h3>Create New Announcement</h3>
+              <button 
+                className="close-button"
+                onClick={() => setAnnouncementModal({ ...announcementModal, show: false })}
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleCreateAnnouncement} className="modal-content">
+              <div className="form-group">
+                <label htmlFor="title">Title</label>
+                <input
+                  type="text"
+                  id="title"
+                  value={announcementModal.title}
+                  onChange={(e) => setAnnouncementModal({ ...announcementModal, title: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="office">Office</label>
+                <select
+                  id="office"
+                  value={announcementModal.office}
+                  onChange={(e) => setAnnouncementModal({ ...announcementModal, office: e.target.value })}
+                  required
+                >
+                  <option value="">Select Office</option>
+                  <option value="Admissions Office">Admissions Office</option>
+                  <option value="Library Office">Library Office</option>
+                  <option value="Examinations Office">Examinations Office</option>
+                  <option value="Academic Office">Academic Office</option>
+                  <option value="Student Affairs Office">Student Affairs Office</option>
+                  <option value="Mess Office">Mess Office</option>
+                  <option value="Hostel Office">Hostel Office</option>
+                  <option value="Alumni Cell">Alumni Cell</option>
+                  <option value="Faculty Portal">Faculty Portal</option>
+                  <option value="Placement Cell">Placement Cell</option>
+                  <option value="Outreach Office">Outreach Office</option>
+                  <option value="Statistical Cell">Statistical Cell</option>
+                  <option value="R&D Office">R&D Office</option>
+                  <option value="General Administration">General Administration</option>
+                  <option value="Accounts Office">Accounts Office</option>
+                  <option value="IT Services Office">IT Services Office</option>
+                  <option value="Communication Office">Communication Office</option>
+                  <option value="Engineering Office">Engineering Office</option>
+                  <option value="HR & Personnel">HR & Personnel</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="link">Link (Optional)</label>
+                <input
+                  type="url"
+                  id="link"
+                  value={announcementModal.link}
+                  onChange={(e) => setAnnouncementModal({ ...announcementModal, link: e.target.value })}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="image">Image (Optional)</label>
+                <input
+                  type="file"
+                  id="image"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
+              </div>
+              <div className="modal-actions">
+                <button 
+                  type="button"
+                  className="cancel-button"
+                  onClick={() => setAnnouncementModal({ ...announcementModal, show: false })}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="submit-button"
+                >
+                  Create Announcement
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Link Creation Modal */}
+      {linkModal.show && (
+        <div className="modal-overlay">
+          <div className="link-modal">
+            <div className="modal-header">
+              <h3>Create New Link</h3>
+              <button 
+                className="close-button"
+                onClick={() => setLinkModal({ ...linkModal, show: false })}
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleCreateLink} className="modal-content">
+              <div className="form-group">
+                <label htmlFor="title">Title</label>
+                <input
+                  type="text"
+                  id="title"
+                  value={linkModal.title}
+                  onChange={(e) => setLinkModal({ ...linkModal, title: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="office">Office</label>
+                <select
+                  id="office"
+                  value={linkModal.office}
+                  onChange={(e) => setLinkModal({ ...linkModal, office: e.target.value })}
+                  required
+                >
+                  <option value="">Select Office</option>
+                  <option value="Admissions Office">Admissions Office</option>
+                  <option value="Library Office">Library Office</option>
+                  <option value="Examinations Office">Examinations Office</option>
+                  <option value="Academic Office">Academic Office</option>
+                  <option value="Student Affairs Office">Student Affairs Office</option>
+                  <option value="Mess Office">Mess Office</option>
+                  <option value="Hostel Office">Hostel Office</option>
+                  <option value="Alumni Cell">Alumni Cell</option>
+                  <option value="Faculty Portal">Faculty Portal</option>
+                  <option value="Placement Cell">Placement Cell</option>
+                  <option value="Outreach Office">Outreach Office</option>
+                  <option value="Statistical Cell">Statistical Cell</option>
+                  <option value="R&D Office">R&D Office</option>
+                  <option value="General Administration">General Administration</option>
+                  <option value="Accounts Office">Accounts Office</option>
+                  <option value="IT Services Office">IT Services Office</option>
+                  <option value="Communication Office">Communication Office</option>
+                  <option value="Engineering Office">Engineering Office</option>
+                  <option value="HR & Personnel">HR & Personnel</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="url">URL</label>
+                <input
+                  type="url"
+                  id="url"
+                  value={linkModal.url}
+                  onChange={(e) => setLinkModal({ ...linkModal, url: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={linkModal.pinned}
+                    onChange={(e) => setLinkModal({ ...linkModal, pinned: e.target.checked })}
+                  />
+                  Pin this link
+                </label>
+              </div>
+              <div className="modal-actions">
+                <button 
+                  type="button"
+                  className="cancel-button"
+                  onClick={() => setLinkModal({ ...linkModal, show: false })}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="submit-button"
+                >
+                  Create Link
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Announcement Modal */}
+      {editAnnouncementModal.show && (
+        <div className="modal-overlay">
+          <div className="announcement-modal">
+            <div className="modal-header">
+              <h3>Edit Announcement</h3>
+              <button 
+                className="close-button"
+                onClick={() => setEditAnnouncementModal({ ...editAnnouncementModal, show: false })}
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleEditAnnouncement} className="modal-content">
+              <div className="form-group">
+                <label htmlFor="edit-title">Title</label>
+                <input
+                  type="text"
+                  id="edit-title"
+                  value={editAnnouncementModal.title}
+                  onChange={(e) => setEditAnnouncementModal({ ...editAnnouncementModal, title: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="edit-office">Office</label>
+                <select
+                  id="edit-office"
+                  value={editAnnouncementModal.office}
+                  onChange={(e) => setEditAnnouncementModal({ ...editAnnouncementModal, office: e.target.value })}
+                  required
+                >
+                  <option value="">Select Office</option>
+                  <option value="Admissions Office">Admissions Office</option>
+                  <option value="Library Office">Library Office</option>
+                  <option value="Examinations Office">Examinations Office</option>
+                  <option value="Academic Office">Academic Office</option>
+                  <option value="Student Affairs Office">Student Affairs Office</option>
+                  <option value="Mess Office">Mess Office</option>
+                  <option value="Hostel Office">Hostel Office</option>
+                  <option value="Alumni Cell">Alumni Cell</option>
+                  <option value="Faculty Portal">Faculty Portal</option>
+                  <option value="Placement Cell">Placement Cell</option>
+                  <option value="Outreach Office">Outreach Office</option>
+                  <option value="Statistical Cell">Statistical Cell</option>
+                  <option value="R&D Office">R&D Office</option>
+                  <option value="General Administration">General Administration</option>
+                  <option value="Accounts Office">Accounts Office</option>
+                  <option value="IT Services Office">IT Services Office</option>
+                  <option value="Communication Office">Communication Office</option>
+                  <option value="Engineering Office">Engineering Office</option>
+                  <option value="HR & Personnel">HR & Personnel</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="edit-link">Link</label>
+                <input
+                  type="url"
+                  id="edit-link"
+                  value={editAnnouncementModal.link}
+                  onChange={(e) => setEditAnnouncementModal({ ...editAnnouncementModal, link: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="edit-image">Image (Optional)</label>
+                <input
+                  type="file"
+                  id="edit-image"
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setEditAnnouncementModal({
+                        ...editAnnouncementModal,
+                        image: e.target.files[0]
+                      });
+                    }
+                  }}
+                />
+              </div>
+              <div className="modal-actions">
+                <button 
+                  type="button"
+                  className="cancel-button"
+                  onClick={() => setEditAnnouncementModal({ ...editAnnouncementModal, show: false })}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="submit-button"
+                >
+                  Update Announcement
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Link Modal */}
+      {editLinkModal.show && (
+        <div className="modal-overlay">
+          <div className="link-modal">
+            <div className="modal-header">
+              <h3>Edit Link</h3>
+              <button 
+                className="close-button"
+                onClick={() => setEditLinkModal({ ...editLinkModal, show: false })}
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleEditLink} className="modal-content">
+              <div className="form-group">
+                <label htmlFor="edit-title">Title</label>
+                <input
+                  type="text"
+                  id="edit-title"
+                  value={editLinkModal.title}
+                  onChange={(e) => setEditLinkModal({ ...editLinkModal, title: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="edit-office">Office</label>
+                <select
+                  id="edit-office"
+                  value={editLinkModal.office}
+                  onChange={(e) => setEditLinkModal({ ...editLinkModal, office: e.target.value })}
+                  required
+                >
+                  <option value="">Select Office</option>
+                  <option value="Admissions Office">Admissions Office</option>
+                  <option value="Library Office">Library Office</option>
+                  <option value="Examinations Office">Examinations Office</option>
+                  <option value="Academic Office">Academic Office</option>
+                  <option value="Student Affairs Office">Student Affairs Office</option>
+                  <option value="Mess Office">Mess Office</option>
+                  <option value="Hostel Office">Hostel Office</option>
+                  <option value="Alumni Cell">Alumni Cell</option>
+                  <option value="Faculty Portal">Faculty Portal</option>
+                  <option value="Placement Cell">Placement Cell</option>
+                  <option value="Outreach Office">Outreach Office</option>
+                  <option value="Statistical Cell">Statistical Cell</option>
+                  <option value="R&D Office">R&D Office</option>
+                  <option value="General Administration">General Administration</option>
+                  <option value="Accounts Office">Accounts Office</option>
+                  <option value="IT Services Office">IT Services Office</option>
+                  <option value="Communication Office">Communication Office</option>
+                  <option value="Engineering Office">Engineering Office</option>
+                  <option value="HR & Personnel">HR & Personnel</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="edit-url">URL</label>
+                <input
+                  type="url"
+                  id="edit-url"
+                  value={editLinkModal.url}
+                  onChange={(e) => setEditLinkModal({ ...editLinkModal, url: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={editLinkModal.pinned}
+                    onChange={(e) => setEditLinkModal({ ...editLinkModal, pinned: e.target.checked })}
+                  />
+                  Pin this link
+                </label>
+              </div>
+              <div className="modal-actions">
+                <button 
+                  type="button"
+                  className="cancel-button"
+                  onClick={() => setEditLinkModal({ ...editLinkModal, show: false })}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="submit-button"
+                >
+                  Update Link
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

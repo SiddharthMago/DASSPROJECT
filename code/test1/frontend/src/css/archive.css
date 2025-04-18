@@ -397,9 +397,9 @@ body {
   margin-top: 1rem;
 }
 
+/* Action Buttons */
 .action-button {
-  flex: 1;
-  padding: 0.8rem;
+  padding: 0.8rem 1.2rem;
   border: none;
   border-radius: 6px;
   font-weight: 500;
@@ -407,6 +407,10 @@ body {
   transition: all 0.2s ease;
   text-align: center;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .action-button.preview {
@@ -419,8 +423,59 @@ body {
   color: white;
 }
 
-.action-button:hover {
-  opacity: 0.9;
+.action-button.edit {
+  background-color: rgba(46, 91, 187, 0.1);
+  color: var(--accent-color);
+}
+
+.action-button.open-link {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.action-button.open-link:disabled {
+  background-color: var(--gray-bg);
+  color: var(--text-primary);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.action-button.delete {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+  padding: 0.8rem;
+}
+
+.action-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-button.delete:hover {
+  background-color: #f44336;
+  color: white;
+}
+
+/* Dark mode adjustments */
+.dark-mode .action-button.preview,
+.dark-mode .action-button.edit {
+  background-color: rgba(46, 91, 187, 0.2);
+}
+
+.dark-mode .action-button.delete {
+  background-color: rgba(244, 67, 54, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .card-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .action-button {
+    width: 100%;
+  }
 }
 
 /* Comments Section */
@@ -613,7 +668,22 @@ body {
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border-bottom: 1px solid var(--card-border);
+  border-bottom: 2px solid var(--card-border);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* Light mode header styles */
+.archive-table th {
+  background-color: #f8f9fa;
+  color: #495057;
+}
+
+/* Dark mode header styles */
+.dark-mode .archive-table th {
+  background-color: #2c2c2c;
+  color: #e9ecef;
 }
 
 .archive-table td {
@@ -622,6 +692,7 @@ body {
   vertical-align: middle;
   border-bottom: 1px solid var(--card-border);
   transition: background-color 0.2s ease;
+  background-color: var(--card-bg);
 }
 
 .archive-table tr:last-child td {
@@ -630,6 +701,10 @@ body {
 
 .archive-table tr:hover td {
   background-color: rgba(46, 91, 187, 0.03);
+}
+
+.dark-mode .archive-table tr:hover td {
+  background-color: rgba(46, 91, 187, 0.05);
 }
 
 .archive-table .name-cell {
@@ -710,14 +785,10 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.dark-mode .archive-table tr:hover td {
-  background-color: rgba(46, 91, 187, 0.05);
-}
-
 /* Responsive table */
 @media (max-width: 1024px) {
   .archive-table {
-    display: block;
+  display: block;
     overflow-x: auto;
     white-space: nowrap;
     margin: 2rem 0;
@@ -908,5 +979,350 @@ body {
   
   .archive-table .comments-content {
     padding: 0.6rem;
+  }
+}
+
+/* Add New Button */
+.add-new-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.5rem;
+  padding: 0 1rem;
+}
+
+.add-new-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.add-new-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(46, 91, 187, 0.3);
+  background-color: #1e4a9e;
+}
+
+/* Delete Button */
+.action-button.delete {
+  background-color: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+  padding: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-button.delete:hover {
+  background-color: #f44336;
+  color: white;
+}
+
+/* Delete Modal */
+.delete-modal {
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.delete-modal .modal-content {
+  padding: 1.5rem;
+}
+
+.delete-modal .warning-text {
+  color: #f44336;
+  font-weight: 500;
+  margin-top: 0.5rem;
+}
+
+.delete-confirm-button {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background-color: #f44336;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-confirm-button:hover {
+  background-color: #d32f2f;
+  transform: translateY(-1px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .add-new-container {
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  .add-new-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .card-actions {
+    flex-wrap: wrap;
+  }
+
+  .action-button.delete {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+}
+
+/* Announcement Modal */
+.announcement-modal {
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.announcement-modal .modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.announcement-modal .modal-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.announcement-modal .modal-content {
+  padding: 1.5rem;
+}
+
+.announcement-modal .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.announcement-modal .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.announcement-modal .form-group input,
+.announcement-modal .form-group select {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.announcement-modal .form-group input:focus,
+.announcement-modal .form-group select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.announcement-modal .form-group input[type="file"] {
+  padding: 0.5rem;
+  border: 1px dashed var(--card-border);
+  background-color: transparent;
+}
+
+.announcement-modal .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.announcement-modal .submit-button {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background-color: var(--accent-color);
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.announcement-modal .submit-button:hover {
+  background-color: #1e4a9e;
+  transform: translateY(-1px);
+}
+
+/* Dark mode adjustments */
+.dark-mode .announcement-modal {
+  background-color: var(--secondary-bg);
+}
+
+.dark-mode .announcement-modal .form-group input,
+.dark-mode .announcement-modal .form-group select {
+  background-color: var(--dark-bg);
+  border-color: var(--gray-bg);
+}
+
+.dark-mode .announcement-modal .form-group input:focus,
+.dark-mode .announcement-modal .form-group select:focus {
+  border-color: var(--accent-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .announcement-modal {
+    width: 95%;
+  margin: 1rem;
+  }
+
+  .announcement-modal .modal-actions {
+    flex-direction: column;
+  }
+
+  .announcement-modal .submit-button,
+  .announcement-modal .cancel-button {
+    width: 100%;
+  }
+}
+
+/* Link Modal */
+.link-modal {
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.link-modal .modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.link-modal .modal-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.link-modal .modal-content {
+  padding: 1.5rem;
+}
+
+.link-modal .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.link-modal .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.link-modal .form-group input,
+.link-modal .form-group select {
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.link-modal .form-group input:focus,
+.link-modal .form-group select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.link-modal .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.link-modal .checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.link-modal .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.link-modal .submit-button {
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  background-color: var(--accent-color);
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.link-modal .submit-button:hover {
+  background-color: #1e4a9e;
+  transform: translateY(-1px);
+}
+
+/* Dark mode adjustments */
+.dark-mode .link-modal {
+  background-color: var(--secondary-bg);
+}
+
+.dark-mode .link-modal .form-group input,
+.dark-mode .link-modal .form-group select {
+  background-color: var(--dark-bg);
+  border-color: var(--gray-bg);
+}
+
+.dark-mode .link-modal .form-group input:focus,
+.dark-mode .link-modal .form-group select:focus {
+  border-color: var(--accent-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .link-modal {
+    width: 95%;
+    margin: 1rem;
+  }
+
+  .link-modal .modal-actions {
+    flex-direction: column;
+  }
+
+  .link-modal .submit-button,
+  .link-modal .cancel-button {
+    width: 100%;
   }
 }

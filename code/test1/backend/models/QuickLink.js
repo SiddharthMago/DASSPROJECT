@@ -44,11 +44,11 @@ const QuickLinkSchema = new mongoose.Schema({
 },
   pinned: {
     type: Boolean,
-    default: false,
+    default: true,
   },
   approved: {
     type: Boolean,
-    default: false,
+    default: true,
   },
 });
 

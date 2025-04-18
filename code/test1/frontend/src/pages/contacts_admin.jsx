@@ -177,7 +177,7 @@ function ContactsAdmin({ darkMode }) {
             name: '',
             email: '',
             office: '',
-            role: 'user',
+            role:   'user',
             // profile_pic: null
         });
     };
@@ -225,7 +225,7 @@ function ContactsAdmin({ darkMode }) {
                 name: '',
                 email: '',
                 office: '',
-                role: 'user',
+                role:   'user',
                 // profile_pic: null
             });
 

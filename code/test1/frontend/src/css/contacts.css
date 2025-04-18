@@ -414,14 +414,15 @@
 .action-edit,
 .action-role,
 .action-delete {
-    background: none;
+    /* background: none; */
     border: none;
     font-size: 1.2rem;
+    width: 100px;
     cursor: pointer;
-    padding: 0.3rem;
-    border-radius: 50%;
-    width: 2rem;
-    height: 2rem;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    color: white;
+    transition: all 0.2s;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -429,12 +430,12 @@
 }
 
 .action-edit {
-    background-color: #e6f7ff;
-    color: #1890ff;
+    background-color: #0056b3;
+    
 }
 
 .action-edit:hover {
-    background-color: #1890ff;
+    background-color: #0057b3;
     color: white;
 }
 
@@ -449,12 +450,11 @@
 }
 
 .action-delete {
-    background-color: #fff1f0;
-    color: #ff4d4f;
+    background-color: #0056b3;
 }
 
 .action-delete:hover {
-    background-color: #ff4d4f;
+    background-color: #0056b3;
     color: white;
 }
 
@@ -657,6 +657,7 @@
 .role-select {
     padding: 0.3rem 0.5rem;
     border: 1px solid var(--card-border);
+    margin: 2px;margin-left: 15px;
     border-radius: 4px;
     background-color: var(--card-bg);
     color: var(--text-primary);
@@ -703,8 +704,9 @@
     transform: scale(1.15);
 }
 
-.action-delete {
-    color: #f5222d;
+.action-delete, .action-edit {
+    color: white;
+    background-color: #0057b373;
 }
 
 /* Responsive styles for admin view */

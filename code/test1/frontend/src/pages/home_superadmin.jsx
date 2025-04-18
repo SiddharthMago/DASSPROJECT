@@ -123,34 +123,34 @@ function HomeAdmin({ darkMode }) {
   }, []);
 
   // Fetch quick links from backend
-  useEffect(() => {
-    const fetchQuickLinks = async () => {
-      try {
-        setQuickLinksLoading(true);
-        console.log('Fetching quick links...');
-        // For admin, fetch all quick links regardless of pinned status
-        const response = await fetch('/api/quicklinks');
+  // Fetch pinned quick links from backend
+useEffect(() => {
+  const fetchQuickLinks = async () => {
+    try {
+      setQuickLinksLoading(true);
+      console.log('Fetching pinned quick links...');
+      const response = await fetch('/api/quicklinks/pinned'); // Use the new endpoint
 
-        console.log('Quick links response status:', response.status);
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          console.error('Error details:', errorData);
-          throw new Error(`Failed to fetch quick links: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Fetched quick links:', data);
-        setQuickLinks(data.data);
-        setQuickLinksLoading(false);
-      } catch (err) {
-        console.error('Error fetching quick links:', err);
-        setQuickLinksError(`Failed to load quick links: ${err.message}`);
-        setQuickLinksLoading(false);
+      console.log('Quick links response status:', response.status);
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Error details:', errorData);
+        throw new Error(`Failed to fetch quick links: ${response.status}`);
       }
-    };
 
-    fetchQuickLinks();
-  }, []);
+      const data = await response.json();
+      console.log('Fetched pinned quick links:', data);
+      setQuickLinks(data.data); // Set only pinned quick links
+      setQuickLinksLoading(false);
+    } catch (err) {
+      console.error('Error fetching quick links:', err);
+      setQuickLinksError(`Failed to load quick links: ${err.message}`);
+      setQuickLinksLoading(false);
+    }
+  };
+
+  fetchQuickLinks();
+}, []);
 
   // Fetch portals from backend
   useEffect(() => {
@@ -508,14 +508,14 @@ function HomeAdmin({ darkMode }) {
     if (!window.confirm(confirmMsg)) return;
 
     try {
-      // API call to toggle the pin status
-      const response = await fetch(`/api/quicklinks/${quickLink._id}/pin`, {
+      // Use the correct endpoint based on the action
+      const endpoint = quickLink.pinned ? 'unpin' : 'pin';
+      const response = await fetch(`/api/quicklinks/${quickLink._id}/${endpoint}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ pinned: !quickLink.pinned }), // Toggle the pinned status
+        }
       });
 
       if (!response.ok) throw new Error('Failed to update pin status');
@@ -525,8 +525,12 @@ function HomeAdmin({ darkMode }) {
         i === index ? { ...link, pinned: !link.pinned } : link
       );
 
-      // Filter only pinned quick links for display
-      setQuickLinks(updatedQuickLinks.filter(link => link.pinned));
+      // Only filter out unpinned links if we're not in editing mode
+      if (!isEditingQuickLinks) {
+        setQuickLinks(updatedQuickLinks.filter(link => link.pinned));
+      } else {
+        setQuickLinks(updatedQuickLinks);
+      }
 
       const actionType = quickLink.pinned ? 'unpinned' : 'pinned';
       setSuccessMessage(`Quick link ${actionType} successfully`);

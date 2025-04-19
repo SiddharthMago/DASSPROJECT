@@ -111,6 +111,11 @@ exports.approveFile = async (req, res, next) => {
 			return res.status(404).json({ success: false, error: 'File not found' });
 		}
 
+		await File.updateMany(
+            { _id: { $in: file.versions } },
+            { $addToSet: { versions: file._id } } // Add the new version ID to the versions array
+        );
+
 		console.log(`[APPROVE FILE] File approved: ${file._id}`);
 		res.status(200).json({ success: true, data: file });
 	} catch (err) {
@@ -125,27 +130,31 @@ exports.rejectFile = async (req, res, next) => {
 	console.log(`[REJECT FILE] Request to reject file: ${req.params.id} with comment: "${comment}"`);
 
 	try {
-		const file = await File.findById(req.params.id);
+		const file = await File.findByIdAndUpdate(
+			req.params.id,
+			{ status: 'rejected', rejectionComment: comment },
+			{ new: true }
+		);
 
 		if (!file) {
 			console.warn(`[REJECT FILE] File not found: ${req.params.id}`);
 			return res.status(404).json({ success: false, error: 'File not found' });
 		}
 
-		if (file.status === 'approved' || file.status === 'rejected') {
-			return res.status(400).json({ success: false, error: 'File has already been processed' });
-		}
+		// if (file.status === 'approved' || file.status === 'rejected') {
+		// 	return res.status(400).json({ success: false, error: 'File has already been processed' });
+		// }
 
-		file.status = 'rejected';
-		if (comment) {
-			file.comments = file.comments || [];
-			file.comments.push({
-				author: req.user.id,
-				content: comment,
-			});
-		}
+		// file.status = 'rejected';
+		// if (comment) {
+		// 	file.comments = file.comments || [];
+		// 	file.comments.push({
+		// 		author: req.user.id,
+		// 		content: comment,
+		// 	});
+		// }
 
-		await file.save();
+		// await file.save();
 		console.log(`[REJECT FILE] File rejected and comment added`);
 		res.status(200).json({ success: true, data: file });
 	} catch (err) {
@@ -159,14 +168,15 @@ exports.getAllApprovedFiles = async (req, res, next) => {
 	console.log(`[GET APPROVED FILES] Fetching approved files`);
 	try {
 		// Check if office is provided in the request params
-		const { office } = req.params;
+		// const { office } = req.params;
 
 		// Construct query based on whether office is provided
-		const query = office
-			? { status: 'approved', office: office }
-			: { status: 'approved' };
+		// const query = office
+		// 	? { status: 'approved', office: office }
+		// 	: { status: 'approved' };
 
-		const files = await File.find(query);
+		const files = await File.find({ status: 'approved' }).sort({ createdAt: -1});
+		const latestFiles = files.filter(file => !file.versions || file.versions.length === 0);
 
 		res.status(200).json({
 			success: true,
@@ -198,8 +208,7 @@ exports.getAllUnapprovedFiles = async (req, res, next) => {
 exports.getPendingFiles = async (req, res, next) => {
 	console.log(`[GET PENDING FILES] Request by ${req.user?.id}`);
 	try {
-		const files = await File.find({ status: 'pending' })
-			.populate('author', 'name');
+		const files = await File.find({ status: 'pending' }).sort({ createdAt: -1 });
 		res.status(200).json({ success: true, count: files.length, data: files });
 	} catch (err) {
 		console.error(`[GET PENDING FILES] Error: ${err.message}`);
@@ -226,12 +235,6 @@ exports.addFileVersion = async (req, res, next) => {
 		// Use relative path
 		let filePath = req.file ? `uploads/files/${req.file.filename}` : null;
 
-		const originalVersion = {
-			name: originalFile.name,
-			url: originalFile.url,
-			filePath: originalFile.filePath,
-		};
-
 		const newFileData = {
 			name,
 			url: url || null,
@@ -240,14 +243,12 @@ exports.addFileVersion = async (req, res, next) => {
 			category: originalFile.category,
 			status: "pending",
 			author: req.user.id,
-			versions: [originalVersion, ... (originalFile.versions || [])],
+			versions: [...originalFile.versions, originalFile._id]
 		};
 
 		const newFile = await File.create(newFileData);
 
-		await File.findByIdAndDelete(originalFile._id);
-
-		console.log(`[ADD FILE VERSION] Version added successfully to file: ${originalFile._id}`);
+		console.log(`[ADD FILE VERSION] Version added successfully to file: ${file._id}`);
 		res.status(201).json({ success: true, data: newFile });
 	}
 	catch (err) {

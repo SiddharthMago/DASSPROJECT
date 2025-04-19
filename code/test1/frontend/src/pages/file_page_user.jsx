@@ -49,14 +49,19 @@ function FilePageUser({ darkMode }) {
                         url: "http://localhost:5000/" + fileData.filePath,
                         filePath: fileData.filePath,
                         createdAt: fileData.createdAt,
+                        status: fileData.status,
                         isCurrent: true,
                     },
-                    ...(fileData.versions || []),
-                ];
+                    ...(fileData.versions || []).map(version => ({
+                        ...version,
+                        url: "http://localhost:5000/" + version.filePath,
+                    })),
+                ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
                 setVersions(allVersions);
-                const selected = versionID ? allVersions.find(v => v._id === versionID) : allVersions[0];
-                setSelectedVersion(allVersions[0]);
+
+                const latestApprovedVersion = allVersions.find(v => v._id === versionID);
+                setSelectedVersion(latestApprovedVersion || allVersions[0]);
 
                 setLoading(false);
             } catch (err) {
@@ -128,7 +133,9 @@ function FilePageUser({ darkMode }) {
                                         <span className="version-date">
                                             Version {versions.length - index} - {formatDate(version.createdAt)}
                                         </span>
-                                        {/* {version.isCurrent && <span className="version-current">(Current)</span>} */}
+                                        <span className={`version-status ${version.status}`}>
+                                            {version.status}
+                                        </span>
                                     </button>
                                 </li>
                             ))}
@@ -228,6 +235,9 @@ function FilePageUser({ darkMode }) {
                     <h1 className="file-title">{version.name}</h1>
                     <p className="file-date">
                         Last updated: {formatDate(version.createdAt)}
+                    </p>
+                    <p className="file-status">
+                        Status: {version.status}
                     </p>
                 </div>
 

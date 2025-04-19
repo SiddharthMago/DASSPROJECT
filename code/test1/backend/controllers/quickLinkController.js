@@ -30,7 +30,8 @@ exports.addQuickLink = async (req, res, next) => {
       url,
       office,
       approved: true,
-      pinned: true
+      pinned: true,
+      author: req.user._id
     });
 
     res.status(201).json({
@@ -78,7 +79,12 @@ exports.editQuickLink = async (req, res, next) => {
   try {
     const quickLink = await QuickLink.findByIdAndUpdate(
       req.params.id,
-      { title, url, office },
+      { 
+        title, 
+        url, 
+        office,
+        author: req.user._id
+      },
       { new: true, runValidators: true }
     );
 

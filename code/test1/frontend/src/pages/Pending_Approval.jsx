@@ -28,7 +28,7 @@ function PendingApprovals({ darkMode }) {
 				const mappedFiles = filesResponse.data.data.map(file => ({
 					id: file._id,
 					fileName: file.name,
-					author: file.author.name,
+					author: file.author?.name || 'Unknown Author',
 					office: file.office,
 					uploadDate: new Date(file.createdAt).toLocaleDateString(),
 					filePath: file.filePath,

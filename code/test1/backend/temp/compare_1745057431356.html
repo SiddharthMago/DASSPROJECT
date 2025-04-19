@@ -1,0 +1,390 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+
+<head>
+    <meta http-equiv="Content-Type"
+          content="text/html; charset=utf-8" />
+    <title></title>
+    <style type="text/css">
+        table.diff {font-family:Courier; border:medium;}
+        .diff_header {background-color:#e0e0e0}
+        td.diff_header {text-align:right}
+        .diff_next {background-color:#c0c0c0}
+        .diff_add {background-color:#aaffaa}
+        .diff_chg {background-color:#ffff77}
+        .diff_sub {background-color:#ffaaaa}
+    </style>
+
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+            :root {
+                --bg-color: #f8f9fa;
+                --text-color: #333;
+                --card-bg: #fff;
+                --header-bg: #e9ecef;
+                --border-color: #ddd;
+                --diff-add-bg: #e6ffec;
+                --diff-chg-bg: #ffefdb;
+                --diff-sub-bg: #ffebe9;
+                --diff-text: #24292f;
+                --primary-color: #2563eb;
+                --primary-hover: #1d4ed8;
+                --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+                --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+                --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            }
+
+            [data-theme="dark"] {
+                --bg-color: #1a1a1a;
+                --text-color: #f0f0f0;
+                --card-bg: #2d2d2d;
+                --header-bg: #333;
+                --border-color: #444;
+                --diff-add-bg: #1e4620;
+                --diff-chg-bg: #5c3c00;
+                --diff-sub-bg: #5c1a1a;
+                --diff-text: #f0f0f0;
+                --primary-color: #3b82f6;
+                --primary-hover: #60a5fa;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                line-height: 1.6;
+                margin: 0;
+                padding: 0;
+                background-color: var(--bg-color);
+                color: var(--text-color);
+                transition: background-color 0.3s, color 0.3s;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 2rem;
+                flex: 1;
+            }
+
+            .comparison-header {
+                margin-bottom: 2rem;
+                padding: 2rem;
+                background-color: var(--header-bg);
+                border-radius: 12px;
+                box-shadow: var(--shadow);
+                text-align: center;
+            }
+
+            .comparison-header h1 {
+                margin-bottom: 1.5rem;
+                font-size: 2.5rem;
+                color: var(--primary-color);
+            }
+
+            .file-info {
+                margin: 1rem auto;
+                padding: 1.5rem;
+                background-color: var(--card-bg);
+                border-radius: 12px;
+                border: 1px solid var(--border-color);
+                max-width: 600px;
+                box-shadow: var(--shadow-sm);
+            }
+
+            .file-info p {
+                margin: 0.75rem 0;
+                color: var(--text-color);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .file-info strong {
+                color: var(--primary-color);
+                font-weight: 500;
+            }
+
+            .file-info .timestamp {
+                margin-top: 1.5rem;
+                font-size: 0.9rem;
+                opacity: 0.8;
+            }
+
+            .summary {
+                margin: 2rem auto;
+                padding: 2rem;
+                background-color: var(--card-bg);
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                max-width: 800px;
+                box-shadow: var(--shadow);
+            }
+
+            .summary h2 {
+                text-align: center;
+                margin-bottom: 2rem;
+                color: var(--primary-color);
+            }
+
+            .summary-stats {
+                display: flex;
+                justify-content: center;
+                gap: 3rem;
+                margin-top: 1rem;
+            }
+
+            .stat-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 1.5rem;
+                background-color: var(--header-bg);
+                border-radius: 12px;
+                min-width: 180px;
+                box-shadow: var(--shadow-sm);
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
+
+            .stat-item:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--shadow);
+            }
+
+            .stat-label {
+                font-size: 1rem;
+                color: var(--text-color);
+                opacity: 0.8;
+                margin-bottom: 0.75rem;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+                font-weight: 600;
+                color: var(--primary-color);
+            }
+
+            table.diff {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.95rem;
+                background-color: var(--card-bg);
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: var(--shadow);
+                margin: 2rem auto;
+            }
+
+            .theme-toggle {
+                position: fixed;
+                top: 2rem;
+                right: 2rem;
+                padding: 0.75rem 1.5rem;
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-weight: 500;
+                transition: all 0.2s;
+                z-index: 1000;
+                box-shadow: var(--shadow);
+            }
+
+            .theme-toggle:hover {
+                background-color: var(--primary-hover);
+                transform: translateY(-2px);
+                box-shadow: var(--shadow-lg);
+            }
+
+            @media (max-width: 768px) {
+                .container {
+                    padding: 1rem;
+                }
+
+                .comparison-header {
+                    padding: 1.5rem;
+                }
+
+                .comparison-header h1 {
+                    font-size: 2rem;
+                }
+
+                .file-info {
+                    padding: 1rem;
+                }
+
+                .summary {
+                    padding: 1.5rem;
+                }
+
+                .summary-stats {
+                    flex-direction: column;
+                    gap: 1rem;
+                }
+
+                .stat-item {
+                    width: 100%;
+                }
+
+                .theme-toggle {
+                    top: 1rem;
+                    right: 1rem;
+                }
+            }
+        </style>
+        
+        <script>
+            // Theme toggle functionality
+            document.addEventListener('DOMContentLoaded', function() {
+                const themeToggle = document.createElement('button');
+                themeToggle.className = 'theme-toggle';
+                themeToggle.textContent = 'Toggle Dark Mode';
+                document.body.appendChild(themeToggle);
+
+                themeToggle.addEventListener('click', function() {
+                    const html = document.documentElement;
+                    const currentTheme = html.getAttribute('data-theme');
+                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                    html.setAttribute('data-theme', newTheme);
+                });
+
+                // Add page navigation functionality
+                const pageHeaders = document.querySelectorAll('tr:has(td:contains("--- Page"))');
+                if (pageHeaders.length > 0) {
+                    const jumpDiv = document.createElement('div');
+                    jumpDiv.id = 'pagejump';
+                    
+                    const label = document.createElement('label');
+                    label.textContent = 'Jump to Page:';
+                    jumpDiv.appendChild(label);
+                    
+                    const select = document.createElement('select');
+                    pageHeaders.forEach(header => {
+                        const pageText = header.textContent.match(/--- Page (\d+) ---/);
+                        if (pageText && pageText[1]) {
+                            const option = document.createElement('option');
+                            option.value = header.id || '';
+                            option.textContent = pageText[1];
+                            select.appendChild(option);
+                        }
+                    });
+                    
+                    select.addEventListener('change', function() {
+                        if (this.value) {
+                            document.getElementById(this.value).scrollIntoView({
+                                behavior: 'smooth'
+                            });
+                        }
+                    });
+                    
+                    jumpDiv.appendChild(select);
+                    document.body.appendChild(jumpDiv);
+                }
+            });
+        </script>
+        </head>
+
+<body>
+        <div class="container">
+            <div class="comparison-header">
+                <h1>PDF Comparison Results</h1>
+                <div class="file-info">
+                    <p><strong>Original:</strong> 1745011407885-projectsynopsis.pdf</p>
+                    <p><strong>Modified:</strong> 1745004130261-projectsynopsis.pdf</p>
+                    <p class="timestamp"><strong>Generated on:</strong> 2025-04-19 15:50:05</p>
+                </div>
+        <div class="summary">
+            <h2>Comparison Summary</h2>
+            <div class="summary-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Similarity</span>
+                    <span class="stat-value">100.0%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Changed Lines</span>
+                    <span class="stat-value">0</span>
+                </div>
+            </div>
+        </div>
+        
+            </div>
+        </div>
+        
+    
+    <table class="diff" id="difflib_chg_to0__top"
+           cellspacing="0" cellpadding="0" rules="groups" >
+        <colgroup></colgroup> <colgroup></colgroup> <colgroup></colgroup>
+        <colgroup></colgroup> <colgroup></colgroup> <colgroup></colgroup>
+        <thead><tr><th class="diff_next"><br /></th><th colspan="2" class="diff_header">1745011407885-projectsynopsis.pdf</th><th class="diff_next"><br /></th><th colspan="2" class="diff_header">1745004130261-projectsynopsis.pdf</th></tr></thead>
+        <tbody>
+            <tr><td class="diff_next"><a href="#difflib_chg_to0__top">t</a></td><td class="diff_header" id="from0_1">1</td><td nowrap="nowrap">---&nbsp;Page&nbsp;1&nbsp;---</td><td class="diff_next"><a href="#difflib_chg_to0__top">t</a></td><td class="diff_header" id="to0_1">1</td><td nowrap="nowrap">---&nbsp;Page&nbsp;1&nbsp;---</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_2">2</td><td nowrap="nowrap">Project&nbsp;Synopsis/Project&nbsp;Concept&nbsp;Document</td><td class="diff_next"></td><td class="diff_header" id="to0_2">2</td><td nowrap="nowrap">Project&nbsp;Synopsis/Project&nbsp;Concept&nbsp;Document</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_3">3</td><td nowrap="nowrap">(Due:&nbsp;25th&nbsp;January)</td><td class="diff_next"></td><td class="diff_header" id="to0_3">3</td><td nowrap="nowrap">(Due:&nbsp;25th&nbsp;January)</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_4">4</td><td nowrap="nowrap">Project&nbsp;number&nbsp;25</td><td class="diff_next"></td><td class="diff_header" id="to0_4">4</td><td nowrap="nowrap">Project&nbsp;number&nbsp;25</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_5">5</td><td nowrap="nowrap">Project&nbsp;Title&nbsp;Redesigning&nbsp;intranet.iiit.ac.in</td><td class="diff_next"></td><td class="diff_header" id="to0_5">5</td><td nowrap="nowrap">Project&nbsp;Title&nbsp;Redesigning&nbsp;intranet.iiit.ac.in</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_6">6</td><td nowrap="nowrap">Document&nbsp;DASS&nbsp;Project&nbsp;Concept&nbsp;Document</td><td class="diff_next"></td><td class="diff_header" id="to0_6">6</td><td nowrap="nowrap">Document&nbsp;DASS&nbsp;Project&nbsp;Concept&nbsp;Document</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_7">7</td><td nowrap="nowrap">Creation&nbsp;date&nbsp;24th&nbsp;January&nbsp;2025</td><td class="diff_next"></td><td class="diff_header" id="to0_7">7</td><td nowrap="nowrap">Creation&nbsp;date&nbsp;24th&nbsp;January&nbsp;2025</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_8">8</td><td nowrap="nowrap">Created&nbsp;By&nbsp;Siddharth&nbsp;Mago</td><td class="diff_next"></td><td class="diff_header" id="to0_8">8</td><td nowrap="nowrap">Created&nbsp;By&nbsp;Siddharth&nbsp;Mago</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_9">9</td><td nowrap="nowrap">Client&nbsp;Lalitha&nbsp;LR,&nbsp;IT&nbsp;Office&nbsp;-&nbsp;IIITH</td><td class="diff_next"></td><td class="diff_header" id="to0_9">9</td><td nowrap="nowrap">Client&nbsp;Lalitha&nbsp;LR,&nbsp;IT&nbsp;Office&nbsp;-&nbsp;IIITH</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_10">10</td><td nowrap="nowrap">Description</td><td class="diff_next"></td><td class="diff_header" id="to0_10">10</td><td nowrap="nowrap">Description</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_11">11</td><td nowrap="nowrap">The&nbsp;project&nbsp;aims&nbsp;to&nbsp;redesign&nbsp;the&nbsp;intranet&nbsp;site&nbsp;for&nbsp;IIIT&nbsp;Hyderabad,&nbsp;focusing&nbsp;on&nbsp;i</td><td class="diff_next"></td><td class="diff_header" id="to0_11">11</td><td nowrap="nowrap">The&nbsp;project&nbsp;aims&nbsp;to&nbsp;redesign&nbsp;the&nbsp;intranet&nbsp;site&nbsp;for&nbsp;IIIT&nbsp;Hyderabad,&nbsp;focusing&nbsp;on&nbsp;i</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap">mproving</td><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap">mproving</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_12">12</td><td nowrap="nowrap">usability,&nbsp;functionality,&nbsp;and&nbsp;design.&nbsp;Current&nbsp;limitations,&nbsp;such&nbsp;as&nbsp;lack&nbsp;of&nbsp;intui</td><td class="diff_next"></td><td class="diff_header" id="to0_12">12</td><td nowrap="nowrap">usability,&nbsp;functionality,&nbsp;and&nbsp;design.&nbsp;Current&nbsp;limitations,&nbsp;such&nbsp;as&nbsp;lack&nbsp;of&nbsp;intui</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap">tive</td><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap">tive</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_13">13</td><td nowrap="nowrap">navigation,&nbsp;limited&nbsp;content&nbsp;management&nbsp;features,&nbsp;and&nbsp;minimal&nbsp;user&nbsp;engagement,&nbsp;wi</td><td class="diff_next"></td><td class="diff_header" id="to0_13">13</td><td nowrap="nowrap">navigation,&nbsp;limited&nbsp;content&nbsp;management&nbsp;features,&nbsp;and&nbsp;minimal&nbsp;user&nbsp;engagement,&nbsp;wi</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap">ll</td><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap">ll</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_14">14</td><td nowrap="nowrap">be&nbsp;addressed.&nbsp;The&nbsp;redesign&nbsp;will&nbsp;incorporate&nbsp;a&nbsp;modern&nbsp;Content&nbsp;Management&nbsp;System</td><td class="diff_next"></td><td class="diff_header" id="to0_14">14</td><td nowrap="nowrap">be&nbsp;addressed.&nbsp;The&nbsp;redesign&nbsp;will&nbsp;incorporate&nbsp;a&nbsp;modern&nbsp;Content&nbsp;Management&nbsp;System</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_15">15</td><td nowrap="nowrap">(CMS)&nbsp;with&nbsp;robust&nbsp;features&nbsp;like&nbsp;version&nbsp;control,&nbsp;enhanced&nbsp;searchability,&nbsp;authent</td><td class="diff_next"></td><td class="diff_header" id="to0_15">15</td><td nowrap="nowrap">(CMS)&nbsp;with&nbsp;robust&nbsp;features&nbsp;like&nbsp;version&nbsp;control,&nbsp;enhanced&nbsp;searchability,&nbsp;authent</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap">ication</td><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap">ication</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_16">16</td><td nowrap="nowrap">support,&nbsp;and&nbsp;multimedia&nbsp;integration,&nbsp;ensuring&nbsp;a&nbsp;seamless&nbsp;experience&nbsp;for&nbsp;all&nbsp;user</td><td class="diff_next"></td><td class="diff_header" id="to0_16">16</td><td nowrap="nowrap">support,&nbsp;and&nbsp;multimedia&nbsp;integration,&nbsp;ensuring&nbsp;a&nbsp;seamless&nbsp;experience&nbsp;for&nbsp;all&nbsp;user</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap">s.</td><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap">s.</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_17">17</td><td nowrap="nowrap">Profile&nbsp;of&nbsp;Users</td><td class="diff_next"></td><td class="diff_header" id="to0_17">17</td><td nowrap="nowrap">Profile&nbsp;of&nbsp;Users</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_18">18</td><td nowrap="nowrap">•&nbsp;Students,&nbsp;Faculty&nbsp;and&nbsp;Researchers:</td><td class="diff_next"></td><td class="diff_header" id="to0_18">18</td><td nowrap="nowrap">•&nbsp;Students,&nbsp;Faculty&nbsp;and&nbsp;Researchers:</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_19">19</td><td nowrap="nowrap">•&nbsp;Use&nbsp;the&nbsp;platform&nbsp;to&nbsp;access&nbsp;academic&nbsp;resources,&nbsp;forms,&nbsp;and&nbsp;announcements.</td><td class="diff_next"></td><td class="diff_header" id="to0_19">19</td><td nowrap="nowrap">•&nbsp;Use&nbsp;the&nbsp;platform&nbsp;to&nbsp;access&nbsp;academic&nbsp;resources,&nbsp;forms,&nbsp;and&nbsp;announcements.</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_20">20</td><td nowrap="nowrap">•&nbsp;Require&nbsp;intuitive&nbsp;navigation&nbsp;and&nbsp;searchability&nbsp;to&nbsp;locate&nbsp;materials&nbsp;quickly.</td><td class="diff_next"></td><td class="diff_header" id="to0_20">20</td><td nowrap="nowrap">•&nbsp;Require&nbsp;intuitive&nbsp;navigation&nbsp;and&nbsp;searchability&nbsp;to&nbsp;locate&nbsp;materials&nbsp;quickly.</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_21">21</td><td nowrap="nowrap">•&nbsp;Expect&nbsp;easy&nbsp;to&nbsp;use&nbsp;and&nbsp;responsive&nbsp;design&nbsp;for&nbsp;use&nbsp;on&nbsp;multiple&nbsp;devices.</td><td class="diff_next"></td><td class="diff_header" id="to0_21">21</td><td nowrap="nowrap">•&nbsp;Expect&nbsp;easy&nbsp;to&nbsp;use&nbsp;and&nbsp;responsive&nbsp;design&nbsp;for&nbsp;use&nbsp;on&nbsp;multiple&nbsp;devices.</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_22">22</td><td nowrap="nowrap">•&nbsp;Require&nbsp;version&nbsp;control&nbsp;to&nbsp;track&nbsp;updates&nbsp;and&nbsp;changes&nbsp;to&nbsp;shared&nbsp;content.</td><td class="diff_next"></td><td class="diff_header" id="to0_22">22</td><td nowrap="nowrap">•&nbsp;Require&nbsp;version&nbsp;control&nbsp;to&nbsp;track&nbsp;updates&nbsp;and&nbsp;changes&nbsp;to&nbsp;shared&nbsp;content.</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_23">23</td><td nowrap="nowrap">•&nbsp;Expect&nbsp;compatibility&nbsp;with&nbsp;external&nbsp;tools&nbsp;and&nbsp;secure&nbsp;authentication&nbsp;systems.</td><td class="diff_next"></td><td class="diff_header" id="to0_23">23</td><td nowrap="nowrap">•&nbsp;Expect&nbsp;compatibility&nbsp;with&nbsp;external&nbsp;tools&nbsp;and&nbsp;secure&nbsp;authentication&nbsp;systems.</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_24">24</td><td nowrap="nowrap">•&nbsp;Administrators&nbsp;/&nbsp;IT&nbsp;Staff:</td><td class="diff_next"></td><td class="diff_header" id="to0_24">24</td><td nowrap="nowrap">•&nbsp;Administrators&nbsp;/&nbsp;IT&nbsp;Staff:</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_25">25</td><td nowrap="nowrap">•&nbsp;Responsible&nbsp;for&nbsp;managing&nbsp;site-wide&nbsp;announcements,&nbsp;resources,&nbsp;and&nbsp;updates.</td><td class="diff_next"></td><td class="diff_header" id="to0_25">25</td><td nowrap="nowrap">•&nbsp;Responsible&nbsp;for&nbsp;managing&nbsp;site-wide&nbsp;announcements,&nbsp;resources,&nbsp;and&nbsp;updates.</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_26">26</td><td nowrap="nowrap">•&nbsp;Require&nbsp;easy&nbsp;to&nbsp;use&nbsp;content&nbsp;management&nbsp;tools&nbsp;and&nbsp;authentication&nbsp;options.</td><td class="diff_next"></td><td class="diff_header" id="to0_26">26</td><td nowrap="nowrap">•&nbsp;Require&nbsp;easy&nbsp;to&nbsp;use&nbsp;content&nbsp;management&nbsp;tools&nbsp;and&nbsp;authentication&nbsp;options.</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_27">27</td><td nowrap="nowrap">•&nbsp;Need&nbsp;efficient&nbsp;workflows&nbsp;for&nbsp;approvals&nbsp;and&nbsp;communication&nbsp;with&nbsp;users.</td><td class="diff_next"></td><td class="diff_header" id="to0_27">27</td><td nowrap="nowrap">•&nbsp;Need&nbsp;efficient&nbsp;workflows&nbsp;for&nbsp;approvals&nbsp;and&nbsp;communication&nbsp;with&nbsp;users.</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_28">28</td><td nowrap="nowrap">•&nbsp;Require&nbsp;backend&nbsp;control&nbsp;for&nbsp;maintenance,&nbsp;upgrades,&nbsp;and&nbsp;troubleshooting.</td><td class="diff_next"></td><td class="diff_header" id="to0_28">28</td><td nowrap="nowrap">•&nbsp;Require&nbsp;backend&nbsp;control&nbsp;for&nbsp;maintenance,&nbsp;upgrades,&nbsp;and&nbsp;troubleshooting.</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_29">29</td><td nowrap="nowrap">•&nbsp;Expect&nbsp;extensibility&nbsp;for&nbsp;integrating&nbsp;plugins&nbsp;and&nbsp;features&nbsp;like&nbsp;LDAP&nbsp;authentica</td><td class="diff_next"></td><td class="diff_header" id="to0_29">29</td><td nowrap="nowrap">•&nbsp;Expect&nbsp;extensibility&nbsp;for&nbsp;integrating&nbsp;plugins&nbsp;and&nbsp;features&nbsp;like&nbsp;LDAP&nbsp;authentica</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap">tion.</td><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap">tion.</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_30">30</td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_30">30</td><td nowrap="nowrap"></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_31">31</td><td nowrap="nowrap">---&nbsp;Page&nbsp;2&nbsp;---</td><td class="diff_next"></td><td class="diff_header" id="to0_31">31</td><td nowrap="nowrap">---&nbsp;Page&nbsp;2&nbsp;---</td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_32">32</td><td nowrap="nowrap">Usage&nbsp;Model&nbsp;and&nbsp;Diagrams</td><td class="diff_next"></td><td class="diff_header" id="to0_32">32</td><td nowrap="nowrap">Usage&nbsp;Model&nbsp;and&nbsp;Diagrams</td></tr>
+        </tbody>
+    </table>
+    <table class="diff" summary="Legends">
+        <tr> <th colspan="2"> Legends </th> </tr>
+        <tr> <td> <table border="" summary="Colors">
+                      <tr><th> Colors </th> </tr>
+                      <tr><td class="diff_add">&nbsp;Added&nbsp;</td></tr>
+                      <tr><td class="diff_chg">Changed</td> </tr>
+                      <tr><td class="diff_sub">Deleted</td> </tr>
+                  </table></td>
+             <td> <table border="" summary="Links">
+                      <tr><th colspan="2"> Links </th> </tr>
+                      <tr><td>(f)irst change</td> </tr>
+                      <tr><td>(n)ext change</td> </tr>
+                      <tr><td>(t)op</td> </tr>
+                  </table></td> </tr>
+    </table>
+</body>
+
+</html>

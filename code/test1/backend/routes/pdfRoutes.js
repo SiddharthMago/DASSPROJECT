@@ -21,11 +21,13 @@ router.post('/compare-pdfs', async (req, res) => {
         fs.mkdirSync(outputDir);
     }
 
-    const command = `python3 ${path.join(__dirname, '../utils/pdf_compare.py')} ${pdf1Path} ${pdf2Path} ${outputFile}`;
+    const command = `python3 ${path.join(__dirname, '../utils/pdf_compare.py')} ${path.join(__dirname, "../", pdf1Path)} ${path.join(__dirname, "../", pdf2Path)} -o ${outputFile}`;
 
+    console.log("Executing command: ", command);
     exec(command, (error, stdout, stderr) => {
         if (error) {
             console.error('Error executing pdf_compare.py:', error);
+            console.error('stderr:', stderr);
             return res.status(500).json({ success: false, message: 'Error comparing PDFs' });
         }
 

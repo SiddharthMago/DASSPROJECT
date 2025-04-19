@@ -243,9 +243,9 @@ exports.addFileVersion = async (req, res, next) => {
 
 		const newFile = await File.create(newFileData);
 
-		FileList.findByIdAndDelete(originalFile._id);
+		File.findByIdAndDelete(originalFile._id);
 
-		console.log(`[ADD FILE VERSION] Version added successfully to file: ${file._id}`);
+		// console.log(`[ADD FILE VERSION] Version added successfully to file: ${file._id}`);
 		res.status(201).json({ success: true, data: newFile });
 	}
 	catch (err) {

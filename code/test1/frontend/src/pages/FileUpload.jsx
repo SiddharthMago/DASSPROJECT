@@ -483,7 +483,7 @@ function FileUpload({ darkMode }) {
           const fileData = response.data.data;
           setSelectedOffice(fileData.office);
           setSelectedCategory(fileData.category);
-          setFileName(fileData.name);
+          // setFileName(fileData.name);
         }
       } catch (error) {
         console.error('Error fetching file details:', error);

@@ -3,9 +3,9 @@ import * as React from "react";
 import { useState, useCallback, useEffect } from "react";
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
-import '../css/file_upload.css';  // Import the external CSS file
+import '../css/file_upload.css';
 
-const FileUpload = ({ darkMode }) => {
+function FileUpload({ darkMode }) {
   const location = useLocation();
   const [fileName, setFileName] = useState("");
   const [isDragging, setIsDragging] = useState(false);
@@ -40,7 +40,6 @@ const FileUpload = ({ darkMode }) => {
     const categoryParam = queryParams.get('category');
     const fileIdParam = queryParams.get('fileId');
     const isNewVersionParam = queryParams.get('isNewVersion');
-    const selectedFileParam = queryParams.get('selectedFile');
     
     if (officeParam) {
       console.log('Office from URL:', officeParam);
@@ -499,6 +498,9 @@ const FileUpload = ({ darkMode }) => {
       {/* Success Message */}
       {successMessage && (
         <div className="success-message">
+          <svg className="message-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor"/>
+          </svg>
           {successMessage}
         </div>
       )}
@@ -506,157 +508,215 @@ const FileUpload = ({ darkMode }) => {
       {/* Error Message */}
       {errorMessage && (
         <div className="error-message">
+          <svg className="message-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
+          </svg>
           {errorMessage}
         </div>
       )}
+
       <div className="upload-container">
-        <header className="upload-header">ADD FILES</header>
+        {/* Header Section */}
+        <header className="archive-header">
+          <div className="header-content">
+            <h1 className="page-title">ADD FILES</h1>
+            <p className="page-subtitle">Upload new files or add new versions of existing files</p>
+          </div>
+        </header>
+
         <section className="upload-content">
-          <form className="upload-form" onSubmit={handleSubmit}>
-            {/* File Name Input */}
-            <div className="form-group">
-            <label className="form-label">File/Resource Name:</label>
-            <input
-              type="text"
-              className="form-input"
-              value={fileName}
-              onChange={(e) => setFileName(e.target.value)}
-              placeholder="Enter file or resource name"
-            />
-            </div>
-
-            {/* URL Input */}
-            <div className="form-group">
-            <label className="form-label">URL (Optional):</label>
-            <input
-              type="url"
-              className="form-input"
-              value={fileUrl}
-              onChange={(e) => setFileUrl(e.target.value)}
-              placeholder="Enter URL of the resource"
-            />
-            </div>
-
-            {/* Office Selection (for superadmin) or Display (for admin) */}
-            <div className="form-group">
-              <label className="form-label">Office:</label>
-              {userRole === 'superadmin' ? (
-                <select 
-                  value={selectedOffice} 
-                  onChange={(e) => handleOfficeChange(e.target.value)}
-                  className="form-select"
-                >
-                  <option value="">-- Select Office --</option>
-                  {offices.map((office, index) => (
-                    <option key={index} value={office}>
-                      {office}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <div className="office-value">{userOffice}</div>
-              )}
-            </div>
-
-            {/* Category Selection (used for both new files and filtering) */}
-            <div className="form-group">
-              <label className="form-label">
-                {isNewVersion ? "Filter by Category (Optional):" : "Select Category:"}
-              </label>
-              <select 
-                value={selectedCategory} 
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="form-select"
-              >
-                <option value="">
-                  {isNewVersion ? "-- All Categories --" : "-- Select Category --"}
-                </option>
-                {existingCategories.map((category, index) => (
-                  <option key={index} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* New Category Input (only shown when not adding a new version) */}
-            {!isNewVersion && (
-              <div className="form-group">
-                <label className="form-label">Add New Category:</label>
-                <div className="input-group">
-                  <input
-                    type="text"
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value)}
-                    placeholder="Enter new category"
-                    className="form-input"
-                  />
-                  <button 
-                    type="button"
-                    onClick={handleAddNewCategory}
-                    className="form-button secondary-button"
-                  >
-                    Add
-                  </button>
+          <div className="upload-grid">
+            {/* Form Section */}
+            <div className="upload-form-container">
+              <form className="upload-form" onSubmit={handleSubmit}>
+                {/* File Name Input */}
+                <div className="form-group">
+                  <label className="form-label">File/Resource Name:</label>
+                  <div className="input-wrapper">
+                    <svg className="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" fill="currentColor"/>
+                    </svg>
+                    <input
+                      type="text"
+                      className="form-input"
+                      value={fileName}
+                      onChange={(e) => setFileName(e.target.value)}
+                      placeholder="Enter file or resource name"
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
 
-            {/* New Version Toggle */}
-            <div className="form-group checkbox-group">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={isNewVersion}
-                  onChange={toggleVersionUpload}
-                  className="checkbox-input"
-                />
-                Add as a new version of an existing file
-              </label>
+                {/* URL Input */}
+                <div className="form-group">
+                  <label className="form-label">URL (Optional):</label>
+                  <div className="input-wrapper">
+                    <svg className="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" fill="currentColor"/>
+                    </svg>
+                    <input
+                      type="url"
+                      className="form-input"
+                      value={fileUrl}
+                      onChange={(e) => setFileUrl(e.target.value)}
+                      placeholder="Enter URL of the resource"
+                    />
+                  </div>
+                </div>
+
+                {/* Office Selection (for superadmin) or Display (for admin) */}
+                <div className="form-group">
+                  <label className="form-label">Office:</label>
+                  {userRole === 'superadmin' ? (
+                    <div className="input-wrapper">
+                      <svg className="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" fill="currentColor"/>
+                      </svg>
+                      <select 
+                        value={selectedOffice} 
+                        onChange={(e) => handleOfficeChange(e.target.value)}
+                        className="form-select"
+                      >
+                        <option value="">-- Select Office --</option>
+                        {offices.map((office, index) => (
+                          <option key={index} value={office}>
+                            {office}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div className="office-value">
+                      <svg className="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" fill="currentColor"/>
+                      </svg>
+                      {userOffice}
+                    </div>
+                  )}
+                </div>
+
+                {/* Category Selection */}
+                <div className="form-group">
+                  <label className="form-label">
+                    {isNewVersion ? "Filter by Category (Optional):" : "Select Category:"}
+                  </label>
+                  <div className="input-wrapper">
+                    <svg className="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" fill="currentColor"/>
+                    </svg>
+                    <select 
+                      value={selectedCategory} 
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="form-select"
+                    >
+                      <option value="">
+                        {isNewVersion ? "-- All Categories --" : "-- Select Category --"}
+                      </option>
+                      {existingCategories.map((category, index) => (
+                        <option key={index} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* New Category Input */}
+                {!isNewVersion && (
+                  <div className="form-group">
+                    <label className="form-label">Add New Category:</label>
+                    <div className="input-group">
+                      <div className="input-wrapper">
+                        <svg className="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" fill="currentColor"/>
+                        </svg>
+                        <input
+                          type="text"
+                          value={newCategory}
+                          onChange={(e) => setNewCategory(e.target.value)}
+                          placeholder="Enter new category"
+                          className="form-input"
+                        />
+                      </div>
+                      <button 
+                        type="button"
+                        onClick={handleAddNewCategory}
+                        className="form-button secondary-button"
+                      >
+                        <svg className="button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/>
+                        </svg>
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* New Version Toggle */}
+                <div className="form-group checkbox-group">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={isNewVersion}
+                      onChange={toggleVersionUpload}
+                      className="checkbox-input"
+                    />
+                    <span className="checkbox-custom"></span>
+                    Add as a new version of an existing file
+                  </label>
+                </div>
+
+                {/* File Selection for New Version */}
+                {isNewVersion && (
+                  <div className="form-group">
+                    <label className="form-label">Select Existing File:</label>
+                    <div className="input-wrapper">
+                      <svg className="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" fill="currentColor"/>
+                      </svg>
+                      <select
+                        value={selectedFile}
+                        onChange={(e) => setSelectedFile(e.target.value)}
+                        className="form-select"
+                        disabled={!selectedOffice || 
+                          (selectedCategory ? categoryFiles.length === 0 : allOfficeFiles.length === 0)}
+                      >
+                        <option value="">-- Select File --</option>
+                        {selectedCategory 
+                          ? categoryFiles.map((file) => (
+                              <option key={file._id} value={file._id}>
+                                {file.name} ({file.category})
+                              </option>
+                            ))
+                          : allOfficeFiles.map((file) => (
+                              <option key={file._id} value={file._id}>
+                                {file.name} ({file.category})
+                              </option>
+                            ))
+                        }
+                      </select>
+                    </div>
+                    {selectedOffice && 
+                      (selectedCategory 
+                        ? categoryFiles.length === 0 && <p className="help-text">No existing files in this category</p>
+                        : allOfficeFiles.length === 0 && <p className="help-text">No existing files in this office</p>
+                      )
+                    }
+                  </div>
+                )}
+
+                {/* Submit Button */}
+                <button type="submit" className="form-button primary-button submit-button">
+                  <svg className="button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor"/>
+                  </svg>
+                  {isNewVersion ? "SUBMIT NEW VERSION" : "SUBMIT FOR APPROVAL"}
+                </button>
+              </form>
             </div>
 
-            {/* File Selection for New Version (only shown when adding a new version) */}
-            {isNewVersion && (
-              <div className="form-group">
-                <label className="form-label">Select Existing File:</label>
-                <select
-                  value={selectedFile}
-                  onChange={(e) => setSelectedFile(e.target.value)}
-                  className="form-select"
-                  disabled={!selectedOffice || 
-                    (selectedCategory ? categoryFiles.length === 0 : allOfficeFiles.length === 0)}
-                >
-                  <option value="">-- Select File --</option>
-                  {selectedCategory 
-                    ? categoryFiles.map((file) => (
-                        <option key={file._id} value={file._id}>
-                          {file.name} ({file.category})
-                        </option>
-                      ))
-                    : allOfficeFiles.map((file) => (
-                        <option key={file._id} value={file._id}>
-                          {file.name} ({file.category})
-                        </option>
-                      ))
-                  }
-                </select>
-                {selectedOffice && 
-                  (selectedCategory 
-                    ? categoryFiles.length === 0 && <p className="help-text">No existing files in this category</p>
-                    : allOfficeFiles.length === 0 && <p className="help-text">No existing files in this office</p>
-                  )
-                }
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <button type="submit" className="form-button primary-button submit-button">
-              {isNewVersion ? "SUBMIT NEW VERSION" : "SUBMIT FOR APPROVAL"}
-            </button>
-          </form>
-
-          <div className="dropzone-container">
-            <div
+            {/* Dropzone Section */}
+            <div className="dropzone-container">
+              <div
                 className={`dropzone ${isDragging ? "dragging" : ""}`}
                 onDragEnter={handleDragEnter}
                 onDragOver={handleDragOver}
@@ -664,44 +724,61 @@ const FileUpload = ({ darkMode }) => {
                 onDrop={handleDrop}
                 onClick={() => document.getElementById("file-input").click()}
               >
-              <p className="dropzone-text">
-                <span>DRAG AND DROP</span>
-                <br />
-                <span>OR</span>
-                <br />
-                <span>CLICK TO UPLOAD FILES</span>
-              </p>
-              <input
-                id="file-input"
-                type="file"
-                multiple
-                style={{ display: "none" }}
-                onChange={handleFileSelect}
-              />
-            </div>
-
-            {/* Display uploaded files if any */}
-            {files.length > 0 && (
-              <div className="file-list">
-                {files.map((file, index) => (
-                  <div key={index} className="file-item">
-                    <span className="file-item-name">{file.name}</span>
-                    <button
-                      className="file-item-remove"
-                      onClick={() => removeFile(index)}
-                      type="button"
-                    >
-                      ✕
-                    </button>
+                <div className="dropzone-content">
+                  <div className="dropzone-icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 16L12 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      <path d="M9 11L12 8L15 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M20 16.7428C21.2215 15.734 22 14.2079 22 12.5C22 9.46243 19.5376 7 16.5 7C16.2815 7 16.0771 6.886 15.9661 6.69774C14.6621 4.48484 12.2544 3 9.5 3C5.35786 3 2 6.35786 2 10.5C2 12.5661 2.83545 14.4371 4.18695 15.7935" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
                   </div>
-                ))}
+                  <p className="dropzone-text">
+                    <span>DRAG AND DROP</span>
+                    <br />
+                    <span>OR</span>
+                    <br />
+                    <span>CLICK TO UPLOAD FILES</span>
+                  </p>
+                </div>
+                <input
+                  id="file-input"
+                  type="file"
+                  multiple
+                  style={{ display: "none" }}
+                  onChange={handleFileSelect}
+                />
               </div>
-            )}
+
+              {/* Display uploaded files if any */}
+              {files.length > 0 && (
+                <div className="file-list">
+                  {files.map((file, index) => (
+                    <div key={index} className="file-item">
+                      <div className="file-item-content">
+                        <svg className="file-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" fill="currentColor"/>
+                        </svg>
+                        <span className="file-item-name">{file.name}</span>
+                      </div>
+                      <button
+                        className="file-item-remove"
+                        onClick={() => removeFile(index)}
+                        type="button"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" fill="currentColor"/>
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </section>
       </div>
     </div>
   );
-};
+}
 
 export default FileUpload;

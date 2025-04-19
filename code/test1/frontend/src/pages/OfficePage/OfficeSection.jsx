@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 
 const OfficeSection = ({ title, cards, darkMode }) => {
   // State to track which file is being hovered
@@ -46,25 +47,60 @@ const OfficeSection = ({ title, cards, darkMode }) => {
     });
   };
 
+  // Function to determine where to navigate when a card is clicked
+  const getCardLink = (card) => {
+    // External URLs (starting with http or www) should open directly
+    if (card.url && isWebUrl(card.url)) {
+      return card.url;
+    }
+    
+    // For local files (PDFs, etc.) or non-external URLs, go to file page
+    // Important: Include the /user prefix in the path
+    return `/user/file/${card._id}`;
+  }
+
+  // Function to determine if the link should open in a new tab
+  const shouldOpenNewTab = (card) => {
+    return card.url && isWebUrl(card.url);
+  }
+
   return (
     <section className="admission-section">
       <h2 className="offices-section-title">{title}</h2>
       <div className="file-grid">
         {cards.map((card, index) => (
-          <a 
-            key={index}
-            href={card.url || card.filePath}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="file-link"
-            onMouseEnter={() => setHoveredFileIndex(index)}
-            onMouseLeave={() => setHoveredFileIndex(null)}
-          >
-            <div className="file-item">
-              <div className="file-title">
-                {getFileIcon(card)} {formatTitle(card.title)}
-              </div>
-            </div>
+          <div key={index} className="file-item-wrapper">
+            {shouldOpenNewTab(card) ? (
+              // External URLs open in new tab
+              <a 
+                href={card.url} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="file-link"
+                onMouseEnter={() => setHoveredFileIndex(index)}
+                onMouseLeave={() => setHoveredFileIndex(null)}
+              >
+                <div className="file-item">
+                  <div className="file-title" title={formatTitle(card.title)}>
+                    {getFileIcon(card)} {formatTitle(card.title)}
+                  </div>
+                </div>
+              </a>
+            ) : (
+              // Local files and internal resources use Link to file page
+              <Link 
+                to={getCardLink(card)} 
+                className="file-link"
+                onMouseEnter={() => setHoveredFileIndex(index)}
+                onMouseLeave={() => setHoveredFileIndex(null)}
+              >
+                <div className="file-item">
+                  <div className="file-title" title={formatTitle(card.title)}>
+                    {getFileIcon(card)} {formatTitle(card.title)}
+                  </div>
+                </div>
+              </Link>
+            )}
             
             {/* Version hover dialogue box */}
             {hoveredFileIndex === index && 
@@ -97,7 +133,7 @@ const OfficeSection = ({ title, cards, darkMode }) => {
                 </ul>
               </div>
             )}
-          </a>
+          </div>
         ))}
       </div>
     </section>

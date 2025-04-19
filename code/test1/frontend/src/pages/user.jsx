@@ -42,13 +42,6 @@ function User({ darkMode, setDarkMode }) {
                 
                 {/* Keep this route for dynamic office pages */}
                 <Route path="offices/:officeName" element={<OfficePage darkMode={actualDarkMode} />} />
-                
-                {/* Add these routes to handle old-style paths */}
-                <Route path="academics/:officeName" element={<OfficePage darkMode={actualDarkMode} />} />
-                <Route path="students/:officeName" element={<OfficePage darkMode={actualDarkMode} />} />
-                <Route path="research/:officeName" element={<OfficePage darkMode={actualDarkMode} />} />
-                <Route path="admin/:officeName" element={<OfficePage darkMode={actualDarkMode} />} />
-                
                 <Route path='file/:id' element={<FilePageUser darkMode={actualDarkMode} />} />
                 <Route path="archive" element={<Archive darkMode={actualDarkMode} />} />
                 <Route path='search' element={<Archive darkMode={actualDarkMode} />} />

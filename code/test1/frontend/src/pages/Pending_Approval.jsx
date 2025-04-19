@@ -4,24 +4,27 @@ import axios from 'axios';
 import '../css/pending_approval.css';
 
 function PendingApprovals({ darkMode }) {
-	const [pendingItems, setPendingItems] = useState([]);
+	const [pendingFiles, setPendingFiles] = useState([]);
+	const [pendingAnnouncements, setPendingAnnouncements] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [searchQuery, setSearchQuery] = useState('');
-	const [rejectModal, setRejectModal] = useState({ show: false, itemId: null, reason: '' });
+	const [rejectModal, setRejectModal] = useState({ show: false, itemId: null, reason: '', type: '' });
 
-	// Fetch pending files from the backend
+	// Fetch pending items from the backend
 	useEffect(() => {
-		const fetchPendingFiles = async () => {
+		const fetchPendingItems = async () => {
 			try {
 				const token = localStorage.getItem('token');
-				const response = await axios.get('http://localhost:5000/api/files/pending', {
+				
+				// Fetch pending files
+				const filesResponse = await axios.get('http://localhost:5000/api/files/pending', {
 					headers: {
 						Authorization: `Bearer ${token}`
 					}
 				});
 				
-				const mappedFiles = response.data.data.map(file => ({
+				const mappedFiles = filesResponse.data.data.map(file => ({
 					id: file._id,
 					fileName: file.name,
 					author: file.author.name,
@@ -32,38 +35,62 @@ function PendingApprovals({ darkMode }) {
 					category: 'file'
 				}));
 				
-				setPendingItems(mappedFiles);
+				// Fetch pending announcements
+				const announcementsResponse = await axios.get('http://localhost:5000/api/announcements/unapproved', {
+					headers: {
+						Authorization: `Bearer ${token}`
+					}
+				});
+
+				const mappedAnnouncements = announcementsResponse.data.data.map(announcement => ({
+					id: announcement._id,
+					fileName: announcement.title,
+					author: announcement.author?.name || 'Unknown Author',
+					office: announcement.office,
+					uploadDate: new Date(announcement.createdAt).toLocaleDateString(),
+					link: announcement.link,
+					image: announcement.image,
+					category: 'announcement'
+				}));
+				
+				setPendingFiles(mappedFiles);
+				setPendingAnnouncements(mappedAnnouncements);
 				setLoading(false);
 			} catch (err) {
-				console.error('Error fetching pending files:', err);
-				setError('Failed to fetch pending files');
+				console.error('Error fetching pending items:', err);
+				setError('Failed to fetch pending items');
 				setLoading(false);
 			}
 		};
 
-		fetchPendingFiles();
+		fetchPendingItems();
 	}, []);
 
-	// Function to approve a file
-	const approveItem = async (id) => {
+	// Function to approve an item
+	const approveItem = async (id, type) => {
 		try {
 			const token = localStorage.getItem('token');
-			await axios.put(`http://localhost:5000/api/files/${id}/approve`, {}, {
+			const endpoint = type === 'file' ? 'files' : 'announcements';
+			await axios.put(`http://localhost:5000/api/${endpoint}/${id}/approve`, {}, {
 				headers: {
 					Authorization: `Bearer ${token}`
 				}
 			});
 			
-			setPendingItems(prevItems => prevItems.filter(item => item.id !== id));
+			if (type === 'file') {
+				setPendingFiles(prevItems => prevItems.filter(item => item.id !== id));
+			} else {
+				setPendingAnnouncements(prevItems => prevItems.filter(item => item.id !== id));
+			}
 		} catch (err) {
-			console.error('Error approving file:', err);
-			alert('Failed to approve file');
+			console.error('Error approving item:', err);
+			alert('Failed to approve item');
 		}
 	};
 
-	// Function to reject a file
-	const rejectItem = async (id) => {
-		setRejectModal({ show: true, itemId: id, reason: '' });
+	// Function to reject an item
+	const rejectItem = async (id, type) => {
+		setRejectModal({ show: true, itemId: id, reason: '', type });
 	};
 
 	const handleRejectConfirm = async () => {
@@ -74,7 +101,8 @@ function PendingApprovals({ darkMode }) {
 
 		try {
 			const token = localStorage.getItem('token');
-			const response = await axios.put(`http://localhost:5000/api/files/${rejectModal.itemId}/reject`, 
+			const endpoint = rejectModal.type === 'file' ? 'files' : 'announcements';
+			const response = await axios.put(`http://localhost:5000/api/${endpoint}/${rejectModal.itemId}/reject`, 
 				{ comment: rejectModal.reason }, 
 				{
 					headers: {
@@ -84,49 +112,74 @@ function PendingApprovals({ darkMode }) {
 			);
 			
 			if (response.data.success) {
-				setPendingItems(prevItems => prevItems.filter(item => item.id !== rejectModal.itemId));
-				setRejectModal({ show: false, itemId: null, reason: '' });
+				if (rejectModal.type === 'file') {
+					setPendingFiles(prevItems => prevItems.filter(item => item.id !== rejectModal.itemId));
+				} else {
+					setPendingAnnouncements(prevItems => prevItems.filter(item => item.id !== rejectModal.itemId));
+				}
+				setRejectModal({ show: false, itemId: null, reason: '', type: '' });
 			} else {
-				alert('Failed to reject file: ' + response.data.error);
+				alert('Failed to reject item: ' + response.data.error);
 			}
 		} catch (err) {
-			console.error('Error rejecting file:', err);
-			alert('Failed to reject file: ' + (err.response?.data?.error || err.message));
+			console.error('Error rejecting item:', err);
+			alert('Failed to reject item: ' + (err.response?.data?.error || err.message));
 		}
 	};
 
-	// Function to preview a file
+	// Function to preview an item
 	const previewItem = (item) => {
-		const filePath = item.filePath ? `/${item.filePath.replace(/\\/g, "/")}` : '';
-		const viewURL = filePath ? `http://localhost:5000${filePath}` : null;
-		if (item.url) {
-			window.open(viewURL, '_blank');
+		if (item.category === 'file') {
+			const filePath = item.filePath ? `/${item.filePath.replace(/\\/g, "/")}` : '';
+			const viewURL = filePath ? `http://localhost:5000${filePath}` : null;
+			if (item.url) {
+				window.open(viewURL, '_blank');
+			} else {
+				alert('No preview available for this file');
+			}
 		} else {
-			alert('No preview available for this file');
+			// For announcements, open the link if available
+			if (item.link) {
+				window.open(item.link, '_blank');
+			} else {
+				alert('No preview available for this announcement');
+			}
 		}
 	};
 
 	// Approve All button handler
-	const approveAll = async () => {
+	const approveAll = async (type) => {
 		try {
 			const token = localStorage.getItem('token');
-			for (const item of pendingItems) {
-				await axios.put(`http://localhost:5000/api/files/${item.id}/approve`, {}, {
+			const items = type === 'file' ? pendingFiles : pendingAnnouncements;
+			const endpoint = type === 'file' ? 'files' : 'announcements';
+			
+			for (const item of items) {
+				await axios.put(`http://localhost:5000/api/${endpoint}/${item.id}/approve`, {}, {
 					headers: {
 						Authorization: `Bearer ${token}`
 					}
 				});
 			}
 			
-			setPendingItems([]);
+			if (type === 'file') {
+				setPendingFiles([]);
+			} else {
+				setPendingAnnouncements([]);
+			}
 		} catch (err) {
-			console.error('Error approving all files:', err);
-			alert('Failed to approve all files');
+			console.error('Error approving all items:', err);
+			alert('Failed to approve all items');
 		}
 	};
 
 	// Filter items based on search query
-	const filteredItems = pendingItems.filter(item => {
+	const filteredFiles = pendingFiles.filter(item => {
+		return item.fileName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			   item.author.toLowerCase().includes(searchQuery.toLowerCase());
+	});
+
+	const filteredAnnouncements = pendingAnnouncements.filter(item => {
 		return item.fileName.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			   item.author.toLowerCase().includes(searchQuery.toLowerCase());
 	});
@@ -159,10 +212,12 @@ function PendingApprovals({ darkMode }) {
 				</div>
 			</div>
 
+			{/* Files Section */}
 			<div className="archive-content">
-				{filteredItems.length === 0 ? (
+				<h2 className="section-title">Pending Files</h2>
+				{filteredFiles.length === 0 ? (
 					<div className="empty-state">
-						No pending items found.
+						No pending files found.
 					</div>
 				) : (
 					<table className="archive-table">
@@ -176,7 +231,7 @@ function PendingApprovals({ darkMode }) {
 							</tr>
 						</thead>
 						<tbody>
-							{filteredItems.map((item) => (
+							{filteredFiles.map((item) => (
 								<tr key={item.id}>
 									<td className="name-cell">{item.fileName}</td>
 									<td className="author-cell">{item.author}</td>
@@ -192,13 +247,13 @@ function PendingApprovals({ darkMode }) {
 											</button>
 											<button
 												className="action-button approve"
-												onClick={() => approveItem(item.id)}
+												onClick={() => approveItem(item.id, 'file')}
 											>
 												Approve
 											</button>
 											<button
 												className="action-button reject"
-												onClick={() => rejectItem(item.id)}
+												onClick={() => rejectItem(item.id, 'file')}
 											>
 												Reject
 											</button>
@@ -209,29 +264,87 @@ function PendingApprovals({ darkMode }) {
 						</tbody>
 					</table>
 				)}
+				{filteredFiles.length > 0 && (
+					<button className="approve-all-btn" onClick={() => approveAll('file')}>
+						APPROVE ALL FILES
+					</button>
+				)}
 			</div>
 
-			{filteredItems.length > 0 && (
-				<button className="approve-all-btn" onClick={approveAll}>
-					APPROVE ALL
-				</button>
-			)}
+			{/* Announcements Section */}
+			<div className="archive-content">
+				<h2 className="section-title">Pending Announcements</h2>
+				{filteredAnnouncements.length === 0 ? (
+					<div className="empty-state">
+						No pending announcements found.
+					</div>
+				) : (
+					<table className="archive-table">
+						<thead>
+							<tr>
+								<th className="name-cell">Title</th>
+								<th className="author-cell">Author</th>
+								<th className="office-cell">Office</th>
+								<th className="date-cell">Date</th>
+								<th className="actions-cell">Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							{filteredAnnouncements.map((item) => (
+								<tr key={item.id}>
+									<td className="name-cell">{item.fileName}</td>
+									<td className="author-cell">{item.author}</td>
+									<td className="office-cell">{item.office}</td>
+									<td className="date-cell">{item.uploadDate}</td>
+									<td className="actions-cell">
+										<div className="card-actions">
+											<button
+												className="action-button preview"
+												onClick={() => previewItem(item)}
+											>
+												Link
+											</button>
+											<button
+												className="action-button approve"
+												onClick={() => approveItem(item.id, 'announcement')}
+											>
+												Approve
+											</button>
+											<button
+												className="action-button reject"
+												onClick={() => rejectItem(item.id, 'announcement')}
+											>
+												Reject
+											</button>
+										</div>
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				)}
+				{filteredAnnouncements.length > 0 && (
+					<button className="approve-all-btn" onClick={() => approveAll('announcement')}>
+						APPROVE ALL ANNOUNCEMENTS
+					</button>
+				)}
+			</div>
 
 			{/* Reject Modal */}
 			{rejectModal.show && (
 				<div className="modal-overlay">
 					<div className="reject-modal">
 						<div className="modal-header">
-							<h3>Reject File</h3>
+							<h3>Reject {rejectModal.type === 'file' ? 'File' : 'Announcement'}</h3>
 							<button 
 								className="close-button"
-								onClick={() => setRejectModal({ show: false, itemId: null, reason: '' })}
+								onClick={() => setRejectModal({ show: false, itemId: null, reason: '', type: '' })}
 							>
 								×
 							</button>
 						</div>
 						<div className="modal-content">
-							<p>Please provide a reason for rejecting this file:</p>
+							<p>Please provide a reason for rejecting this {rejectModal.type}:</p>
 							<textarea
 								value={rejectModal.reason}
 								onChange={(e) => setRejectModal(prev => ({ ...prev, reason: e.target.value }))}
@@ -242,7 +355,7 @@ function PendingApprovals({ darkMode }) {
 						<div className="modal-actions">
 							<button 
 								className="cancel-button"
-								onClick={() => setRejectModal({ show: false, itemId: null, reason: '' })}
+								onClick={() => setRejectModal({ show: false, itemId: null, reason: '', type: '' })}
 							>
 								Cancel
 							</button>

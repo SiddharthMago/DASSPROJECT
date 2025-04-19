@@ -208,7 +208,9 @@ exports.getAllUnapprovedFiles = async (req, res, next) => {
 exports.getPendingFiles = async (req, res, next) => {
 	console.log(`[GET PENDING FILES] Request by ${req.user?.id}`);
 	try {
-		const files = await File.find({ status: 'pending' }).sort({ createdAt: -1 });
+		const files = await File.find({ status: 'pending' })
+			.populate('author', 'name')
+			.sort({ createdAt: -1 });
 		res.status(200).json({ success: true, count: files.length, data: files });
 	} catch (err) {
 		console.error(`[GET PENDING FILES] Error: ${err.message}`);

@@ -29,7 +29,17 @@
     margin: 1.5rem 0;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.filters-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 800px;
+    align-items: center;
 }
 
 .search-bar {
@@ -333,22 +343,12 @@
     margin-bottom: 2rem;
 }
 
-.filters-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-top: 1rem;
-    justify-content: center; /* Center the filters horizontally */
-    align-items: center; /* Center the filters vertically */
-}
-
 .role-filters {
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
     justify-content: center;
     width: 100%;
-    margin-top: 1rem;
 }
 
 .role-filters button {
@@ -727,5 +727,223 @@
     .add-contact-btn {
         width: 100%;
         justify-content: center;
+    }
+}
+
+/* Office Filter */
+.office-filter {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background-color: var(--card-bg);
+    padding: 0.8rem 1.2rem;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    width: 100%;
+    max-width: 400px;
+    justify-content: center;
+}
+
+.office-filter label {
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.office-filter select {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--card-border);
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    cursor: pointer;
+    min-width: 200px;
+    transition: border-color 0.2s ease;
+}
+
+.office-filter select:hover {
+    border-color: var(--accent-color);
+}
+
+.office-filter select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+/* Role Badge and Dropdown */
+.role-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 0.8rem 0;
+}
+
+.role-badge {
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.role-badge.superadmin {
+    background-color: rgba(245, 34, 45, 0.1);
+    color: #f44336;
+}
+
+.role-badge.admin {
+    background-color: rgba(255, 152, 0, 0.1);
+    color: #ff9800;
+}
+
+.role-badge.user {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
+}
+
+.role-dropdown {
+    position: relative;
+}
+
+.role-select {
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--card-border);
+    border-radius: 6px;
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 0.85rem;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding-right: 1.5rem;
+    transition: border-color 0.2s ease;
+}
+
+.role-select:hover {
+    border-color: var(--accent-color);
+}
+
+.role-select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.role-dropdown::after {
+    content: '▼';
+    font-size: 0.8rem;
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--text-secondary);
+}
+
+/* Action Buttons */
+.contact-actions {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 1rem;
+    border-top: 1px solid var(--card-border);
+    padding-top: 1rem;
+}
+
+.action-button {
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.action-button.edit {
+    background-color: rgba(46, 91, 187, 0.1);
+    color: var(--accent-color);
+}
+
+.action-button.delete {
+    background-color: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+}
+
+.action-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-button.edit:hover {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.action-button.delete:hover {
+    background-color: #f44336;
+    color: white;
+}
+
+/* Dark mode adjustments */
+.dark-mode .action-button.edit {
+    background-color: rgba(46, 91, 187, 0.2);
+}
+
+.dark-mode .action-button.delete {
+    background-color: rgba(244, 67, 54, 0.2);
+}
+
+.dark-mode .role-badge.superadmin {
+    background-color: rgba(245, 34, 45, 0.2);
+    color: #ff8a8a;
+}
+
+.dark-mode .role-badge.admin {
+    background-color: rgba(255, 152, 0, 0.2);
+    color: #ffb74d;
+}
+
+.dark-mode .role-badge.user {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #81c784;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .filters-row {
+        gap: 1rem;
+    }
+
+    .office-filter {
+        width: 100%;
+    }
+
+    .office-filter select {
+        width: 100%;
+    }
+
+    .role-filters {
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        justify-content: flex-start;
+    }
+
+    .role-filters button {
+        min-width: 100px;
+        padding: 0.6rem 1.2rem;
+    }
+
+    .contact-actions {
+        flex-direction: column;
+    }
+
+    .action-button {
+        width: 100%;
     }
 }

@@ -29,7 +29,8 @@ exports.addAnnouncement = async (req, res, next) => {
       office,
       image: imagePath || undefined,
       link: link || undefined,
-      approved: approved === 'true' || true // Set to true by default
+      approved: approved === 'true' || true, // Set to true by default
+      author: req.user._id // Add the author field from the authenticated user
     });
 
     res.status(201).json({
@@ -54,7 +55,8 @@ exports.updateAnnouncement = async (req, res, next) => {
       title, 
       office, 
       link: link || '',
-      approved: approved === 'true' || true
+      approved: approved === 'true' || true,
+      author: req.user._id // Update the author field to the current user
     };
     
     // Handle file upload if present

@@ -30,6 +30,11 @@ const AnnouncementSchema = new mongoose.Schema({
     ],
     required: [true, 'Please select an office for the announcement'],
   },
+  author: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   createdAt: {
     type: Date,
     default: Date.now,

@@ -938,6 +938,18 @@ const removePortal = async (index) => {
     setNewAnnouncementImageUrl(null);
   };
 
+  const handleAnnouncementClick = (e) => {
+    e.stopPropagation();
+    const link = announcements[currentAnnouncementIndex].link;
+    if (link) {
+      if (link.startsWith('http://') || link.startsWith('https://')) {
+        window.open(link, '_blank', 'noopener,noreferrer');
+      } else {
+        window.location.href = link;
+      }
+    }
+  };
+
   return (
     <div className={`home-container ${darkMode ? 'dark-mode' : ''}`}>
       <link
@@ -1138,18 +1150,7 @@ const removePortal = async (index) => {
                 ...getAnnouncementBackground(announcements[currentAnnouncementIndex]),
                 cursor: announcements[currentAnnouncementIndex].link ? 'pointer' : 'default'
               }}
-              onClick={() => {
-                // Navigate to the announcement link if it exists
-                const link = announcements[currentAnnouncementIndex].link;
-                if (link) {
-                  // Check if it's an internal or external link
-                  if (link.startsWith('http://') || link.startsWith('https://')) {
-                    window.open(link, '_blank', 'noopener,noreferrer');
-                  } else {
-                    window.location.href = link;
-                  }
-                }
-              }}
+              onClick={handleAnnouncementClick}
             >
               <div className="announcement-navigation">
                 <button
@@ -1179,51 +1180,53 @@ const removePortal = async (index) => {
                   ▶
                 </button>
               </div>
-              <div className="announcement-header">
-                <div className="announcement-content">
-                  <span className={`office-tag ${announcements[currentAnnouncementIndex].office}`}>
-                    {announcements[currentAnnouncementIndex].office}
-                  </span>
-                  <p className="announcement-text">{announcements[currentAnnouncementIndex].text}</p>
-                  {announcements[currentAnnouncementIndex].link && (
-                    <div className="link-indicator">READ MORE</div>
-                  )}
-                </div>
-                <div className="announcement-actions">
-                  <button
-                    className="edit-announcement-btn"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent container click
-                      startEditingAnnouncement();
-                    }}
-                    aria-label="Edit announcement"
-                    title="Edit announcement"
-                  >
-                    <img src={editIcon} alt="Edit" className="action-icon" />
-                  </button>
-                  <button
-                    className="add-announcement-icon-btn"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent container click
-                      setIsAddingAnnouncement(true);
-                    }}
-                    aria-label="Add new announcement"
-                    title="Add new announcement"
-                  >
-                    <img src={addIcon} alt="Add" className="action-icon" />
-                  </button>
-                  <button
-                    className="delete-announcement-btn"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent container click
-                      deleteAnnouncement(currentAnnouncementIndex);
-                    }}
-                    aria-label="Delete announcement"
-                    title="Delete announcement"
-                  >
-                    <img src={deleteIcon} alt="Delete" className="action-icon" />
-                  </button>
-                </div>
+              <div className="announcement-content">
+                <Link 
+                  to={`/admin/offices/${announcements[currentAnnouncementIndex].office}`}
+                  className={`office-tag ${announcements[currentAnnouncementIndex].office}`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {announcements[currentAnnouncementIndex].office}
+                </Link>
+                <p className="announcement-text">{announcements[currentAnnouncementIndex].text}</p>
+                {announcements[currentAnnouncementIndex].link && (
+                  <div className="link-indicator">Click to read more</div>
+                )}
+              </div>
+              <div className="announcement-actions">
+                <button
+                  className="edit-announcement-btn"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent container click
+                    startEditingAnnouncement();
+                  }}
+                  aria-label="Edit announcement"
+                  title="Edit announcement"
+                >
+                  <img src={editIcon} alt="Edit" className="action-icon" />
+                </button>
+                <button
+                  className="add-announcement-icon-btn"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent container click
+                    setIsAddingAnnouncement(true);
+                  }}
+                  aria-label="Add new announcement"
+                  title="Add new announcement"
+                >
+                  <img src={addIcon} alt="Add" className="action-icon" />
+                </button>
+                <button
+                  className="delete-announcement-btn"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent container click
+                    deleteAnnouncement(currentAnnouncementIndex);
+                  }}
+                  aria-label="Delete announcement"
+                  title="Delete announcement"
+                >
+                  <img src={deleteIcon} alt="Delete" className="action-icon" />
+                </button>
               </div>
               <div className="announcement-dots">
                 {announcements.map((_, index) => (
@@ -1237,7 +1240,6 @@ const removePortal = async (index) => {
                   />
                 ))}
               </div>
-
             </div>
           )
         ) : (

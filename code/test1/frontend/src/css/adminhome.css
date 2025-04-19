@@ -374,6 +374,16 @@ body.dark-mode .quick-link-edit-form {
 	text-transform: capitalize;
 	background-color: rgba(255,255,255,0.9);
 	border: none;
+	text-decoration: none;
+	transition: transform 0.2s ease;
+  }
+  
+  .office-tag:hover {
+	transform: scale(1.05);
+  }
+  
+  .office-tag:active {
+	transform: scale(0.95);
   }
   
   .office-tag.academics {

@@ -6,7 +6,6 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const multer = require('multer');
 const connectDB = require('./config/db');
-const pdfRoutes = require("./routes/pdfRoutes")
 
 // Connect to database
 connectDB();
@@ -41,13 +40,13 @@ const faqs = require('./routes/faqs');
 const files = require('./routes/files');
 const portals = require('./routes/portals');
 const officesRoutes = require('./routes/offices');
+const pdfRoutes = require("./routes/pdfRoutes")
 
 const app = express();
 
 // Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use("/api", pdfRoutes);
 
 // Cookie parser
 app.use(cookieParser());
@@ -96,6 +95,7 @@ app.use('/api/faqs', faqs);
 app.use('/api/files', files);
 app.use('/api/portals', portals);
 app.use('/api/offices', officesRoutes);
+app.use("/api", pdfRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

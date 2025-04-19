@@ -42,7 +42,7 @@ router.post('/compare-pdfs', async (req, res) => {
                 fs.unlinkSync(outputFile);
                 console.log('Deleted temporary HTML file:', outputFile);
             }
-        }, 10 * 60 * 1000); // 10 minutes
+        }, 1 * 60 * 1000); // 10 minutes
     });
 });
 

@@ -776,7 +776,17 @@ const removePortal = async (index) => {
     if (isEditing) {
       return (
         <div key={index} className={`${className}-edit-wrapper`}>
-          <div className={`${className}-title`}>{item.title}</div>
+          <div className={`${className}-info`}>
+            <div className={`${className}-title`}>{item.title}</div>
+            {item.author && (
+              <div className={`${className}-author`}>
+                Added by {item.author.name || 'Unknown'}
+              </div>
+            )}
+            <div className={`${className}-status`}>
+              Status: {item.approved ? 'Approved' : 'Pending Approval'}
+            </div>
+          </div>
           <div className={`${className}-actions`}>
             <button
               className="admin-edit-btn"
@@ -802,7 +812,23 @@ const removePortal = async (index) => {
           </div>
         </div>
       );
-    } else if (isExternalLink) {
+    }
+
+    const linkContent = (
+      <>
+        {item.icon && <div className="portal-icon">{item.icon}</div>}
+        <div className="link-content">
+          <span className="portal-title">{item.title}</span>
+          {item.author && (
+            <span className="link-author">
+              Added by {item.author.name || 'Unknown'}
+            </span>
+          )}
+        </div>
+      </>
+    );
+
+    if (isExternalLink) {
       return (
         <a
           key={index}
@@ -811,15 +837,13 @@ const removePortal = async (index) => {
           rel="noopener noreferrer"
           className={className}
         >
-          {item.icon && <div className="portal-icon">{item.icon}</div>}
-          <span className="portal-title">{item.title}</span>
+          {linkContent}
         </a>
       );
     } else {
       return (
         <Link key={index} to={item.url} className={className}>
-          {item.icon && <div className="portal-icon">{item.icon}</div>}
-          <span className="portal-title">{item.title}</span>
+          {linkContent}
         </Link>
       );
     }

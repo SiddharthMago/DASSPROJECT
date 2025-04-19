@@ -184,7 +184,7 @@ function Archive({ darkMode, userRole }) {
 					const quickLinks = quickLinksRes.data.data.map((quickLink) => ({
 						id: quickLink._id,
 						fileName: quickLink.title,
-						author: quickLink.office,
+						author: quickLink.author ? quickLink.author.name : 'Unknown',
 						office: quickLink.office,
 						modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
 						category: 'Links',
@@ -257,7 +257,7 @@ function Archive({ darkMode, userRole }) {
 					const mapped = res.data.data.map((quickLink) => ({
 						id: quickLink._id,
 						fileName: quickLink.title,
-						author: quickLink.office,
+						author: quickLink.author ? quickLink.author.name : 'Unknown',
 						office: quickLink.office,
 						modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
 						category: 'Links',
@@ -360,7 +360,7 @@ function Archive({ darkMode, userRole }) {
 					const quickLinks = quickLinksRes.data.data.map((quickLink) => ({
 						id: quickLink._id,
 						fileName: quickLink.title,
-						author: quickLink.office,
+						author: quickLink.author ? quickLink.author.name : 'Unknown',
 						office: quickLink.office,
 						modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
 						category: 'Links',
@@ -377,7 +377,7 @@ function Archive({ darkMode, userRole }) {
 					const mapped = res.data.data.map((quickLink) => ({
 						id: quickLink._id,
 						fileName: quickLink.title,
-						author: quickLink.office,
+						author: quickLink.author ? quickLink.author.name : 'Unknown',
 						office: quickLink.office,
 						modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
 						category: 'Links',
@@ -522,7 +522,7 @@ function Archive({ darkMode, userRole }) {
 				const mapped = linksRes.data.data.map((quickLink) => ({
 					id: quickLink._id,
 					fileName: quickLink.title,
-					author: quickLink.office,
+					author: quickLink.author ? quickLink.author.name : 'Unknown',
 					office: quickLink.office,
 					modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
 					category: 'Links',
@@ -632,7 +632,7 @@ function Archive({ darkMode, userRole }) {
 				const mapped = linksRes.data.data.map((quickLink) => ({
 					id: quickLink._id,
 					fileName: quickLink.title,
-					author: quickLink.office,
+					author: quickLink.author ? quickLink.author.name : 'Unknown',
 					office: quickLink.office,
 					modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
 					category: 'Links',
@@ -883,7 +883,7 @@ function Archive({ darkMode, userRole }) {
                                     const mapped = res.data.data.map((quickLink) => ({
                                       id: quickLink._id,
                                       fileName: quickLink.title,
-                                      author: quickLink.office,
+                                      author: quickLink.author ? quickLink.author.name : 'Unknown',
                                       office: quickLink.office,
                                       modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
                                       category: 'Links',
@@ -1096,7 +1096,7 @@ function Archive({ darkMode, userRole }) {
                                         const mapped = res.data.data.map((quickLink) => ({
                                           id: quickLink._id,
                                           fileName: quickLink.title,
-                                          author: quickLink.office,
+                                          author: quickLink.author ? quickLink.author.name : 'Unknown',
                                           office: quickLink.office,
                                           modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
                                           category: 'Links',

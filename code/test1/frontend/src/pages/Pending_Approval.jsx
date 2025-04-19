@@ -6,6 +6,7 @@ import '../css/pending_approval.css';
 function PendingApprovals({ darkMode }) {
 	const [pendingFiles, setPendingFiles] = useState([]);
 	const [pendingAnnouncements, setPendingAnnouncements] = useState([]);
+	const [pendingQuickLinks, setPendingQuickLinks] = useState([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [searchQuery, setSearchQuery] = useState('');
@@ -53,8 +54,26 @@ function PendingApprovals({ darkMode }) {
 					category: 'announcement'
 				}));
 				
+				// Fetch pending quick links
+				const quickLinksResponse = await axios.get('http://localhost:5000/api/quicklinks/unapproved', {
+					headers: {
+						Authorization: `Bearer ${token}`
+					}
+				});
+
+				const mappedQuickLinks = quickLinksResponse.data.data.map(quickLink => ({
+					id: quickLink._id,
+					fileName: quickLink.title,
+					author: quickLink.author?.name || 'Unknown Author',
+					office: quickLink.office,
+					uploadDate: new Date(quickLink.createdAt).toLocaleDateString(),
+					url: quickLink.url,
+					category: 'quicklink'
+				}));
+				
 				setPendingFiles(mappedFiles);
 				setPendingAnnouncements(mappedAnnouncements);
+				setPendingQuickLinks(mappedQuickLinks);
 				setLoading(false);
 			} catch (err) {
 				console.error('Error fetching pending items:', err);
@@ -70,7 +89,7 @@ function PendingApprovals({ darkMode }) {
 	const approveItem = async (id, type) => {
 		try {
 			const token = localStorage.getItem('token');
-			const endpoint = type === 'file' ? 'files' : 'announcements';
+			const endpoint = type === 'file' ? 'files' : type === 'announcement' ? 'announcements' : 'quicklinks';
 			await axios.put(`http://localhost:5000/api/${endpoint}/${id}/approve`, {}, {
 				headers: {
 					Authorization: `Bearer ${token}`
@@ -79,8 +98,10 @@ function PendingApprovals({ darkMode }) {
 			
 			if (type === 'file') {
 				setPendingFiles(prevItems => prevItems.filter(item => item.id !== id));
-			} else {
+			} else if (type === 'announcement') {
 				setPendingAnnouncements(prevItems => prevItems.filter(item => item.id !== id));
+			} else {
+				setPendingQuickLinks(prevItems => prevItems.filter(item => item.id !== id));
 			}
 		} catch (err) {
 			console.error('Error approving item:', err);
@@ -101,7 +122,7 @@ function PendingApprovals({ darkMode }) {
 
 		try {
 			const token = localStorage.getItem('token');
-			const endpoint = rejectModal.type === 'file' ? 'files' : 'announcements';
+			const endpoint = rejectModal.type === 'file' ? 'files' : rejectModal.type === 'announcement' ? 'announcements' : 'quicklinks';
 			const response = await axios.put(`http://localhost:5000/api/${endpoint}/${rejectModal.itemId}/reject`, 
 				{ comment: rejectModal.reason }, 
 				{
@@ -114,8 +135,10 @@ function PendingApprovals({ darkMode }) {
 			if (response.data.success) {
 				if (rejectModal.type === 'file') {
 					setPendingFiles(prevItems => prevItems.filter(item => item.id !== rejectModal.itemId));
-				} else {
+				} else if (rejectModal.type === 'announcement') {
 					setPendingAnnouncements(prevItems => prevItems.filter(item => item.id !== rejectModal.itemId));
+				} else {
+					setPendingQuickLinks(prevItems => prevItems.filter(item => item.id !== rejectModal.itemId));
 				}
 				setRejectModal({ show: false, itemId: null, reason: '', type: '' });
 			} else {
@@ -137,12 +160,19 @@ function PendingApprovals({ darkMode }) {
 			} else {
 				alert('No preview available for this file');
 			}
-		} else {
+		} else if (item.category === 'announcement') {
 			// For announcements, open the link if available
 			if (item.link) {
 				window.open(item.link, '_blank');
 			} else {
 				alert('No preview available for this announcement');
+			}
+		} else {
+			// For quick links, open the URL
+			if (item.url) {
+				window.open(item.url, '_blank');
+			} else {
+				alert('No preview available for this quick link');
 			}
 		}
 	};
@@ -151,8 +181,8 @@ function PendingApprovals({ darkMode }) {
 	const approveAll = async (type) => {
 		try {
 			const token = localStorage.getItem('token');
-			const items = type === 'file' ? pendingFiles : pendingAnnouncements;
-			const endpoint = type === 'file' ? 'files' : 'announcements';
+			const items = type === 'file' ? pendingFiles : type === 'announcement' ? pendingAnnouncements : pendingQuickLinks;
+			const endpoint = type === 'file' ? 'files' : type === 'announcement' ? 'announcements' : 'quicklinks';
 			
 			for (const item of items) {
 				await axios.put(`http://localhost:5000/api/${endpoint}/${item.id}/approve`, {}, {
@@ -164,8 +194,10 @@ function PendingApprovals({ darkMode }) {
 			
 			if (type === 'file') {
 				setPendingFiles([]);
-			} else {
+			} else if (type === 'announcement') {
 				setPendingAnnouncements([]);
+			} else {
+				setPendingQuickLinks([]);
 			}
 		} catch (err) {
 			console.error('Error approving all items:', err);
@@ -180,6 +212,11 @@ function PendingApprovals({ darkMode }) {
 	});
 
 	const filteredAnnouncements = pendingAnnouncements.filter(item => {
+		return item.fileName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+			   item.author.toLowerCase().includes(searchQuery.toLowerCase());
+	});
+
+	const filteredQuickLinks = pendingQuickLinks.filter(item => {
 		return item.fileName.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			   item.author.toLowerCase().includes(searchQuery.toLowerCase());
 	});
@@ -330,12 +367,71 @@ function PendingApprovals({ darkMode }) {
 				)}
 			</div>
 
+			{/* Quick Links Section */}
+			<div className="archive-content">
+				<h2 className="section-title">Pending Quick Links</h2>
+				{filteredQuickLinks.length === 0 ? (
+					<div className="empty-state">
+						No pending quick links found.
+					</div>
+				) : (
+					<table className="archive-table">
+						<thead>
+							<tr>
+								<th className="name-cell">Title</th>
+								<th className="author-cell">Author</th>
+								<th className="office-cell">Office</th>
+								<th className="date-cell">Date</th>
+								<th className="actions-cell">Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							{filteredQuickLinks.map((item) => (
+								<tr key={item.id}>
+									<td className="name-cell">{item.fileName}</td>
+									<td className="author-cell">{item.author}</td>
+									<td className="office-cell">{item.office}</td>
+									<td className="date-cell">{item.uploadDate}</td>
+									<td className="actions-cell">
+										<div className="card-actions">
+											<button
+												className="action-button preview"
+												onClick={() => previewItem(item)}
+											>
+												Link
+											</button>
+											<button
+												className="action-button approve"
+												onClick={() => approveItem(item.id, 'quicklink')}
+											>
+												Approve
+											</button>
+											<button
+												className="action-button reject"
+												onClick={() => rejectItem(item.id, 'quicklink')}
+											>
+												Reject
+											</button>
+										</div>
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				)}
+				{filteredQuickLinks.length > 0 && (
+					<button className="approve-all-btn" onClick={() => approveAll('quicklink')}>
+						APPROVE ALL QUICK LINKS
+					</button>
+				)}
+			</div>
+
 			{/* Reject Modal */}
 			{rejectModal.show && (
 				<div className="modal-overlay">
 					<div className="reject-modal">
 						<div className="modal-header">
-							<h3>Reject {rejectModal.type === 'file' ? 'File' : 'Announcement'}</h3>
+							<h3>Reject {rejectModal.type === 'file' ? 'File' : rejectModal.type === 'announcement' ? 'Announcement' : 'Quick Link'}</h3>
 							<button 
 								className="close-button"
 								onClick={() => setRejectModal({ show: false, itemId: null, reason: '', type: '' })}

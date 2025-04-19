@@ -294,9 +294,13 @@ html, body {
 }
 
 .file-header {
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    box-sizing: border-box;
+    margin: 0 0 20px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
 }
 
 .file-title {
@@ -642,4 +646,31 @@ html, body {
 
 .dark-mode .no-versions {
     color: #999;
+}
+
+.edit-file-button {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    padding: 8px 16px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.edit-file-button:hover {
+    background-color: #0056b3;
+}
+
+.dark-mode .edit-file-button {
+    background-color: #0056b3;
+}
+
+.dark-mode .edit-file-button:hover {
+    background-color: #003d80;
 }

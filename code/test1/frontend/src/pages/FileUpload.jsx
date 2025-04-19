@@ -38,16 +38,27 @@ const FileUpload = ({ darkMode }) => {
     const queryParams = new URLSearchParams(location.search);
     const officeParam = queryParams.get('office');
     const categoryParam = queryParams.get('category');
+    const fileIdParam = queryParams.get('fileId');
+    const isNewVersionParam = queryParams.get('isNewVersion');
+    const selectedFileParam = queryParams.get('selectedFile');
     
     if (officeParam) {
-      // We'll use this temporarily until the actual user profile is loaded
-      // Don't set the user office directly, as it should come from the profile
       console.log('Office from URL:', officeParam);
     }
     
     if (categoryParam) {
       console.log('Category from URL:', categoryParam);
       setSelectedCategory(categoryParam);
+    }
+
+    if (fileIdParam) {
+      console.log('File ID from URL:', fileIdParam);
+      setSelectedFile(fileIdParam);
+    }
+
+    if (isNewVersionParam === 'true') {
+      console.log('New version mode enabled from URL');
+      setIsNewVersion(true);
     }
   }, [location]);
 
@@ -455,6 +466,33 @@ const FileUpload = ({ darkMode }) => {
       // This allows filtering by the same category when switching to version mode
     }
   };
+
+  // Fetch file details when a file is selected
+  useEffect(() => {
+    const fetchFileDetails = async () => {
+      if (!selectedFile) return;
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`/api/files/${selectedFile}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.data.success) {
+          const fileData = response.data.data;
+          setSelectedOffice(fileData.office);
+          setSelectedCategory(fileData.category);
+          setFileName(fileData.name);
+        }
+      } catch (error) {
+        console.error('Error fetching file details:', error);
+      }
+    };
+
+    fetchFileDetails();
+  }, [selectedFile]);
 
   return (
     <div className={`upload-page ${darkMode ? 'dark-mode' : ''}`}>

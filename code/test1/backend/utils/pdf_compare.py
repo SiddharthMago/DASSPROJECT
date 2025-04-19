@@ -264,6 +264,7 @@ class PDFComparer:
         css = """
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+            @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
 
             :root {
                 --bg-color: #f8f9fa;
@@ -431,26 +432,111 @@ class PDFComparer:
                 margin: 2rem auto;
             }
 
-            .theme-toggle {
-                position: fixed;
-                top: 2rem;
-                right: 2rem;
-                padding: 0.75rem 1.5rem;
-                background-color: var(--primary-color);
-                color: white;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                font-weight: 500;
-                transition: all 0.2s;
-                z-index: 1000;
-                box-shadow: var(--shadow);
+            table.diff th {
+                background-color: var(--header-bg);
+                padding: 1rem;
+                text-align: center;
+                font-weight: 600;
+                color: var(--text-color);
+                border-bottom: 2px solid var(--border-color);
             }
 
-            .theme-toggle:hover {
-                background-color: var(--primary-hover);
-                transform: translateY(-2px);
-                box-shadow: var(--shadow-lg);
+            table.diff td {
+                padding: 0.75rem;
+                vertical-align: top;
+                border-bottom: 1px solid var(--border-color);
+                font-family: 'Consolas', 'Monaco', monospace;
+                line-height: 1.5;
+            }
+
+            table.diff tr:last-child td {
+                border-bottom: none;
+            }
+
+            table.diff .diff_header {
+                background-color: var(--header-bg);
+                color: var(--text-color);
+                font-weight: 600;
+                padding: 0.5rem;
+                text-align: center;
+            }
+
+            table.diff .diff_next {
+                background-color: var(--header-bg);
+                width: 3%;
+                text-align: center;
+            }
+
+            table.diff .diff_add {
+                background-color: var(--diff-add-bg);
+                color: var(--diff-text);
+            }
+
+            table.diff .diff_chg {
+                background-color: var(--diff-chg-bg);
+                color: var(--diff-text);
+            }
+
+            table.diff .diff_sub {
+                background-color: var(--diff-sub-bg);
+                color: var(--diff-text);
+            }
+
+            table.diff tr:hover td {
+                background-color: rgba(var(--primary-color-rgb), 0.05);
+            }
+
+            table.diff .diff_add:hover td,
+            table.diff .diff_chg:hover td,
+            table.diff .diff_sub:hover td {
+                background-color: rgba(var(--primary-color-rgb), 0.1);
+            }
+
+            .diff-container {
+                position: relative;
+                margin: 2rem 0;
+                overflow-x: auto;
+            }
+
+            .diff-container::before,
+            .diff-container::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                width: 20px;
+                pointer-events: none;
+                z-index: 1;
+            }
+
+            .diff-container::before {
+                left: 0;
+                background: linear-gradient(to right, var(--bg-color), transparent);
+            }
+
+            .diff-container::after {
+                right: 0;
+                background: linear-gradient(to left, var(--bg-color), transparent);
+            }
+
+            .diff-line-number {
+                color: var(--text-color);
+                opacity: 0.6;
+                font-size: 0.85rem;
+                padding-right: 1rem;
+                text-align: right;
+                user-select: none;
+            }
+
+            .diff-content {
+                white-space: pre-wrap;
+                word-break: break-word;
+            }
+
+            .diff-highlight {
+                background-color: rgba(var(--primary-color-rgb), 0.1);
+                padding: 0.2rem;
+                border-radius: 3px;
             }
 
             @media (max-width: 768px) {
@@ -483,9 +569,16 @@ class PDFComparer:
                     width: 100%;
                 }
 
-                .theme-toggle {
-                    top: 1rem;
-                    right: 1rem;
+                table.diff {
+                    font-size: 0.85rem;
+                }
+
+                table.diff td {
+                    padding: 0.5rem;
+                }
+
+                .diff-line-number {
+                    font-size: 0.75rem;
                 }
             }
         </style>
@@ -493,17 +586,49 @@ class PDFComparer:
         <script>
             // Theme toggle functionality
             document.addEventListener('DOMContentLoaded', function() {
+                const actionButtons = document.createElement('div');
+                actionButtons.className = 'action-buttons';
+                
+                // Theme toggle button
                 const themeToggle = document.createElement('button');
-                themeToggle.className = 'theme-toggle';
-                themeToggle.textContent = 'Toggle Dark Mode';
-                document.body.appendChild(themeToggle);
-
+                themeToggle.className = 'action-button';
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                themeToggle.title = 'Toggle Dark Mode';
+                
+                // Download button
+                const downloadButton = document.createElement('button');
+                downloadButton.className = 'action-button';
+                downloadButton.innerHTML = '<i class="fas fa-download"></i>';
+                downloadButton.title = 'Download Comparison';
+                
+                // Add click handlers
                 themeToggle.addEventListener('click', function() {
                     const html = document.documentElement;
                     const currentTheme = html.getAttribute('data-theme');
                     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
                     html.setAttribute('data-theme', newTheme);
+                    
+                    // Update icon
+                    const icon = this.querySelector('i');
+                    icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
                 });
+                
+                downloadButton.addEventListener('click', function() {
+                    const html = document.documentElement.outerHTML;
+                    const blob = new Blob([html], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'pdf_comparison.html';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+                
+                actionButtons.appendChild(themeToggle);
+                actionButtons.appendChild(downloadButton);
+                document.body.appendChild(actionButtons);
 
                 // Add page navigation functionality
                 const pageHeaders = document.querySelectorAll('tr:has(td:contains("--- Page"))');
@@ -536,6 +661,37 @@ class PDFComparer:
                     
                     jumpDiv.appendChild(select);
                     document.body.appendChild(jumpDiv);
+                }
+
+                // Enhance diff table functionality
+                const diffTable = document.querySelector('table.diff');
+                if (diffTable) {
+                    // Add line numbers
+                    const rows = diffTable.querySelectorAll('tr');
+                    rows.forEach((row, index) => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length > 0) {
+                            cells[0].classList.add('diff-line-number');
+                            cells[0].textContent = index + 1;
+                        }
+                    });
+
+                    // Add hover effect for changed lines
+                    const changedRows = diffTable.querySelectorAll('.diff_add, .diff_chg, .diff_sub');
+                    changedRows.forEach(row => {
+                        row.addEventListener('mouseenter', function() {
+                            this.classList.add('diff-highlight');
+                        });
+                        row.addEventListener('mouseleave', function() {
+                            this.classList.remove('diff-highlight');
+                        });
+                    });
+
+                    // Wrap table in container for better scrolling
+                    const container = document.createElement('div');
+                    container.className = 'diff-container';
+                    diffTable.parentNode.insertBefore(container, diffTable);
+                    container.appendChild(diffTable);
                 }
             });
         </script>

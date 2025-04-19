@@ -18,9 +18,7 @@ function FilePageUser({ darkMode }) {
     const [compareMode, setCompareMode] = useState(false);
     const [version1, setVersion1] = useState(null);
     const [version2, setVersion2] = useState(null);
-
-    // For development, use a hardcoded file URL
-    // const sampleFileUrl = "http://localhost:5000/uploads/files/1744972682727-MDL_A4.pdf";
+    const [showVersionList, setShowVersionList] = useState(false);
 
     const { id, versionID } = useParams();
     const navigate = useNavigate();
@@ -76,14 +74,18 @@ function FilePageUser({ darkMode }) {
                         url: "http://localhost:5000/" + fileData.filePath,
                         filePath: fileData.filePath,
                         createdAt: fileData.createdAt,
+                        status: fileData.status,
                         isCurrent: true,
                     },
-                    ...(fileData.versions || []),
-                ];
+                    ...(fileData.versions || []).map(version => ({
+                        ...version,
+                        url: "http://localhost:5000/" + version.filePath,
+                    })),
+                ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
                 setVersions(allVersions);
                 const selected = versionID ? allVersions.find(v => v._id === versionID) : allVersions[0];
-                setSelectedVersion(allVersions[0]);
+                setSelectedVersion(selected || allVersions[0]);
 
                 setLoading(false);
             } catch (err) {
@@ -98,6 +100,7 @@ function FilePageUser({ darkMode }) {
 
     const handleVersionSelect = (version) => {
         setSelectedVersion(version);
+        setShowVersionList(false);
     };
 
     /**
@@ -111,7 +114,9 @@ function FilePageUser({ darkMode }) {
         return date.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
-            day: 'numeric'
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
     };
 
@@ -120,260 +125,54 @@ function FilePageUser({ darkMode }) {
      */
     const toggleCompareMode = () => {
         setCompareMode(!compareMode);
+        if (!compareMode) {
+            setVersion1(null);
+            setVersion2(null);
+        }
     };
 
-    /**
-     * FileVersions Component - Shows available file versions in sidebar
-     * 
-     * @param {Object} props
-     * @param {Array} props.versions - List of file versions
-     * @param {Function} props.onVersionSelect - Callback when version is selected
-     * @param {Object} props.selectedVersion - Currently selected version
-     */
-    function FileVersions({ versions, onVersionSelect, selectedVersion, toggleCompareMode, compareMode }) {
-        if (!versions || versions.length === 0) {
-            return (
-                <section className="file-ver">
-                    <h2 className="file-ver-heading">File Versions</h2>
-                    <p className="no-versions">No versions available</p>
-                </section>
-            );
-        }
-
-        return (
-            <aside className="side-menu">
-                <section className="file-ver">
-                    <h2 className="file-ver-heading">File Versions</h2>
-                    <div className="version-list-container">
-                        <ul>
-                            {versions.map((version, index) => (
-                                <li key={version._id || index}>
-                                    <button
-                                        className={selectedVersion?._id === version._id ? 'active' : ''}
-                                        onClick={() => onVersionSelect(version)}
-                                    >
-                                        <span className="version-date">
-                                            Version {versions.length - index} - {formatDate(version.createdAt)}
-                                        </span>
-                                        {/* {version.isCurrent && <span className="version-current">(Current)</span>} */}
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </section>
-
-                <section className="version-select">
-                    <h3>Select versions to compare</h3>
-                    <label htmlFor="version1">Version 1</label>
-                    <select 
-                        id="version1"
-                        value={version1?._id || ""}
-                        onChange={(e) => {
-                            const selected = versions.find(v => v._id === e.target.value);
-                            console.log("Selected version 1: ", selected);
-                            setVersion1(selected);
-                        }}
-                    >
-                        <option value="">Select a version</option>
-                        {versions.map((version) => (
-                            <option key={version._id} value={version._id}>
-                                {version.name}
-                            </option>
-                        ))}
-                    </select>
-
-                    <label htmlFor="version2">Version 2</label>
-                    <select 
-                        id="version2"
-                        value={version2?._id || ""}
-                        onChange={(e) => {
-                            const selected = versions.find(v => v._id === e.target.value);
-                            console.log("Selected version 2: ", selected);
-                            setVersion2(selected);
-                        }}
-                    >
-                        <option value="">Select a version</option>
-                        {versions.map((version) => (
-                            <option key={version._id} value={version._id}>
-                                {version.name}
-                            </option>
-                        ))}
-                    </select>
-
-                    <button
-                        className="compare-button"
-                        onClick={async () => {
-                            if (!version1 || !version2) {
-                                alert('Please select two versions to compare.');
-                                return;
-                            }
-
-                            try {
-                                const response = await axios.post('http://localhost:5000/api/compare-pdfs', {
-                                    pdf1Path: version1.filePath,
-                                    pdf2Path: version2.filePath,
-                                }, {
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    }
-                                });
-
-                                if (response.data.success) {
-                                    const newTab = window.open(`http://localhost:5000${response.data.htmlPath}`, '_blank');
-                                    newTab.onbeforeunload = () => {
-                                        // Optionally notify the backend to delete the file immediately
-                                    };
-                                } else {
-                                    alert('Failed to compare PDFs.');
-                                }
-                            } catch (error) {
-                                console.error('Error comparing PDFs:', error);
-                                alert('An error occurred while comparing PDFs.');
-                            }
-                        }}
-                    >
-                        Compare Selected Versions
-                    </button>
-                </section>
-            </aside>
-        );
-    }
-
-    /**
-     * FileContent Component - Displays the actual file content
-     * 
-     * @param {Object} props
-     * @param {Object} props.version - Version to display
-     */
-    function FileContent({ version }) {
-        if (!version) return <div className="file-content empty">No file selected</div>;
-
-        return (
-            <article className="file-content">
-                <div className="file-header">
-                    <h1 className="file-title">{version.name}</h1>
-                    <p className="file-date">
-                        Last updated: {formatDate(version.createdAt)}
-                    </p>
-                    {canEdit && (
-                        <button 
-                            className="edit-file-button"
-                            onClick={() => navigate(`${userRole === 'superadmin' ? '/superadmin' : '/admin'}/add-file?fileId=${id}&isNewVersion=true&selectedFile=${selectedVersion._id}`)}
-                        >
-                            Add New Version
-                        </button>
-                    )}
-                </div>
-
-                <div className="document">
-                    <object
-                        data={`http://localhost:5000/${version.filePath}`}
-                        type="application/pdf"
-                        width="100%"
-                        height="100%"
-                        className="file-object"
-                    >
-                        <p>It appears your browser doesn't support embedded PDFs.
-                            You can <a href={version.url} target="_blank" rel="noopener noreferrer">download the PDF</a> to view it.</p>
-                    </object>
-                </div>
-            </article>
-        );
-    }
-
-
-    function VersionSelector({ versions, selectedVersion, onVersionChange, label }) {
-        return (
-            <div className="version-select">
-                <h3>Select versions to compare</h3>
-                <label htmlFor="version1">Version 1</label>
-                <select id="version1" onChange={(e) => setVersion1(versions.find(v => v._id === e.target.value))}>
-                    <option value="">Select a version</option>
-                    {versions.map((version) => (
-                        <option key={version._id} value={version._id}>
-                            {version.name}
-                        </option>
-                    ))}
-                </select>
-            </div>
-        );
-    }
-
-    /**
-     * ComparisonView - Shows two versions side by side
-     * 
-     * @param {Object} props
-     * @param {Object} props.version1 - First version to compare
-     * @param {Object} props.version2 - Second version to compare
-     */
-    function ComparisonView({ version1, version2 }) {
+    const handleCompare = async () => {
         if (!version1 || !version2) {
-            return <div className="comparison-error">Please select two versions to compare</div>;
+            alert('Please select two versions to compare.');
+            return;
         }
 
-        return (
-            <div className="comparison-container">
-                <div className="comparison-header">
-                    <h2>Version Comparison</h2>
-                </div>
+        try {
+            const response = await axios.post('http://localhost:5000/api/compare-pdfs', {
+                pdf1Path: version1.filePath,
+                pdf2Path: version2.filePath,
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
 
-                <div className="comparison-content">
-                    <div className="comparison-version">
-                        <h3>{formatDate(version1.createdAt)} {version1.isCurrent && "(Current)"}</h3>
-                        <div className="comparison-frame">
-                            <object
-                                data={version1.url}
-                                type="application/pdf"
-                                width="100%"
-                                height="100%"
-                                className="comparison-object"
-                            >
-                                <p>PDF cannot be displayed</p>
-                            </object>
-                        </div>
-                    </div>
-
-                    <div className="comparison-version">
-                        <h3>{formatDate(version2.createdAt)} {version2.isCurrent && "(Current)"}</h3>
-                        <div className="comparison-frame">
-                            <object
-                                data={version2.url}
-                                type="application/pdf"
-                                width="100%"
-                                height="100%"
-                                className="comparison-object"
-                            >
-                                <p>PDF cannot be displayed</p>
-                            </object>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    /**
-     * ComparisonControl - Controls for version comparison
-     */
-    function ComparisonControl({ toggleCompareMode, compareMode }) {
-        return (
-            <div className="comparison-toggle">
-                <button
-                    onClick={toggleCompareMode}
-                    className={compareMode ? 'active' : ''}
-                >
-                    {compareMode ? 'Hide Comparison' : 'Compare Versions'}
-                </button>
-            </div>
-        );
-    }
+            if (response.data.success) {
+                const newTab = window.open(`http://localhost:5000${response.data.htmlPath}`, '_blank');
+                if (newTab) {
+                    newTab.onbeforeunload = () => {
+                        // Optionally notify the backend to delete the temp file
+                    };
+                } else {
+                    alert('Pop-up blocked. Please allow pop-ups and try again.');
+                }
+            } else {
+                alert('Failed to compare PDFs: ' + (response.data.message || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error comparing PDFs:', error);
+            alert('An error occurred while comparing PDFs: ' + (error.response?.data?.message || error.message));
+        }
+    };
 
     // Loading state
     if (loading) {
         return (
             <div className={`file-container ${darkMode ? 'dark-mode' : ''}`}>
-                <div className="loading-spinner">Loading file...</div>
+                <div className="loading-spinner">
+                    <div className="spinner"></div>
+                    <p>Loading file...</p>
+                </div>
             </div>
         );
     }
@@ -382,7 +181,11 @@ function FilePageUser({ darkMode }) {
     if (error) {
         return (
             <div className={`file-container ${darkMode ? 'dark-mode' : ''}`}>
-                <div className="error-message">{error}</div>
+                <div className="error-message">
+                    <h3>Error Loading File</h3>
+                    <p>{error}</p>
+                    <button onClick={() => navigate(-1)}>Go Back</button>
+                </div>
             </div>
         );
     }
@@ -394,27 +197,123 @@ function FilePageUser({ darkMode }) {
                 rel="stylesheet"
             />
 
-            <section className="view-file">
-                <aside className="side-menu">
-                    {/* Only include the versions sidebar */}
-                    <FileVersions
-                        versions={versions}
-                        onVersionSelect={handleVersionSelect}
-                        selectedVersion={selectedVersion}
-                        toggleCompareMode={toggleCompareMode}
-                        compareMode={compareMode}
-                    />
-                </aside>
-                <div className="main-content">
-                    {/* Main file content */}
-                    <FileContent version={selectedVersion} />
+            <div className="file-header">
+                <div className="file-info">
+                    <h1>{selectedVersion?.name}</h1>
+                    <div className="file-meta">
+                        <span className="file-date">Last updated: {formatDate(selectedVersion?.createdAt)}</span>
+                        <span className={`file-status ${selectedVersion?.status}`}>{selectedVersion?.status}</span>
+                    </div>
+                </div>
+                <div className="file-actions">
+                    {canEdit && (
+                        <button 
+                            className="edit-file-button"
+                            onClick={() => navigate(`${userRole === 'superadmin' ? '/superadmin' : '/admin'}/add-file?fileId=${id}&isNewVersion=true&selectedFile=${selectedVersion._id}`)}
+                        >
+                            Add New Version
+                        </button>
+                    )}
+                    <button 
+                        className={`compare-toggle ${compareMode ? 'active' : ''}`}
+                        onClick={toggleCompareMode}
+                    >
+                        {compareMode ? 'Exit Comparison' : 'Compare Versions'}
+                    </button>
+                    <button 
+                        className="version-toggle"
+                        onClick={() => setShowVersionList(!showVersionList)}
+                    >
+                        {showVersionList ? 'Hide Versions' : 'Show Versions'}
+                    </button>
+                </div>
+            </div>
 
-                    {/* Version comparison view (shown only in compare mode) */}
-                    {compareMode && version1 && version2 && (
-                        <ComparisonView version1={version1} version2={version2} />
+            <div className="file-content-wrapper">
+                {showVersionList && (
+                    <div className="version-sidebar">
+                        <h3>File Versions</h3>
+                        <div className="version-list">
+                            {versions.map((version, index) => (
+                                <div 
+                                    key={version._id}
+                                    className={`version-item ${selectedVersion?._id === version._id ? 'active' : ''}`}
+                                    onClick={() => handleVersionSelect(version)}
+                                >
+                                    <div className="version-info">
+                                        <span className="version-number">Version {versions.length - index}</span>
+                                        <span className="version-date">{formatDate(version.createdAt)}</span>
+                                    </div>
+                                    <span className={`version-status ${version.status}`}>{version.status}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                <div className="main-content">
+                    {compareMode ? (
+                        <div className="comparison-view">
+                            <div className="version-selectors">
+                                <div className="version-selector">
+                                    <label>Version 1</label>
+                                    <select 
+                                        value={version1?._id || ""}
+                                        onChange={(e) => {
+                                            const selected = versions.find(v => v._id === e.target.value);
+                                            setVersion1(selected);
+                                        }}
+                                    >
+                                        <option value="">Select a version</option>
+                                        {versions.map((version) => (
+                                            <option key={version._id} value={version._id}>
+                                                Version {versions.length - versions.indexOf(version)} - {formatDate(version.createdAt)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="version-selector">
+                                    <label>Version 2</label>
+                                    <select 
+                                        value={version2?._id || ""}
+                                        onChange={(e) => {
+                                            const selected = versions.find(v => v._id === e.target.value);
+                                            setVersion2(selected);
+                                        }}
+                                    >
+                                        <option value="">Select a version</option>
+                                        {versions.map((version) => (
+                                            <option key={version._id} value={version._id}>
+                                                Version {versions.length - versions.indexOf(version)} - {formatDate(version.createdAt)}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <button 
+                                    className="compare-button"
+                                    onClick={handleCompare}
+                                    disabled={!version1 || !version2}
+                                >
+                                    Compare Selected Versions
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="file-viewer">
+                            <object
+                                data={selectedVersion?.url}
+                                type="application/pdf"
+                                width="100%"
+                                height="100%"
+                                className="pdf-viewer"
+                            >
+                                <p>It appears your browser doesn't support embedded PDFs.
+                                    You can <a href={selectedVersion?.url} target="_blank" rel="noopener noreferrer">download the PDF</a> to view it.</p>
+                            </object>
+                        </div>
                     )}
                 </div>
-            </section>
+            </div>
         </div>
     );
 }

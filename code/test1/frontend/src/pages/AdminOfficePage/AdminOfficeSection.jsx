@@ -94,10 +94,21 @@ const AdminOfficeSection = ({ title, category, cards, darkMode, canEdit = false 
     });
   };
 
-  // Generate unique URLs based on the section title and card title
-  const generateUrl = (fileId) => {
+  // Function to determine where to navigate when a card is clicked
+  const getCardLink = (card) => {
+    // External URLs (starting with http or www) should open directly
+    if (card.url && isWebUrl(card.url)) {
+      return card.url;
+    }
+    
+    // Generate the correct path based on user role
     const basePath = userRole === 'superadmin' ? '/superadmin' : '/admin';
-    return `${basePath}/file/${fileId}`;
+    return `${basePath}/file/${card.id}`;
+  };
+
+  // Function to determine if the link should open in a new tab
+  const shouldOpenNewTab = (card) => {
+    return card.url && isWebUrl(card.url);
   };
 
   const handleDelete = async (e, card) => {
@@ -159,52 +170,69 @@ const AdminOfficeSection = ({ title, category, cards, darkMode, canEdit = false 
                 ×
               </div>
             )}
-            <a 
-              href={card.url || card.filePath} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="file-link"
-              onMouseEnter={() => setHoveredFileIndex(index)}
-              onMouseLeave={() => setHoveredFileIndex(null)}
-            >
-              <div className="file-item">
-                <div className="file-title" title={formatTitle(card.title)}>
-                  {getFileIcon(card)} {formatTitle(card.title)}
+            {shouldOpenNewTab(card) ? (
+              // External URLs open in new tab
+              <a 
+                href={card.url} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="file-link"
+                onMouseEnter={() => setHoveredFileIndex(index)}
+                onMouseLeave={() => setHoveredFileIndex(null)}
+              >
+                <div className="file-item">
+                  <div className="file-title" title={formatTitle(card.title)}>
+                    {getFileIcon(card)} {formatTitle(card.title)}
+                  </div>
                 </div>
-              </div>
-              
-              {/* Version hover dialogue box */}
-              {hoveredFileIndex === index && 
-               card.versions && 
-               card.versions.length > 0 && (
-                <div className="version-dialogue">
-                  <h3>Versions</h3>
-                  <ul className="version-list">
-                    {/* Current version */}
-                    <li className="version-item current-version">
-                      <span className="version-name">Current: {card.title}</span>
-                      <span className="version-date">{formatDate(card.createdAt)}</span>
+              </a>
+            ) : (
+              // Local files and internal resources use Link to file page
+              <Link 
+                to={getCardLink(card)} 
+                className="file-link"
+                onMouseEnter={() => setHoveredFileIndex(index)}
+                onMouseLeave={() => setHoveredFileIndex(null)}
+              >
+                <div className="file-item">
+                  <div className="file-title" title={formatTitle(card.title)}>
+                    {getFileIcon(card)} {formatTitle(card.title)}
+                  </div>
+                </div>
+              </Link>
+            )}
+            
+            {/* Version hover dialogue box */}
+            {hoveredFileIndex === index && 
+             card.versions && 
+             card.versions.length > 0 && (
+              <div className="version-dialogue">
+                <h3>Versions</h3>
+                <ul className="version-list">
+                  {/* Current version */}
+                  <li className="version-item current-version">
+                    <span className="version-name">Current: {card.title}</span>
+                    <span className="version-date">{formatDate(card.createdAt)}</span>
+                  </li>
+                  
+                  {/* Previous versions */}
+                  {card.versions.map((version, vIndex) => (
+                    <li key={vIndex} className="version-item">
+                      <a 
+                        href={version.url || version.filePath} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="version-link"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <span className="version-name">{version.name}</span>
+                        <span className="version-date">{formatDate(version.createdAt)}</span>
+                      </a>
                     </li>
-                    
-                    {/* Previous versions */}
-                    {card.versions.map((version, vIndex) => (
-                      <li key={vIndex} className="version-item">
-                        <a 
-                          href={version.url || version.filePath} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="version-link"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <span className="version-name">{version.name}</span>
-                          <span className="version-date">{formatDate(version.createdAt)}</span>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </a>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         ))}
       </div>

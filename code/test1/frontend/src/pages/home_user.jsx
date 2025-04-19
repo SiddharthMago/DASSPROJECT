@@ -331,6 +331,7 @@ function HomeUser({ darkMode }) {
                 {announcements[currentAnnouncementIndex].office}
               </span>
               <p className="announcement-text">{announcements[currentAnnouncementIndex].text}</p>
+              <div className="link-indicator">READ MORE</div>
             </div>
             <div className="announcement-dots">
               {announcements.map((_, index) => (

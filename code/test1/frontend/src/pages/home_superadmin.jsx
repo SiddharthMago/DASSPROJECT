@@ -1190,7 +1190,7 @@ useEffect(() => {
                   </span>
                   <p className="announcement-text">{announcements[currentAnnouncementIndex].text}</p>
                   {announcements[currentAnnouncementIndex].link && (
-                    <div className="link-indicator">Click to open link</div>
+                    <div className="link-indicator">READ MORE</div>
                   )}
                 </div>
 

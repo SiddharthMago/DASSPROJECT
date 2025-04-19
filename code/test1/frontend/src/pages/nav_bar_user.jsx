@@ -43,6 +43,8 @@ function NavBar_User({ darkMode, setDarkMode }){
                     src={iiithLogo}
                     alt="IIIT-Hyderabad Logo"
                     className={`logo ${darkMode ? 'invert' : ''}`}
+                    onClick={() => window.location.href = '/'}
+                    cursor="pointer"
                 />
             </div>
 

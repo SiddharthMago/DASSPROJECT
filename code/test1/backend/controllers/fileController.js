@@ -10,7 +10,9 @@ const storage = multer.diskStorage({
 		cb(null, path.join(__dirname, '../uploads/files'));
 	},
 	filename: (req, file, cb) => {
-		cb(null, `${Date.now()}-${file.originalname}`);
+		// Replace spaces with underscores in the original filename
+		const sanitizedName = file.originalname.replace(/\s+/g, '_');
+		cb(null, `${Date.now()}-${sanitizedName}`);
 	},
 });
 
@@ -211,8 +213,8 @@ exports.addFileVersion = async (req, res, next) => {
 	console.log(`[ADD FILE VERSION] Adding version to file: ${req.params.id}`);
 
 	try {
-		const file = await File.findById(req.params.id);
-		if (!file) {
+		const originalFile = await File.findById(req.params.id);
+		if (!originalFile) {
 			return res.status(404).json({ success: false, error: 'File not found' });
 		}
 
@@ -224,29 +226,31 @@ exports.addFileVersion = async (req, res, next) => {
 		// Use relative path
 		let filePath = req.file ? `uploads/files/${req.file.filename}` : null;
 
-		const newVersion = {
+		const originalVersion = {
+			name: originalFile.name,
+			url: originalFile.url,
+			filePath: originalFile.filePath,
+		};
+
+		const newFileData = {
 			name,
 			url: url || null,
 			filePath,
+			office: originalFile.office,
+			category: originalFile.category,
+			status: "pending",
+			author: req.user.id,
+			versions: [originalVersion, ... (originalFile.versions || [])],
 		};
 
-		file.versions.push(newVersion);
-		file.name = name;
-		file.url = url || file.url; // Keep existing URL if no new one is provided
-		
-		// Update filePath only if a new file was uploaded
-		if (req.file) {
-			file.filePath = filePath;
-		}
+		const newFile = await File.create(newFileData);
 
-		// Set status to 'pending' to require approval for the new version
-		file.status = 'pending';
-		console.log(`[ADD FILE VERSION] Setting file status to pending for approval`);
+		await File.findByIdAndDelete(originalFile._id);
 
-		await file.save();
-		console.log(`[ADD FILE VERSION] Version added successfully to file: ${file._id}`);
-		res.status(201).json({ success: true, data: file });
-	} catch (err) {
+		console.log(`[ADD FILE VERSION] Version added successfully to file: ${originalFile._id}`);
+		res.status(201).json({ success: true, data: newFile });
+	}
+	catch (err) {
 		console.error(`[ADD FILE VERSION] Error: ${err.message}`);
 		res.status(400).json({ success: false, error: err.message });
 	}

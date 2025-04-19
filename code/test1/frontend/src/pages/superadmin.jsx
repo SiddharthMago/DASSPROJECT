@@ -39,6 +39,7 @@ function SuperAdmin({ darkMode, setDarkMode }) {
                 <Route path='contacts' element={<ContactsAdmin darkMode={actualDarkMode} />} />
                 <Route path='office' element={<AdminOfficePage darkMode={actualDarkMode} /> } />
                 <Route path="/offices/:officeName" element={<AdminOfficePage darkMode={actualDarkMode} />} />
+                <Route path="/file/:id" element={<FilePageAdmin darkMode={actualDarkMode} />} />
             </Routes>
             <Footer darkMode={actualDarkMode} />
         </div>

@@ -97,10 +97,10 @@ function PendingApprovals({ darkMode }) {
 
 	// Function to preview a file
 	const previewItem = (item) => {
+		const filePath = item.filePath ? `/${item.filePath.replace(/\\/g, "/")}` : '';
+		const viewURL = filePath ? `http://localhost:5000${filePath}` : null;
 		if (item.url) {
-			window.open(item.url, '_blank');
-		} else if (item.filePath) {
-			window.open(`http://localhost:5000${item.filePath}`, '_blank');
+			window.open(viewURL, '_blank');
 		} else {
 			alert('No preview available for this file');
 		}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import '../css/archive.css';
 import { FaTh, FaList, FaPlus, FaTrash } from 'react-icons/fa';
@@ -115,12 +115,19 @@ function Archive({ darkMode, userRole }) {
 		}
 	};
 
+	const location = useLocation();
+	const getRoleFromURL = () => {
+		return location.pathname.split('/')[1] || "user";
+	}
+
 	// Update the file mapping to use author ObjectId
 	const mapFileData = (file) => {
 		// Standardize the file path construction for both view and download
 		console.log("[archive] mapping filedata for file: ", file._id);
 		const filePath = file.filePath ? `/${file.filePath.replace(/\\/g, '/')}` : '';
-		const viewURL = `/user/file/${file._id}`;
+
+		const role = getRoleFromURL();
+		const viewURL = `/${role}/file/${file._id}`;
 
 		console.log('[archive] generated viewurl:', viewURL);
 		const mappedFile = {
@@ -132,7 +139,7 @@ function Archive({ darkMode, userRole }) {
 			modifiedDate: new Date(file.createdAt).toLocaleDateString(),
 			category: 'Files',
 			// Only set viewUrl if there's a filePath
-			viewURL: `/user/file/${file._id}`,
+			viewURL: viewURL,
 			// Use URL if available, otherwise use filepath
 			downloadUrl: file.url || (filePath ? `http://localhost:5000${filePath}` : null),
 		};
@@ -917,7 +924,7 @@ function Archive({ darkMode, userRole }) {
                     <>
                       <button
                         className="action-button preview"
-                        onClick={() => window.open(item.viewUrl, '_blank')}
+                        onClick={() => window.open(item.viewURL, '_blank')}
                       >
                         Preview
                       </button>
@@ -1130,7 +1137,7 @@ function Archive({ darkMode, userRole }) {
                         <>
                           <button
                             className="action-button preview"
-                            onClick={() => window.open(item.viewUrl, '_blank')}
+                            onClick={() => window.open(item.viewURL, '_blank')}
                           >
                             Preview
                           </button>

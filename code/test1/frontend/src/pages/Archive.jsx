@@ -924,7 +924,7 @@ function Archive({ darkMode, userRole }) {
                     <>
                       <button
                         className="action-button preview"
-                        onClick={() => window.open(item.viewUrl, '_blank')}
+                        onClick={() => window.open(item.viewURL, '_blank')}
                       >
                         Preview
                       </button>
@@ -1137,7 +1137,7 @@ function Archive({ darkMode, userRole }) {
                         <>
                           <button
                             className="action-button preview"
-                            onClick={() => window.open(item.viewUrl, '_blank')}
+                            onClick={() => window.open(item.viewURL, '_blank')}
                           >
                             Preview
                           </button>

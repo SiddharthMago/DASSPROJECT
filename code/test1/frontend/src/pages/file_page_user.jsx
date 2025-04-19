@@ -141,6 +141,7 @@ function FilePageUser({ darkMode }) {
                     <label htmlFor="version1">Version 1</label>
                     <select 
                         id="version1"
+                        value={version1?._id || ""}
                         onChange={(e) => {
                             const selected = versions.find(v => v._id === e.target.value);
                             console.log("Selected version 1: ", selected);
@@ -158,6 +159,7 @@ function FilePageUser({ darkMode }) {
                     <label htmlFor="version2">Version 2</label>
                     <select 
                         id="version2"
+                        value={version2?._id || ""}
                         onChange={(e) => {
                             const selected = versions.find(v => v._id === e.target.value);
                             console.log("Selected version 2: ", selected);
@@ -184,6 +186,10 @@ function FilePageUser({ darkMode }) {
                                 const response = await axios.post('http://localhost:5000/api/compare-pdfs', {
                                     pdf1Path: version1.filePath,
                                     pdf2Path: version2.filePath,
+                                }, {
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    }
                                 });
 
                                 if (response.data.success) {
@@ -367,9 +373,6 @@ function FilePageUser({ darkMode }) {
                 <div className="main-content">
                     {/* Main file content */}
                     <FileContent version={selectedVersion} />
-
-                    {/* Comparison controls */}
-                    <ComparisonControl />
 
                     {/* Version comparison view (shown only in compare mode) */}
                     {compareMode && version1 && version2 && (

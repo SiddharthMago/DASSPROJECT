@@ -698,10 +698,16 @@ def ensure_file_comparison_folder():
 
 def open_html_file(file_path):
     """Open the HTML file in the default web browser."""
+    # Commented out automatic file opening to prevent duplicate file opening
+    # When called from the API, we don't want to open the file automatically
+    """
     try:
         webbrowser.open(f'file://{os.path.abspath(file_path)}')
     except Exception as e:
         print(f"Warning: Could not open HTML file automatically: {e}")
+    """
+    print(f"HTML comparison file created at: {file_path}")
+    return
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -81,6 +81,9 @@ app.use(cors({
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Serve static files from the temp directory
+app.use('/temp', express.static(path.join(__dirname, 'temp')));
+
 // Mount routers
 app.use('/api/auth_cas', auth);
 app.use('/api/announcements', announcements);

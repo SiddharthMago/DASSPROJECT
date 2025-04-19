@@ -156,9 +156,9 @@ function FilePageUser({ darkMode }) {
                         }}
                     >
                         <option value="">Select a version</option>
-                        {versions.map((version) => (
+                        {versions.map((version, index) => (
                             <option key={version._id} value={version._id}>
-                                {version.name}
+                                Version {versions.length - index} - {formatDate(version.createdAt)}
                             </option>
                         ))}
                     </select>
@@ -174,9 +174,9 @@ function FilePageUser({ darkMode }) {
                         }}
                     >
                         <option value="">Select a version</option>
-                        {versions.map((version) => (
+                        {versions.map((version, index) => (
                             <option key={version._id} value={version._id}>
-                                {version.name}
+                                Version {versions.length - index} - {formatDate(version.createdAt)}
                             </option>
                         ))}
                     </select>

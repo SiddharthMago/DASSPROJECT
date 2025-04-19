@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import '../css/home.css'; // We'll create this file for styling
 import iiithLogo from '../assets/iiit-logo.png';
+import helpIcon from '../assets/small.jpg';
 
 function NavBar_Admin({ darkMode, setDarkMode }) {
     // State for mobile menu toggle
@@ -34,6 +35,11 @@ function NavBar_Admin({ darkMode, setDarkMode }) {
     const handleLogOut = () => {
         localStorage.removeItem("token");
         window.location.href = `https://login.iiit.ac.in/cas/logout?service=${encodeURIComponent("http://localhost:5173/")}`;
+    };
+
+    // Function to redirect to help website
+    const goToHelpWebsite = () => {
+        window.open('https://help.iiit.ac.in', '_blank');
     };
 
     return (
@@ -73,9 +79,13 @@ function NavBar_Admin({ darkMode, setDarkMode }) {
                     <Link onClick={() => handleCASLogin()}>Log In</Link>
                 )}
             </div>
-
+            
             <div className="navbar-mode-toggle">
-                <button onClick={toggleDarkMode}>
+                <button onClick={goToHelpWebsite} className="navbar-help-button" title="Get Help">
+                    ❓
+                </button>
+            
+                <button onClick={toggleDarkMode} className="navbar-mode-toggle-button" style={{marginLeft: '20px'}}>
                     {darkMode ? '☀️' : '🌙'}
                 </button>
             </div>

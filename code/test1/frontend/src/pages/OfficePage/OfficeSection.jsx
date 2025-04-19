@@ -59,9 +59,25 @@ const OfficeSection = ({ title, cards, darkMode }) => {
     return `/user/file/${card._id}`;
   }
 
+  // Function to determine where to navigate for a version
+  const getVersionLink = (version, cardId) => {
+    // External URLs (starting with http or www) should open directly
+    if (version.url && isWebUrl(version.url)) {
+      return version.url;
+    }
+    
+    // If it has a filePath but it's not a web URL, go to file page with version ID
+    return `/user/file/${cardId}?version=${version._id || version.id || ''}`;
+  };
+
   // Function to determine if the link should open in a new tab
   const shouldOpenNewTab = (card) => {
     return card.url && isWebUrl(card.url);
+  }
+
+  // Function to determine if a version link should open in a new tab
+  const shouldVersionOpenNewTab = (version) => {
+    return version.url && isWebUrl(version.url);
   }
 
   return (
@@ -69,7 +85,12 @@ const OfficeSection = ({ title, cards, darkMode }) => {
       <h2 className="offices-section-title">{title}</h2>
       <div className="file-grid">
         {cards.map((card, index) => (
-          <div key={index} className="file-item-wrapper">
+          <div 
+            key={index} 
+            className="file-item-wrapper"
+            onMouseEnter={() => setHoveredFileIndex(index)}
+            onMouseLeave={() => setHoveredFileIndex(null)}
+          >
             {shouldOpenNewTab(card) ? (
               // External URLs open in new tab
               <a 
@@ -77,8 +98,6 @@ const OfficeSection = ({ title, cards, darkMode }) => {
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="file-link"
-                onMouseEnter={() => setHoveredFileIndex(index)}
-                onMouseLeave={() => setHoveredFileIndex(null)}
               >
                 <div className="file-item">
                   <div className="file-title" title={formatTitle(card.title)}>
@@ -91,8 +110,6 @@ const OfficeSection = ({ title, cards, darkMode }) => {
               <Link 
                 to={getCardLink(card)} 
                 className="file-link"
-                onMouseEnter={() => setHoveredFileIndex(index)}
-                onMouseLeave={() => setHoveredFileIndex(null)}
               >
                 <div className="file-item">
                   <div className="file-title" title={formatTitle(card.title)}>
@@ -118,16 +135,29 @@ const OfficeSection = ({ title, cards, darkMode }) => {
                   {/* Previous versions */}
                   {card.versions.map((version, vIndex) => (
                     <li key={vIndex} className="version-item">
-                      <a 
-                        href={version.url || version.filePath} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="version-link"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <span className="version-name">{version.name}</span>
-                        <span className="version-date">{formatDate(version.createdAt)}</span>
-                      </a>
+                      {shouldVersionOpenNewTab(version) ? (
+                        // External version links open in new tab
+                        <a 
+                          href={getVersionLink(version, card._id)}
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="version-link"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span className="version-name">{version.name}</span>
+                          <span className="version-date">{formatDate(version.createdAt)}</span>
+                        </a>
+                      ) : (
+                        // Internal version links use React Router Link
+                        <Link
+                          to={getVersionLink(version, card._id)}
+                          className="version-link"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <span className="version-name">{version.name}</span>
+                          <span className="version-date">{formatDate(version.createdAt)}</span>
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -136,6 +166,74 @@ const OfficeSection = ({ title, cards, darkMode }) => {
           </div>
         ))}
       </div>
+
+      {/* Inline styles */}
+      <style jsx>{`
+        .file-item-wrapper {
+          position: relative;
+          margin-bottom: 15px;
+        }
+        
+        .version-dialogue {
+          position: absolute;
+          z-index: 10;
+          background-color: ${darkMode ? '#2c2c2c' : '#ffffff'};
+          border: 1px solid ${darkMode ? '#444' : '#ddd'};
+          border-radius: 4px;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+          padding: 10px;
+          width: 250px;
+          max-height: 300px;
+          overflow-y: auto;
+          margin-top: 5px;
+        }
+        
+        .version-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        
+        .version-item {
+          display: flex;
+          justify-content: space-between;
+          padding: 5px 0;
+          border-bottom: 1px solid ${darkMode ? '#444' : '#eee'};
+        }
+        
+        .version-item:last-child {
+          border-bottom: none;
+        }
+        
+        .current-version {
+          font-weight: bold;
+          color: ${darkMode ? '#64b5f6' : '#0066cc'};
+        }
+        
+        .version-name {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 150px;
+        }
+        
+        .version-date {
+          font-size: 0.8em;
+          color: ${darkMode ? '#aaa' : '#666'};
+        }
+        
+        .version-link {
+          display: flex;
+          justify-content: space-between;
+          width: 100%;
+          text-decoration: none;
+          color: inherit;
+        }
+        
+        .version-link:hover {
+          text-decoration: underline;
+        }
+      `}</style>
     </section>
   );
 };

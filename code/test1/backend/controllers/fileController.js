@@ -346,49 +346,97 @@ exports.getFilesByCurrentUser = async (req, res, next) => {
 
 // @desc    View/download a file by ID
 exports.viewFile = async (req, res, next) => {
-  console.log(`[VIEW FILE] Request to view/download file: ${req.params.id}`);
-  try {
-    const file = await File.findById(req.params.id);
-    
-    if (!file) {
-      console.warn(`[VIEW FILE] File not found: ${req.params.id}`);
-      return res.status(404).json({ success: false, error: 'File not found' });
-    }
+	console.log(`[VIEW FILE] Request to view/download file: ${req.params.id}`);
+	try {
+		const file = await File.findById(req.params.id);
+		
+		if (!file) {
+		console.warn(`[VIEW FILE] File not found: ${req.params.id}`);
+		return res.status(404).json({ success: false, error: 'File not found' });
+		}
 
-    // If this is a URL-only entry, redirect to the URL
-    if (file.url && !file.filePath) {
-      console.log(`[VIEW FILE] Redirecting to URL: ${file.url}`);
-      return res.redirect(file.url);
-    }
+		// If this is a URL-only entry, redirect to the URL
+		if (file.url && !file.filePath) {
+		console.log(`[VIEW FILE] Redirecting to URL: ${file.url}`);
+		return res.redirect(file.url);
+		}
 
-    // Check if file has a physical path
-    if (!file.filePath) {
-      console.warn(`[VIEW FILE] No file path found: ${req.params.id}`);
-      return res.status(404).json({ success: false, error: 'No file path associated with this record' });
-    }
+		// Check if file has a physical path
+		if (!file.filePath) {
+		console.warn(`[VIEW FILE] No file path found: ${req.params.id}`);
+		return res.status(404).json({ success: false, error: 'No file path associated with this record' });
+		}
 
-    // Construct the absolute file path from the stored relative path
-    const filePath = path.join(__dirname, '..', file.filePath);
-    
-    // Check if file exists
-    if (!fs.existsSync(filePath)) {
-      console.error(`[VIEW FILE] File not found on disk: ${filePath}`);
-      return res.status(404).json({ success: false, error: 'File not found on disk' });
-    }
+		// Construct the absolute file path from the stored relative path
+		const filePath = path.join(__dirname, '..', file.filePath);
+		
+		// Check if file exists
+		if (!fs.existsSync(filePath)) {
+		console.error(`[VIEW FILE] File not found on disk: ${filePath}`);
+		return res.status(404).json({ success: false, error: 'File not found on disk' });
+		}
 
-    // Get file name from path
-    const fileName = path.basename(filePath);
-    
-    // Set appropriate headers
-    res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
-    
-    // Stream the file to the client
-    const fileStream = fs.createReadStream(filePath);
-    fileStream.pipe(res);
-    
-    console.log(`[VIEW FILE] Successfully streaming file: ${fileName}`);
-  } catch (err) {
-    console.error(`[VIEW FILE] Error: ${err.message}`);
-    res.status(500).json({ success: false, error: 'Server error' });
-  }
+		// Get file stats for content length
+		const stat = fs.statSync(filePath);
+		const fileSize = stat.size;
+		const fileName = path.basename(filePath);
+		
+		// Get the file extension to determine content type
+		const ext = path.extname(fileName).toLowerCase();
+		
+		// Set appropriate content type based on file extension
+		let contentType = 'application/octet-stream'; // default
+		if (ext === '.pdf') contentType = 'application/pdf';
+		else if (ext === '.doc' || ext === '.docx') contentType = 'application/msword';
+		else if (ext === '.xls' || ext === '.xlsx') contentType = 'application/vnd.ms-excel';
+		else if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
+		else if (ext === '.png') contentType = 'image/png';
+		else if (ext === '.txt') contentType = 'text/plain';
+		
+		// Set response headers
+		res.setHeader('Content-Type', contentType);
+		res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+		res.setHeader('Accept-Ranges', 'bytes');
+		
+		// Handle range requests (important for PDF streaming and resumable downloads)
+		const range = req.headers.range;
+		
+		if (range) {
+		// Parse the range header
+		const parts = range.replace(/bytes=/, '').split('-');
+		const start = parseInt(parts[0], 10);
+		const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+		
+		// Validate range
+		if (start >= fileSize || end >= fileSize || start > end) {
+			// Invalid range, respond with 416 Range Not Satisfiable
+			res.statusCode = 416;
+			res.setHeader('Content-Range', `bytes */${fileSize}`);
+			console.error(`[VIEW FILE] Invalid range request: ${range} for file size ${fileSize}`);
+			return res.end();
+		}
+		
+		// Calculate chunk size
+		const chunkSize = end - start + 1;
+		
+		// Set partial content headers
+		res.statusCode = 206;
+		res.setHeader('Content-Length', chunkSize);
+		res.setHeader('Content-Range', `bytes ${start}-${end}/${fileSize}`);
+		
+		// Create read stream with range
+		const fileStream = fs.createReadStream(filePath, { start, end });
+		console.log(`[VIEW FILE] Streaming file with range ${start}-${end}/${fileSize}: ${fileName}`);
+		fileStream.pipe(res);
+		} else {
+		// No range requested, stream the entire file
+		res.setHeader('Content-Length', fileSize);
+		console.log(`[VIEW FILE] Streaming entire file (${fileSize} bytes): ${fileName}`);
+		const fileStream = fs.createReadStream(filePath);
+		fileStream.pipe(res);
+		}
+	} catch (err) {
+		console.error(`[VIEW FILE] Error: ${err.message}`);
+		res.status(500).json({ success: false, error: 'Server error' });
+	}
 };

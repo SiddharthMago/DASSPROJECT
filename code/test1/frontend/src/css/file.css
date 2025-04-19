@@ -38,11 +38,11 @@ html, body {
 
 .side-menu {
     box-sizing: border-box;
-    width: 100%;
+    width: 250px;
     margin: 0;
-    padding: 0;
-    display: grid;
-    grid-template-rows: auto auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
     gap: 20px;
 }
 
@@ -55,13 +55,30 @@ html, body {
     flex: 1;  /* Allow it to grow to fill the available space */
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow-y: auto;
+    max-height: 300px;
 }
 
 .file-ver ul {
     list-style-type: none;
     padding: 0;
     margin: 0;
+}
+
+.file-ver ul li {
+    margin: 5px 0;
+}
+
+.file-ver ul li button {
+    display: block;
+    width: 100%;
+    padding: 8px 10px;
+    text-align: left;
+    border: none;
+    background-color: #102b38;
+    cursor: pointer;
+    transition: background-color 0.3s ease 0.3s;
+    border-radius: 4px;
 }
 
 .file-ver-heading {
@@ -79,37 +96,56 @@ html, body {
     color: #ffffff;
 }
 
-.file-ver button {
-    color: #fff;
-    cursor: pointer;
-    background-color: #102b38;
-    border-radius: 10px;
-    margin: 0 0 10px;
-    padding: 10px;
-    font-family: Barlow, sans-serif;
-    font-size: 16px;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    border: none;
-    transition: all 0.3s ease;
-}
-
 .dark-mode .file-ver button {
     color: #000000;
-    background-color: #d9d9d9;
 }
 
-.file-ver button:hover, .file-ver button.active {
-    background-color: #d9d9d9;
+.file-ver ul li button:hover, .file-ver ul li button.active {
+    background-color: #102b38;
     color: #000000;
     transform: translateY(-2px);
 }
 
 .dark-mode .file-ver button:hover, .dark-mode .file-ver button.active {
-    background-color: #102b38;
-    color: #d9d9d9;
+    background-color: #d9d9d9;
+    color: #000000;
+}
+
+.version-select {
+    margin-top: 20px; /* Space between the file versions and this section */
+    padding: 10px;
+    background-color: #ffffff; /* White background */
+    border: 1px solid #ddd; /* Border to separate it visually */
+    border-radius: 4px;
+}
+
+.version-select h3 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.version-select label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #555;
+}
+
+.version-select select {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+.version-select select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
 }
 
 .version-date {
@@ -123,6 +159,43 @@ html, body {
 
 .dark-mode .version-date {
     opacity: 1;
+}
+
+.compare-button {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.compare-button:hover {
+    background-color: #0056b3;
+}
+
+.comparison-toggle button {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.comparison-toggle button:hover {
+    background-color: #0056b3;
+}
+
+.comparison-toggle button.active {
+    background-color: #0056b3;
+    font-weight: bold;
 }
 
 .version-current {

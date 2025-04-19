@@ -6,7 +6,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const multer = require('multer');
 const connectDB = require('./config/db');
-
+const pdfRoutes = require("./routes/pdfRoutes")
 
 // Connect to database
 connectDB();
@@ -47,6 +47,7 @@ const app = express();
 // Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/api", pdfRoutes);
 
 // Cookie parser
 app.use(cookieParser());

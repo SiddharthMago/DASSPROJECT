@@ -55,6 +55,7 @@ function HomeAdmin({ darkMode }) {
   const [selectedQuickLinkIndex, setSelectedQuickLinkIndex] = useState(null);
   const [editQuickLinkTitle, setEditQuickLinkTitle] = useState("");
   const [editQuickLinkUrl, setEditQuickLinkUrl] = useState("");
+  const [editQuickLinkOffice, setEditQuickLinkOffice] = useState("Admissions Office");
   const [isAddingQuickLink, setIsAddingQuickLink] = useState(false);
 
   // Portals editing state
@@ -125,8 +126,7 @@ function HomeAdmin({ darkMode }) {
       try {
         setQuickLinksLoading(true);
         console.log('Fetching quick links...');
-        // For admin, fetch all quick links regardless of pinned status
-        const response = await fetch('/api/quicklinks');
+        const response = await fetch('/api/quicklinks/pinned');
 
         console.log('Quick links response status:', response.status);
         if (!response.ok) {
@@ -327,6 +327,7 @@ function HomeAdmin({ darkMode }) {
     setSelectedQuickLinkIndex(index);
     setEditQuickLinkTitle(quickLink.title);
     setEditQuickLinkUrl(quickLink.url);
+    setEditQuickLinkOffice(quickLink.office || "Admissions Office");
     setIsEditingQuickLinks(true);
     setIsAddingQuickLink(false);
   };
@@ -348,6 +349,7 @@ function HomeAdmin({ darkMode }) {
         body: JSON.stringify({
           title: editQuickLinkTitle,
           url: editQuickLinkUrl,
+          office: editQuickLinkOffice // Make sure office is included in the request
         }),
       });
 
@@ -359,6 +361,7 @@ function HomeAdmin({ darkMode }) {
         ...quickLink,
         title: editQuickLinkTitle,
         url: editQuickLinkUrl,
+        office: editQuickLinkOffice // Update office in local state
       };
 
       setQuickLinks(updatedQuickLinks);
@@ -381,6 +384,7 @@ function HomeAdmin({ darkMode }) {
     setIsAddingQuickLink(true);
     setEditQuickLinkTitle("");
     setEditQuickLinkUrl("");
+    setEditQuickLinkOffice("Admissions Office");
     setSelectedQuickLinkIndex(null);
   };
 
@@ -401,7 +405,7 @@ function HomeAdmin({ darkMode }) {
         body: JSON.stringify({
           title: editQuickLinkTitle.trim(),
           url: editQuickLinkUrl.trim(),
-          office: 'Administration',
+          office: editQuickLinkOffice,
         })
       });
 
@@ -427,6 +431,7 @@ function HomeAdmin({ darkMode }) {
       setIsAddingQuickLink(false);
       setEditQuickLinkTitle("");
       setEditQuickLinkUrl("");
+      setEditQuickLinkOffice("Admissions Office");
 
       // Clear success message after 3 seconds
       setTimeout(() => {
@@ -458,6 +463,7 @@ function HomeAdmin({ darkMode }) {
     setSelectedQuickLinkIndex(null);
     setEditQuickLinkTitle("");
     setEditQuickLinkUrl("");
+    setEditQuickLinkOffice("Admissions Office");
   };
 
   // Function to remove a quick link
@@ -504,14 +510,14 @@ function HomeAdmin({ darkMode }) {
     if (!window.confirm(confirmMsg)) return;
 
     try {
-      // API call to toggle the pin status
-      const response = await fetch(`/api/quicklinks/${quickLink._id}/pin`, {
+      // Use the correct endpoint based on the action
+      const endpoint = quickLink.pinned ? 'unpin' : 'pin';
+      const response = await fetch(`/api/quicklinks/${quickLink._id}/${endpoint}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ pinned: !quickLink.pinned }), // Toggle the pinned status
+        }
       });
 
       if (!response.ok) throw new Error('Failed to update pin status');
@@ -549,54 +555,64 @@ function HomeAdmin({ darkMode }) {
     setIsAddingPortal(false);
   };
 
-  const savePortal = async () => {
-    if (selectedPortalIndex === null) return;
+  // Function to save portal edits
+const savePortal = async () => {
+  if (selectedPortalIndex === null) return;
 
-    try {
-      const portal = portals[selectedPortalIndex];
+  try {
+    const portal = portals[selectedPortalIndex];
 
-      // Make API call to update the portal
-      const response = await fetch(`/api/portals/${portal._id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}` // Add auth token
-        },
-        body: JSON.stringify({
-          title: editPortalTitle,
-          url: editPortalUrl,
-          icon: editPortalIcon
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update portal');
-      }
-
-      // Update local state
-      const updatedPortals = [...portals];
-      updatedPortals[selectedPortalIndex] = {
-        ...portal,
+    // Make API call to update the portal
+    const response = await fetch(`/api/portals/${portal._id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}` // Add auth token
+      },
+      body: JSON.stringify({
         title: editPortalTitle,
         url: editPortalUrl,
         icon: editPortalIcon
-      };
+      })
+    });
 
-      setPortals(updatedPortals);
-      setIsEditingPortals(false);
-      setSelectedPortalIndex(null);
-
-      // Refetch to get updated data
-      const refreshResponse = await fetch('/api/portals');
-      if (refreshResponse.ok) {
-        const data = await refreshResponse.json();
-        setPortals(data.data);
-      }
-    } catch (err) {
-      console.error('Error updating portal:', err);
-      alert('Failed to update portal. Please try again.');
+    if (!response.ok) {
+      throw new Error('Failed to update portal');
     }
-  };
+
+    // Update local state
+    const updatedPortals = [...portals];
+    updatedPortals[selectedPortalIndex] = {
+      ...portal,
+      title: editPortalTitle,
+      url: editPortalUrl,
+      icon: editPortalIcon
+    };
+
+    setPortals(updatedPortals);
+    
+    // Show success message
+    setSuccessMessage("Portal updated successfully");
+    
+    // Close editing mode
+    setIsEditingPortals(false);
+    setSelectedPortalIndex(null);
+    
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
+
+    // Refetch to get updated data
+    const refreshResponse = await fetch('/api/portals');
+    if (refreshResponse.ok) {
+      const data = await refreshResponse.json();
+      setPortals(data.data);
+    }
+  } catch (err) {
+    console.error('Error updating portal:', err);
+    alert('Failed to update portal. Please try again.');
+  }
+};
 
   const startAddingPortal = () => {
     setIsAddingPortal(true);
@@ -606,58 +622,60 @@ function HomeAdmin({ darkMode }) {
     setSelectedPortalIndex(null);
   };
 
-  const saveNewPortal = async () => {
-    if (editPortalTitle.trim() === "" || editPortalUrl.trim() === "") {
-      alert("Title and URL are required");
-      return;
+  // Function to save a new portal
+const saveNewPortal = async () => {
+  if (editPortalTitle.trim() === "" || editPortalUrl.trim() === "") {
+    alert("Title and URL are required");
+    return;
+  }
+
+  try {
+    // Make API call to create a new portal
+    const response = await fetch('/api/portals', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: JSON.stringify({
+        title: editPortalTitle.trim(),
+        url: editPortalUrl.trim(),
+        icon: editPortalIcon,
+        approved: false, // Explicitly set to unapproved
+        pinned: false    // Explicitly set to unpinned
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create portal');
     }
 
-    try {
-      // Make API call to create a new portal
-      const response = await fetch('/api/portals', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        },
-        body: JSON.stringify({
-          title: editPortalTitle.trim(),
-          url: editPortalUrl.trim(),
-          icon: editPortalIcon,
-          approved: false, // Explicitly set to unapproved
-          pinned: false    // Explicitly set to unpinned
-        })
-      });
+    // Show success message for approval process
+    setSuccessMessage("Portal sent for approval");
 
-      if (!response.ok) {
-        throw new Error('Failed to create portal');
-      }
+    // Reset form state and close editing mode
+    setIsAddingPortal(false);
+    setEditPortalTitle("");
+    setEditPortalUrl("");
+    setEditPortalIcon("🔗");
+    setIsEditingPortals(false);
 
-      // Show success message for approval process
-      setSuccessMessage("Portal sent for approval");
+    // Clear success message after 3 seconds
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
 
-      // Reset form state
-      setIsAddingPortal(false);
-      setEditPortalTitle("");
-      setEditPortalUrl("");
-      setEditPortalIcon("🔗");
-
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setSuccessMessage("");
-      }, 3000);
-
-      // Refetch to get updated data
-      const refreshResponse = await fetch('/api/portals');
-      if (refreshResponse.ok) {
-        const data = await refreshResponse.json();
-        setPortals(data.data);
-      }
-    } catch (err) {
-      console.error('Error creating portal:', err);
-      alert('Failed to create portal. Please try again.');
+    // Refetch to get updated data
+    const refreshResponse = await fetch('/api/portals');
+    if (refreshResponse.ok) {
+      const data = await refreshResponse.json();
+      setPortals(data.data);
     }
-  };
+  } catch (err) {
+    console.error('Error creating portal:', err);
+    alert('Failed to create portal. Please try again.');
+  }
+};
 
   const cancelEditingPortal = () => {
     setIsEditingPortals(false);
@@ -668,57 +686,73 @@ function HomeAdmin({ darkMode }) {
     setEditPortalIcon("🔗");
   };
 
-  const removePortal = async (index) => {
-    const portal = portals[index];
+  // Function to delete a portal
+const removePortal = async (index) => {
+  const portal = portals[index];
 
-    if (window.confirm(`Are you sure you want to delete "${portal.title}"?`)) {
-      try {
-        // Make API call to delete the portal
-        const response = await fetch(`/api/portals/${portal._id}`, {
-          method: 'DELETE',
-          headers: {
-            'Authorization': `Bearer ${authToken}` // Add auth token
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to delete portal');
-        }
-
-        // Update local state
-        const updatedPortals = portals.filter((_, i) => i !== index);
-        setPortals(updatedPortals);
-      } catch (err) {
-        console.error('Error deleting portal:', err);
-        alert('Failed to delete portal. Please try again.');
-      }
-    }
-  };
-
-  const togglePortalPin = async (index) => {
-    const portal = portals[index];
-
+  if (window.confirm(`Are you sure you want to delete "${portal.title}"?`)) {
     try {
-      // Make API call to toggle pin status
-      const response = await fetch(`/api/portals/${portal._id}/pin`, {
-        method: 'PUT',
+      // Make API call to delete the portal
+      const response = await fetch(`/api/portals/${portal._id}`, {
+        method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${authToken}` // Add auth token
         }
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update pin status');
+        throw new Error('Failed to delete portal');
       }
 
       // Update local state
+      const updatedPortals = portals.filter((_, i) => i !== index);
+      setPortals(updatedPortals);
+      
+      // Show success message
+      setSuccessMessage("Portal deleted successfully");
+      
+      // Close editing mode
+      setIsEditingPortals(false);
+      setSelectedPortalIndex(null);
+      
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 3000);
+    } catch (err) {
+      console.error('Error deleting portal:', err);
+      alert('Failed to delete portal. Please try again.');
+    }
+  }
+};
+
+  const togglePortalPin = async (index) => {
+    const portal = portals[index];
+    const confirmMsg = portal.pinned
+      ? `Are you sure you want to unpin "${portal.title}"?`
+      : `Are you sure you want to pin "${portal.title}"?`;
+
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      const response = await fetch(`/api/portals/${portal._id}/pin`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+
+      if (!response.ok) throw new Error('Failed to update pin status');
+
       const updatedPortals = [...portals];
       updatedPortals[index] = {
         ...portal,
         pinned: !portal.pinned
       };
-
       setPortals(updatedPortals);
+
+      const actionType = portal.pinned ? 'unpinned' : 'pinned';
+      setSuccessMessage(`Portal ${actionType} successfully`);
+      setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error('Error toggling pin status:', err);
       alert('Failed to update pin status. Please try again.');
@@ -904,6 +938,18 @@ function HomeAdmin({ darkMode }) {
     setNewAnnouncementImageUrl(null);
   };
 
+  const handleAnnouncementClick = (e) => {
+    e.stopPropagation();
+    const link = announcements[currentAnnouncementIndex].link;
+    if (link) {
+      if (link.startsWith('http://') || link.startsWith('https://')) {
+        window.open(link, '_blank', 'noopener,noreferrer');
+      } else {
+        window.location.href = link;
+      }
+    }
+  };
+
   return (
     <div className={`home-container ${darkMode ? 'dark-mode' : ''}`}>
       <link
@@ -943,7 +989,7 @@ function HomeAdmin({ darkMode }) {
                     <option value="Faculty Portal">Faculty Portal</option>
                     <option value="Outreach Office">Outreach Office</option>
                     <option value="R&D Office">R&D Office</option>
-                    <option value="Placements Cell">Placements Cell</option>
+                    <option value="Placement Cell">Placement Cell</option>
                     <option value="Statistical Cell">Statistical Cell</option>
                     <option value="General Administration">General Administration</option>
                     <option value="Accounts Office">Accounts Office</option>
@@ -1032,7 +1078,7 @@ function HomeAdmin({ darkMode }) {
                     <option value="Faculty Portal">Faculty Portal</option>
                     <option value="Outreach Office">Outreach Office</option>
                     <option value="R&D Office">R&D Office</option>
-                    <option value="Placement Cell">Placements Cell</option>
+                    <option value="Placement Cell">Placement Cell</option>
                     <option value="Statistical Cell">Statistical Cell</option>
                     <option value="General Administration">General Administration</option>
                     <option value="Accounts Office">Accounts Office</option>
@@ -1104,18 +1150,7 @@ function HomeAdmin({ darkMode }) {
                 ...getAnnouncementBackground(announcements[currentAnnouncementIndex]),
                 cursor: announcements[currentAnnouncementIndex].link ? 'pointer' : 'default'
               }}
-              onClick={() => {
-                // Navigate to the announcement link if it exists
-                const link = announcements[currentAnnouncementIndex].link;
-                if (link) {
-                  // Check if it's an internal or external link
-                  if (link.startsWith('http://') || link.startsWith('https://')) {
-                    window.open(link, '_blank', 'noopener,noreferrer');
-                  } else {
-                    window.location.href = link;
-                  }
-                }
-              }}
+              onClick={handleAnnouncementClick}
             >
               <div className="announcement-navigation">
                 <button
@@ -1145,51 +1180,53 @@ function HomeAdmin({ darkMode }) {
                   ▶
                 </button>
               </div>
-              <div className="announcement-header">
-                <div className="announcement-content">
-                  <span className={`office-tag ${announcements[currentAnnouncementIndex].office}`}>
-                    {announcements[currentAnnouncementIndex].office}
-                  </span>
-                  <p className="announcement-text">{announcements[currentAnnouncementIndex].text}</p>
-                  {announcements[currentAnnouncementIndex].link && (
-                    <div className="link-indicator">READ MORE</div>
-                  )}
-                </div>
-                <div className="announcement-actions">
-                  <button
-                    className="edit-announcement-btn"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent container click
-                      startEditingAnnouncement();
-                    }}
-                    aria-label="Edit announcement"
-                    title="Edit announcement"
-                  >
-                    <img src={editIcon} alt="Edit" className="action-icon" />
-                  </button>
-                  <button
-                    className="add-announcement-icon-btn"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent container click
-                      setIsAddingAnnouncement(true);
-                    }}
-                    aria-label="Add new announcement"
-                    title="Add new announcement"
-                  >
-                    <img src={addIcon} alt="Add" className="action-icon" />
-                  </button>
-                  <button
-                    className="delete-announcement-btn"
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent container click
-                      deleteAnnouncement(currentAnnouncementIndex);
-                    }}
-                    aria-label="Delete announcement"
-                    title="Delete announcement"
-                  >
-                    <img src={deleteIcon} alt="Delete" className="action-icon" />
-                  </button>
-                </div>
+              <div className="announcement-content">
+                <Link 
+                  to={`/admin/offices/${announcements[currentAnnouncementIndex].office}`}
+                  className={`office-tag ${announcements[currentAnnouncementIndex].office}`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {announcements[currentAnnouncementIndex].office}
+                </Link>
+                <p className="announcement-text">{announcements[currentAnnouncementIndex].text}</p>
+                {announcements[currentAnnouncementIndex].link && (
+                  <div className="link-indicator">Click to read more</div>
+                )}
+              </div>
+              <div className="announcement-actions">
+                <button
+                  className="edit-announcement-btn"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent container click
+                    startEditingAnnouncement();
+                  }}
+                  aria-label="Edit announcement"
+                  title="Edit announcement"
+                >
+                  <img src={editIcon} alt="Edit" className="action-icon" />
+                </button>
+                <button
+                  className="add-announcement-icon-btn"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent container click
+                    setIsAddingAnnouncement(true);
+                  }}
+                  aria-label="Add new announcement"
+                  title="Add new announcement"
+                >
+                  <img src={addIcon} alt="Add" className="action-icon" />
+                </button>
+                <button
+                  className="delete-announcement-btn"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent container click
+                    deleteAnnouncement(currentAnnouncementIndex);
+                  }}
+                  aria-label="Delete announcement"
+                  title="Delete announcement"
+                >
+                  <img src={deleteIcon} alt="Delete" className="action-icon" />
+                </button>
               </div>
               <div className="announcement-dots">
                 {announcements.map((_, index) => (
@@ -1203,7 +1240,6 @@ function HomeAdmin({ darkMode }) {
                   />
                 ))}
               </div>
-
             </div>
           )
         ) : (
@@ -1330,7 +1366,7 @@ function HomeAdmin({ darkMode }) {
               aria-label="Edit portals"
               title="Edit portals"
             >
-              ✏️
+              <img src={editIcon} alt="Edit" className="action-icon" />
             </button>
           </div>
 
@@ -1475,9 +1511,11 @@ function HomeAdmin({ darkMode }) {
                     )}
                   </div>
                 )) :
-                portals.map((portal, index) =>
-                  renderLinkComponent(portal, index, "portal-link", false)
-                )
+                portals
+                  .filter(portal => portal.pinned) // Only display pinned portals
+                  .map((portal, index) =>
+                    renderLinkComponent(portal, index, "portal-link", false)
+                  )
               }
             </div>
           ) : (
@@ -1496,7 +1534,7 @@ function HomeAdmin({ darkMode }) {
               aria-label="Edit quick links"
               title="Edit quick links"
             >
-              ✏️
+              <img src={editIcon} alt="Edit" className="action-icon" />
             </button>
           </div>
 
@@ -1542,7 +1580,6 @@ function HomeAdmin({ darkMode }) {
                   onChange={(e) => setEditQuickLinkOffice(e.target.value)}
                   className="office-select"
                 >
-                  <option value="None">None</option>
                   <option value="Admissions Office">Admissions Office</option>
                   <option value="Academic Office">Academic Office</option>
                   <option value="Library Office">Library Office</option>
@@ -1550,15 +1587,15 @@ function HomeAdmin({ darkMode }) {
                   <option value="Student Affairs Office">Student Affairs Office</option>
                   <option value="Hostel Office">Hostel Office</option>
                   <option value="Mess Office">Mess Office</option>
-                  <option value="Alumni Office">Alumni Office</option>
+                  <option value="Alumni Cell">Alumni Cell</option>
                   <option value="Faculty Portal">Faculty Portal</option>
+                  <option value="Placement Cell">Placement Cell</option>
                   <option value="Outreach Office">Outreach Office</option>
-                  <option value="R&D Office">R&D Office</option>
-                  <option value="Placements Cell">Placements Cell</option>
                   <option value="Statistical Cell">Statistical Cell</option>
+                  <option value="R&D Office">R&D Office</option>
                   <option value="General Administration">General Administration</option>
                   <option value="Accounts Office">Accounts Office</option>
-                  <option value="IT Services Offices">IT Services Offices</option>
+                  <option value="IT Services Office">IT Services Office</option>
                   <option value="Communication Office">Communication Office</option>
                   <option value="Engineering Office">Engineering Office</option>
                   <option value="HR & Personnel">HR & Personnel</option>
@@ -1591,6 +1628,35 @@ function HomeAdmin({ darkMode }) {
                   value={editQuickLinkUrl}
                   onChange={(e) => setEditQuickLinkUrl(e.target.value)}
                 />
+              </div>
+              <div className="edit-form-group">
+                <label htmlFor="quick-link-office">Office:</label>
+                <select
+                  id="quick-link-office"
+                  value={editQuickLinkOffice}
+                  onChange={(e) => setEditQuickLinkOffice(e.target.value)}
+                  className="office-select"
+                >
+                  <option value="Admissions Office">Admissions Office</option>
+                  <option value="Academic Office">Academic Office</option>
+                  <option value="Library Office">Library Office</option>
+                  <option value="Examinations Office">Examinations Office</option>
+                  <option value="Student Affairs Office">Student Affairs Office</option>
+                  <option value="Hostel Office">Hostel Office</option>
+                  <option value="Mess Office">Mess Office</option>
+                  <option value="Alumni Cell">Alumni Cell</option>
+                  <option value="Faculty Portal">Faculty Portal</option>
+                  <option value="Placement Cell">Placement Cell</option>
+                  <option value="Outreach Office">Outreach Office</option>
+                  <option value="Statistical Cell">Statistical Cell</option>
+                  <option value="R&D Office">R&D Office</option>
+                  <option value="General Administration">General Administration</option>
+                  <option value="Accounts Office">Accounts Office</option>
+                  <option value="IT Services Office">IT Services Office</option>
+                  <option value="Communication Office">Communication Office</option>
+                  <option value="Engineering Office">Engineering Office</option>
+                  <option value="HR & Personnel">HR & Personnel</option>
+                </select>
               </div>
               <div className="edit-buttons">
                 <button onClick={saveQuickLink} className="save-btn">Save</button>

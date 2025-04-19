@@ -326,12 +326,49 @@ function HomeUser({ darkMode }) {
             }}
             onClick={handleAnnouncementClick}
           >
-            <div className="announcement-content">
-              <span className={`office-tag ${announcements[currentAnnouncementIndex].office}`}>
-                {announcements[currentAnnouncementIndex].office}
-              </span>
-              <p className="announcement-text">{announcements[currentAnnouncementIndex].text}</p>
+            <div className="announcement-navigation">
+              <button
+                className="prev-announcement-btn"
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent container click
+                  setCurrentAnnouncementIndex((prevIndex) =>
+                    prevIndex === 0 ? announcements.length - 1 : prevIndex - 1
+                  );
+                }}
+                aria-label="Previous Announcement"
+                title="Previous Announcement"
+              >
+                ◀
+              </button>
+              <button
+                className="next-announcement-btn"
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent container click
+                  setCurrentAnnouncementIndex((prevIndex) =>
+                    (prevIndex + 1) % announcements.length
+                  );
+                }}
+                aria-label="Next Announcement"
+                title="Next Announcement"
+              >
+                ▶
+              </button>
             </div>
+            <div className="announcement-content">
+              <Link 
+                to={`/user/offices/${announcements[currentAnnouncementIndex].office}`}
+                className={`office-tag ${announcements[currentAnnouncementIndex].office}`}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {announcements[currentAnnouncementIndex].office}
+              </Link>
+              <p className="announcement-text">{announcements[currentAnnouncementIndex].text}</p>
+              {announcements[currentAnnouncementIndex].link && (
+                <div className="link-indicator">Click to read more</div>
+              )}
+            </div>
+
+            
             <div className="announcement-dots">
               {announcements.map((_, index) => (
                 <span

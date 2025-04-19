@@ -327,7 +327,7 @@ function HomeAdmin({ darkMode }) {
     setSelectedQuickLinkIndex(index);
     setEditQuickLinkTitle(quickLink.title);
     setEditQuickLinkUrl(quickLink.url);
-    setEditQuickLinkOffice(quickLink.office);
+    setEditQuickLinkOffice(quickLink.office || "Admissions Office");
     setIsEditingQuickLinks(true);
     setIsAddingQuickLink(false);
   };
@@ -349,7 +349,7 @@ function HomeAdmin({ darkMode }) {
         body: JSON.stringify({
           title: editQuickLinkTitle,
           url: editQuickLinkUrl,
-          office: editQuickLinkOffice,
+          office: editQuickLinkOffice // Make sure office is included in the request
         }),
       });
 
@@ -361,7 +361,7 @@ function HomeAdmin({ darkMode }) {
         ...quickLink,
         title: editQuickLinkTitle,
         url: editQuickLinkUrl,
-        office: editQuickLinkOffice,
+        office: editQuickLinkOffice // Update office in local state
       };
 
       setQuickLinks(updatedQuickLinks);
@@ -977,7 +977,7 @@ const removePortal = async (index) => {
                     <option value="Faculty Portal">Faculty Portal</option>
                     <option value="Outreach Office">Outreach Office</option>
                     <option value="R&D Office">R&D Office</option>
-                    <option value="Placements Cell">Placements Cell</option>
+                    <option value="Placement Cell">Placement Cell</option>
                     <option value="Statistical Cell">Statistical Cell</option>
                     <option value="General Administration">General Administration</option>
                     <option value="Accounts Office">Accounts Office</option>
@@ -1066,7 +1066,7 @@ const removePortal = async (index) => {
                     <option value="Faculty Portal">Faculty Portal</option>
                     <option value="Outreach Office">Outreach Office</option>
                     <option value="R&D Office">R&D Office</option>
-                    <option value="Placement Cell">Placements Cell</option>
+                    <option value="Placement Cell">Placement Cell</option>
                     <option value="Statistical Cell">Statistical Cell</option>
                     <option value="General Administration">General Administration</option>
                     <option value="Accounts Office">Accounts Office</option>
@@ -1364,7 +1364,7 @@ const removePortal = async (index) => {
               aria-label="Edit portals"
               title="Edit portals"
             >
-              ✏️
+              <img src={editIcon} alt="Edit" className="action-icon" />
             </button>
           </div>
 
@@ -1532,7 +1532,7 @@ const removePortal = async (index) => {
               aria-label="Edit quick links"
               title="Edit quick links"
             >
-              ✏️
+              <img src={editIcon} alt="Edit" className="action-icon" />
             </button>
           </div>
 
@@ -1626,6 +1626,35 @@ const removePortal = async (index) => {
                   value={editQuickLinkUrl}
                   onChange={(e) => setEditQuickLinkUrl(e.target.value)}
                 />
+              </div>
+              <div className="edit-form-group">
+                <label htmlFor="quick-link-office">Office:</label>
+                <select
+                  id="quick-link-office"
+                  value={editQuickLinkOffice}
+                  onChange={(e) => setEditQuickLinkOffice(e.target.value)}
+                  className="office-select"
+                >
+                  <option value="Admissions Office">Admissions Office</option>
+                  <option value="Academic Office">Academic Office</option>
+                  <option value="Library Office">Library Office</option>
+                  <option value="Examinations Office">Examinations Office</option>
+                  <option value="Student Affairs Office">Student Affairs Office</option>
+                  <option value="Hostel Office">Hostel Office</option>
+                  <option value="Mess Office">Mess Office</option>
+                  <option value="Alumni Cell">Alumni Cell</option>
+                  <option value="Faculty Portal">Faculty Portal</option>
+                  <option value="Placement Cell">Placement Cell</option>
+                  <option value="Outreach Office">Outreach Office</option>
+                  <option value="Statistical Cell">Statistical Cell</option>
+                  <option value="R&D Office">R&D Office</option>
+                  <option value="General Administration">General Administration</option>
+                  <option value="Accounts Office">Accounts Office</option>
+                  <option value="IT Services Office">IT Services Office</option>
+                  <option value="Communication Office">Communication Office</option>
+                  <option value="Engineering Office">Engineering Office</option>
+                  <option value="HR & Personnel">HR & Personnel</option>
+                </select>
               </div>
               <div className="edit-buttons">
                 <button onClick={saveQuickLink} className="save-btn">Save</button>

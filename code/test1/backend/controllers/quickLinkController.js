@@ -73,12 +73,12 @@ exports.deleteQuickLink = async (req, res, next) => {
 // @route   PUT /api/quicklinks/:id
 // @access  Admin/Superadmin
 exports.editQuickLink = async (req, res, next) => {
-  const { title, url } = req.body;
+  const { title, url, office } = req.body;
 
   try {
     const quickLink = await QuickLink.findByIdAndUpdate(
       req.params.id,
-      { title, url },
+      { title, url, office },
       { new: true, runValidators: true }
     );
 

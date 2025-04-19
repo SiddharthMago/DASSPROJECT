@@ -232,10 +232,23 @@ exports.addFileVersion = async (req, res, next) => {
 		// Check if either a file or URL is provided
 		if (!req.file && !url) {
 			return next(new ErrorResponse(`Please upload a file or provide a URL`, 400));
-		}
+		}b
 
 		// Use relative path
 		let filePath = req.file ? `uploads/files/${req.file.filename}` : null;
+
+		// Create version history array with the original file's information
+		const versionHistory = [
+			{
+				name: originalFile.name,
+				fileId: originalFile._id
+			}
+		];
+
+		// Add previous versions if they exist
+		if (originalFile.versions && originalFile.versions.length > 0) {
+			versionHistory.push(...originalFile.versions);
+		}
 
 		const newFileData = {
 			name,
@@ -245,12 +258,12 @@ exports.addFileVersion = async (req, res, next) => {
 			category: originalFile.category,
 			status: "pending",
 			author: req.user.id,
-			versions: [...originalFile.versions, originalFile._id]
+			versions: versionHistory  // Now contains properly structured version history
 		};
 
 		const newFile = await File.create(newFileData);
 
-		console.log(`[ADD FILE VERSION] Version added successfully to file: ${file._id}`);
+		console.log(`[ADD FILE VERSION] Version added successfully to file: ${newFile._id}`);
 		res.status(201).json({ success: true, data: newFile });
 	}
 	catch (err) {

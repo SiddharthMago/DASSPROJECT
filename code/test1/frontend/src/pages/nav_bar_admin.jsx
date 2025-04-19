@@ -73,9 +73,13 @@ function NavBar_Admin({ darkMode, setDarkMode }) {
                     <Link onClick={() => handleCASLogin()}>Log In</Link>
                 )}
             </div>
-
+            
             <div className="navbar-mode-toggle">
-                <button onClick={toggleDarkMode}>
+                <button onClick={goToHelpWebsite} className="navbar-help-button" title="Get Help">
+                    ❓
+                </button>
+            
+                <button onClick={toggleDarkMode} className="navbar-mode-toggle-button" style={{marginLeft: '20px'}}>
                     {darkMode ? '☀️' : '🌙'}
                 </button>
             </div>

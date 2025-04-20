@@ -153,9 +153,11 @@ function PendingApprovals({ darkMode }) {
 	// Function to preview an item
 	const previewItem = (item) => {
 		if (item.category === 'file') {
-			const filePath = item.filePath ? `/${item.filePath.replace(/\\/g, "/")}` : '';
-			const viewURL = filePath ? `http://localhost:5000${filePath}` : null;
-			if (item.url) {
+			// Build the view URL using the file ID for the file view route
+			const role = localStorage.getItem('role') || 'superadmin';
+			const viewURL = `/${role}/file/${item.id}`;
+			
+			if (item.filePath || item.url) {
 				window.open(viewURL, '_blank');
 			} else {
 				alert('No preview available for this file');

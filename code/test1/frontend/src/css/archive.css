@@ -250,24 +250,105 @@ body {
   text-align: center;
   padding: 3rem;
   background-color: var(--card-bg);
-  border-radius: 8px;
+  border-radius: 12px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 200px;
+  min-height: 300px;
+  margin: 2rem auto;
+  max-width: 600px;
+  position: relative;
+  overflow: hidden;
+}
+
+.loading-state::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+  animation: loadingBar 1.5s ease-in-out infinite;
+}
+
+@keyframes loadingBar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  z-index: 1;
+}
+
+.loading-dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.loading-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--accent-color);
+  animation: loadingDot 1.4s infinite ease-in-out;
+}
+
+.loading-dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.loading-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loading-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes loadingDot {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.3;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .loading-state p {
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: var(--text-primary);
   font-weight: 500;
   letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.loading-state .loading-subtext {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  opacity: 0.7;
+  margin-top: 0.5rem;
 }
 
 /* Dark mode adjustments */
 .dark-mode .loading-state {
   background-color: var(--secondary-bg, #242426);
+}
+
+.dark-mode .loading-dot {
+  background-color: #4a90e2;
 }
 
 /* Archive Grid */

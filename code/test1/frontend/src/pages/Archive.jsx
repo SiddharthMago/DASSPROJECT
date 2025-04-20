@@ -1,8 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import '../css/archive.css';
 import { FaTh, FaList, FaPlus, FaTrash } from 'react-icons/fa';
+
+// Cache for API responses
+const apiCache = {
+	files: null,
+	announcements: null,
+	quicklinks: null,
+	lastFetch: null,
+	CACHE_DURATION: 5 * 60 * 1000, // 5 minutes
+};
 
 function Archive({ darkMode, userRole }) {
 	// State for filtering
@@ -124,7 +133,7 @@ function Archive({ darkMode, userRole }) {
 	}
 
 	// Update the file mapping to use author ObjectId
-	const mapFileData = (file) => {
+	const mapFileData = useCallback((file) => {
 		// Standardize the file path construction for both view and download
 		console.log("[archive] mapping filedata for file: ", file._id);
 		const filePath = file.filePath ? `/${file.filePath.replace(/\\/g, '/')}` : '';
@@ -156,10 +165,10 @@ function Archive({ darkMode, userRole }) {
 		}
 
 		return mappedFile;
-	};
+	}, [authorDetails]);
 
 	// Map announcement data consistently
-	const mapAnnouncementData = (announcement) => {
+	const mapAnnouncementData = useCallback((announcement) => {
 		const mappedAnnouncement = {
 			id: announcement._id,
 			fileName: announcement.title,
@@ -181,10 +190,10 @@ function Archive({ darkMode, userRole }) {
 		}
 
 		return mappedAnnouncement;
-	};
+	}, [authorDetails]);
 
 	// Map quickLink data consistently
-	const mapQuickLinkData = (quickLink) => {
+	const mapQuickLinkData = useCallback((quickLink) => {
 		const mappedQuickLink = {
 			id: quickLink._id,
 			fileName: quickLink.title,
@@ -206,105 +215,95 @@ function Archive({ darkMode, userRole }) {
 		// }
 
 		return mappedQuickLink;
-	};
+	}, []);
 
-	// Fetch data based on active tab
-	useEffect(() => {
-		const fetchData = async () => {
-			try {
-				setLoading(true);
-				if (activeTab === 'All') {
-					// Fetch all types of content
-					const [filesRes, announcementsRes, quickLinksRes] = await Promise.all([
-						axios.get('http://localhost:5000/api/files/approved'),
-						axios.get('http://localhost:5000/api/announcements'),
-						axios.get('http://localhost:5000/api/quicklinks')
-					]);
+	// Memoized filtered items
+	const filteredItems = useMemo(() => {
+		return archiveItems.filter((item) => {
+			const matchesCategory = activeTab === 'All' ||
+				(activeTab === 'Uploaded by Me' ? item.category === 'Files' : item.category === activeTab);
+			const matchesOffice =
+				selectedOffice === 'All' || item.office.toLowerCase().includes(selectedOffice.toLowerCase());
+			const matchesSearch =
+				searchQuery === '' || item.fileName.toLowerCase().includes(searchQuery.toLowerCase());
 
-					const files = filesRes.data.data.map(mapFileData);
+			return matchesCategory && matchesOffice && matchesSearch;
+		});
+	}, [archiveItems, activeTab, selectedOffice, searchQuery]);
 
-					const announcements = announcementsRes.data.data.map(mapAnnouncementData);
-
-					const quickLinks = quickLinksRes.data.data.map(mapQuickLinkData);
-
-					// Combine all items and sort by date
+	// Memoized fetch functions
+	const fetchData = useCallback(async () => {
+		try {
+			setLoading(true);
+			const now = Date.now();
+			
+			// Check if we have cached data that's still valid
+			if (apiCache.lastFetch && (now - apiCache.lastFetch) < apiCache.CACHE_DURATION) {
+				if (activeTab === 'All' && apiCache.files && apiCache.announcements && apiCache.quicklinks) {
+					const files = apiCache.files.map(mapFileData);
+					const announcements = apiCache.announcements.map(mapAnnouncementData);
+					const quickLinks = apiCache.quicklinks.map(mapQuickLinkData);
 					const allItems = [...files, ...announcements, ...quickLinks].sort((a, b) =>
 						new Date(b.modifiedDate) - new Date(a.modifiedDate)
 					);
 					setArchiveItems(allItems);
-				} else if (activeTab === 'Files') {
-					const res = await axios.get('http://localhost:5000/api/files/approved');
-					const mapped = res.data.data.map(mapFileData);
-					setArchiveItems(mapped);
-				} else if (activeTab === 'Uploaded by Me') {
-					const token = localStorage.getItem('token');
-					if (!token) {
-						console.error('No token found');
-						setError('Please log in to view your uploaded files');
-						return;
-					}
-
-					const res = await axios.get('http://localhost:5000/api/files/my-files', {
-						headers: {
-							Authorization: `Bearer ${token}`
-						}
-					});
-
-					if (!res.data.success) {
-						console.error('Failed to fetch user files:', res.data.error);
-						setError('Failed to fetch your uploaded files');
-						return;
-					}
-
-					const mapped = res.data.data.map((file) => {
-						// Standardize the file path construction for both view and download
-						const filePath = file.filePath ? `/${file.filePath.replace(/\\/g, '/')}` : '';
-
-						return {
-							id: file._id,
-							fileName: file.name,
-							author: file.author?.name || file.office,
-							office: file.office,
-							modifiedDate: new Date(file.createdAt).toLocaleDateString(),
-							category: 'Files',
-							status: file.status,
-							comments: file.comments || [],
-							viewURL: filePath ? `http://localhost:5000${filePath}` : null,
-							downloadUrl: file.url || (filePath ? `http://localhost:5000${filePath}` : null),
-						};
-					});
-					setArchiveItems(mapped);
-				} else if (activeTab === 'Announcements') {
-					const res = await axios.get('http://localhost:5000/api/announcements');
-					const mapped = res.data.data.map(mapAnnouncementData);
-					setArchiveItems(mapped);
-				} else if (activeTab === 'Links') {
-					const res = await axios.get('http://localhost:5000/api/quicklinks');
-					const mapped = res.data.data.map(mapQuickLinkData);
-					setArchiveItems(mapped);
+					setLoading(false);
+					return;
 				}
-			} catch (err) {
-				console.error('Failed to fetch data:', err);
-				setError(err.response?.data?.error || 'Failed to fetch data');
-			} finally {
-				setLoading(false);
 			}
-		};
 
+			if (activeTab === 'All') {
+				const [filesRes, announcementsRes, quickLinksRes] = await Promise.all([
+					axios.get('http://localhost:5000/api/files/approved'),
+					axios.get('http://localhost:5000/api/announcements'),
+					axios.get('http://localhost:5000/api/quicklinks')
+				]);
+
+				// Cache the responses
+				apiCache.files = filesRes.data.data;
+				apiCache.announcements = announcementsRes.data.data;
+				apiCache.quicklinks = quickLinksRes.data.data;
+				apiCache.lastFetch = now;
+
+				const files = filesRes.data.data.map(mapFileData);
+				const announcements = announcementsRes.data.data.map(mapAnnouncementData);
+				const quickLinks = quickLinksRes.data.data.map(mapQuickLinkData);
+
+				const allItems = [...files, ...announcements, ...quickLinks].sort((a, b) =>
+					new Date(b.modifiedDate) - new Date(a.modifiedDate)
+				);
+				setArchiveItems(allItems);
+			} else if (activeTab === 'Files') {
+				const res = await axios.get('http://localhost:5000/api/files/approved');
+				apiCache.files = res.data.data;
+				apiCache.lastFetch = now;
+				const mapped = res.data.data.map(mapFileData);
+				setArchiveItems(mapped);
+			} else if (activeTab === 'Announcements') {
+				const res = await axios.get('http://localhost:5000/api/announcements');
+				apiCache.announcements = res.data.data;
+				apiCache.lastFetch = now;
+				const mapped = res.data.data.map(mapAnnouncementData);
+				setArchiveItems(mapped);
+			} else if (activeTab === 'Links') {
+				const res = await axios.get('http://localhost:5000/api/quicklinks');
+				apiCache.quicklinks = res.data.data;
+				apiCache.lastFetch = now;
+				const mapped = res.data.data.map(mapQuickLinkData);
+				setArchiveItems(mapped);
+			}
+		} catch (err) {
+			console.error('Failed to fetch data:', err);
+			setError(err.response?.data?.error || 'Failed to fetch data');
+		} finally {
+			setLoading(false);
+		}
+	}, [activeTab, mapFileData, mapAnnouncementData, mapQuickLinkData]);
+
+	// Fetch data when activeTab changes
+	useEffect(() => {
 		fetchData();
-	}, [activeTab, authorDetails]);
-
-	// Filter items based on search query, office selection, and active tab
-	const filteredItems = archiveItems.filter((item) => {
-		const matchesCategory = activeTab === 'All' ||
-			(activeTab === 'Uploaded by Me' ? item.category === 'Files' : item.category === activeTab);
-		const matchesOffice =
-			selectedOffice === 'All' || item.office.toLowerCase().includes(selectedOffice.toLowerCase());
-		const matchesSearch =
-			searchQuery === '' || item.fileName.toLowerCase().includes(searchQuery.toLowerCase());
-
-		return matchesCategory && matchesOffice && matchesSearch;
-	});
+	}, [fetchData]);
 
 	const toggleComments = (fileId) => {
 		setExpandedFileId(expandedFileId === fileId ? null : fileId);
@@ -718,8 +717,15 @@ function Archive({ darkMode, userRole }) {
 			<section className="archive-content">
 				{loading ? (
 					<div className="loading-state">
-						<div className="loading-spinner"></div>
-						<p>Loading archive items...</p>
+						<div className="loading-content">
+							<div className="loading-dots">
+								<div className="loading-dot"></div>
+								<div className="loading-dot"></div>
+								<div className="loading-dot"></div>
+							</div>
+							<p>Loading archive items...</p>
+							{/* <p className="loading-subtext">Please wait while we fetch data</p> */}
+						</div>
 					</div>
 				) : error ? (
 					<div className="error-state">
@@ -765,326 +771,326 @@ function Archive({ darkMode, userRole }) {
 									</div>
 								</div>
 
-                <div className="card-actions">
-                  {item.category === 'Announcements' ? (
-                    <>
-                      {canManageItem(item.office) && (
-                        <button
-                          className="action-button edit"
-                          onClick={() => setEditAnnouncementModal({
-                            show: true,
-                            id: item.id,
-                            title: item.fileName,
-                            office: item.office,
-                            link: item.downloadUrl,
-                            image: item.image
-                          })}
-                        >
-                          Edit
-                        </button>
-                      )}
-                      <button
-                        className="action-button open-link"
-                        onClick={() => window.open(item.downloadUrl, '_blank')}
-                        disabled={!item.downloadUrl || item.downloadUrl === '#'}
-                      >
-                        Open Link
-                      </button>
-                    </>
-                  ) : item.category === 'Links' ? (
-                    <>
-                      {canManageItem(item.office) && (
-                        <>
-                          <button
-                            className="action-button pin"
-                            onClick={() => {
-                              const endpoint = item.pinned ? 'unpin' : 'pin';
-                              axios.put(
-                                `http://localhost:5000/api/quicklinks/${item.id}/${endpoint}`,
-                                {},
-                                {
-                                  headers: {
-                                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                                  }
-                                }
-                              ).then(() => {
-                                // Refresh the links list
-                                axios.get('http://localhost:5000/api/quicklinks')
-                                  .then(res => {
-                                    const mapped = res.data.data.map(mapQuickLinkData);
-                                    setArchiveItems(mapped);
-                                  });
-                              });
-                            }}
-                          >
-                            {item.pinned ? 'Unpin' : 'Pin'}
-                          </button>
-                          <button
-                            className="action-button edit"
-                            onClick={() => setEditLinkModal({
-                              show: true,
-                              id: item.id,
-                              title: item.fileName,
-                              office: item.office,
-                              url: item.downloadUrl,
-                              pinned: item.pinned
-                            })}
-                          >
-                            Edit
-                          </button>
-                        </>
-                      )}
-                      <button
-                        className="action-button open-link"
-                        onClick={() => window.open(item.downloadUrl, '_blank')}
-                        disabled={!item.downloadUrl || item.downloadUrl === '#'}
-                      >
-                        Open Link
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        className="action-button preview"
-                        onClick={() => window.open(item.viewURL, '_blank')}
-                      >
-                        Preview
-                      </button>
-                      <a
-                        href={item.downloadUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="action-button download"
-                      >
-                        Download
-                      </a>
-                    </>
-                  )}
-                  {canManageItem(item.office) && (
-                    <button
-                      className="action-button delete"
-                      onClick={() => setDeleteModal({
-                        show: true,
-                        itemId: item.id,
-                        itemName: item.fileName,
-                        category: item.category
-                      })}
-                    >
-                      <FaTrash />
-                    </button>
-                  )}
-                </div>
+								<div className="card-actions">
+									{item.category === 'Announcements' ? (
+										<>
+											{canManageItem(item.office) && (
+												<button
+													className="action-button edit"
+													onClick={() => setEditAnnouncementModal({
+														show: true,
+														id: item.id,
+														title: item.fileName,
+														office: item.office,
+														link: item.downloadUrl,
+														image: item.image
+													})}
+												>
+													Edit
+												</button>
+											)}
+											<button
+												className="action-button open-link"
+												onClick={() => window.open(item.downloadUrl, '_blank')}
+												disabled={!item.downloadUrl || item.downloadUrl === '#'}
+											>
+												Open Link
+											</button>
+										</>
+									) : item.category === 'Links' ? (
+										<>
+											{canManageItem(item.office) && (
+												<>
+													<button
+														className="action-button pin"
+														onClick={() => {
+															const endpoint = item.pinned ? 'unpin' : 'pin';
+															axios.put(
+																`http://localhost:5000/api/quicklinks/${item.id}/${endpoint}`,
+																{},
+																{
+																	headers: {
+																		'Authorization': `Bearer ${localStorage.getItem('token')}`
+																	}
+																}
+															).then(() => {
+																// Refresh the links list
+																axios.get('http://localhost:5000/api/quicklinks')
+																	.then(res => {
+																		const mapped = res.data.data.map(mapQuickLinkData);
+																		setArchiveItems(mapped);
+																	});
+															});
+														}}
+													>
+														{item.pinned ? 'Unpin' : 'Pin'}
+													</button>
+													<button
+														className="action-button edit"
+														onClick={() => setEditLinkModal({
+															show: true,
+															id: item.id,
+															title: item.fileName,
+															office: item.office,
+															url: item.downloadUrl,
+															pinned: item.pinned
+														})}
+													>
+														Edit
+													</button>
+												</>
+											)}
+											<button
+												className="action-button open-link"
+												onClick={() => window.open(item.downloadUrl, '_blank')}
+												disabled={!item.downloadUrl || item.downloadUrl === '#'}
+											>
+												Open Link
+											</button>
+										</>
+									) : (
+										<>
+											<button
+												className="action-button preview"
+												onClick={() => window.open(item.viewURL, '_blank')}
+											>
+												Preview
+											</button>
+											<a
+												href={item.downloadUrl}
+												target="_blank"
+												rel="noopener noreferrer"
+												className="action-button download"
+											>
+												Download
+											</a>
+										</>
+									)}
+									{canManageItem(item.office) && (
+										<button
+											className="action-button delete"
+											onClick={() => setDeleteModal({
+												show: true,
+												itemId: item.id,
+												itemName: item.fileName,
+												category: item.category
+											})}
+										>
+											<FaTrash />
+										</button>
+									)}
+								</div>
 
-                {activeTab === 'Uploaded by Me' && item.status === 'rejected' && (
-                  <div className="comments-section">
-                    <button
-                      className="comments-toggle"
-                      onClick={() => toggleComments(item.id)}
-                    >
-                      View Rejection Comments
-                    </button>
-                    {expandedFileId === item.id && (
-                      <div className="comments-content">
-                        {item.comments && item.comments.length > 0 ? (
-                          item.comments.map((comment, index) => (
-                            <div key={index} className="comment-item">
-                              <div className="comment-header">
-                                <span className="comment-author">
-                                  {comment.author?.name || 'Unknown'}
-                                </span>
-                                <span className="comment-date">
-                                  {new Date(comment.createdAt).toLocaleDateString()}
-                                </span>
-                              </div>
-                              <p className="comment-text">{comment.content}</p>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="no-comments">No comments available</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <table className="archive-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Category</th>
-                <th>Author</th>
-                <th>Office</th>
-                <th>Date</th>
-                {activeTab === 'Uploaded by Me' && <th>Status</th>}
-                <th className="actions-cell">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredItems.map((item) => (
-                <tr key={item.id}>
-                  <td className="name-cell">{item.fileName}</td>
-                  <td className="category-cell">
-                    <span className={`category-badge ${item.category.toLowerCase()}`}>
-                      {item.category}
-                    </span>
-                  </td>
-                  <td className="author-cell">{item.author}</td>
-                  <td className="office-cell">{item.office}</td>
-                  <td className="date-cell">{item.modifiedDate}</td>
-                  {activeTab === 'Uploaded by Me' && (
-                    <td className="status-cell">
-                      <div className="status-container">
-                        <span className={`status-badge ${item.status?.toLowerCase()}`}>
-                          {item.status}
-                        </span>
-                        {item.status?.toLowerCase() === 'rejected' && item.comments && (
-                          <button
-                            className="comments-toggle"
-                            onClick={() => toggleComments(item.id)}
-                          >
-                            View Comments
-                          </button>
-                        )}
-                      </div>
-                      {expandedFileId === item.id && item.comments && (
-                        <div className="comments-content">
-                          {item.comments.map((comment, index) => (
-                            <div key={index} className="comment-item">
-                              <div className="comment-header">
-                                <span className="comment-author">
-                                  {comment.author?.name || 'Unknown'}
-                                </span>
-                                <span className="comment-date">
-                                  {new Date(comment.createdAt).toLocaleDateString()}
-                                </span>
-                              </div>
-                              <p className="comment-text">{comment.content}</p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </td>
-                  )}
-                  <td className="actions-cell">
-                    <div className="card-actions">
-                      {item.category === 'Announcements' ? (
-                        <>
-                          {canManageItem(item.office) && (
-                            <button
-                              className="action-button edit"
-                              onClick={() => setEditAnnouncementModal({
-                                show: true,
-                                id: item.id,
-                                title: item.fileName,
-                                office: item.office,
-                                link: item.downloadUrl,
-                                image: item.image
-                              })}
-                            >
-                              Edit
-                            </button>
-                          )}
-                          <button
-                            className="action-button open-link"
-                            onClick={() => window.open(item.downloadUrl, '_blank')}
-                            disabled={!item.downloadUrl || item.downloadUrl === '#'}
-                          >
-                            Open Link
-                          </button>
-                        </>
-                      ) : item.category === 'Links' ? (
-                        <>
-                          {canManageItem(item.office) && (
-                            <>
-                              <button
-                                className="action-button pin"
-                                onClick={() => {
-                                  const endpoint = item.pinned ? 'unpin' : 'pin';
-                                  axios.put(
-                                    `http://localhost:5000/api/quicklinks/${item.id}/${endpoint}`,
-                                    {},
-                                    {
-                                      headers: {
-                                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                                      }
-                                    }
-                                  ).then(() => {
-                                    // Refresh the links list
-                                    axios.get('http://localhost:5000/api/quicklinks')
-                                      .then(res => {
-                                        const mapped = res.data.data.map(mapQuickLinkData);
-                                        setArchiveItems(mapped);
-                                      });
-                                  });
-                                }}
-                              >
-                                {item.pinned ? 'Unpin' : 'Pin'}
-                              </button>
-                              <button
-                                className="action-button edit"
-                                onClick={() => setEditLinkModal({
-                                  show: true,
-                                  id: item.id,
-                                  title: item.fileName,
-                                  office: item.office,
-                                  url: item.downloadUrl,
-                                  pinned: item.pinned
-                                })}
-                              >
-                                Edit
-                              </button>
-                            </>
-                          )}
-                          <button
-                            className="action-button open-link"
-                            onClick={() => window.open(item.downloadUrl, '_blank')}
-                            disabled={!item.downloadUrl || item.downloadUrl === '#'}
-                          >
-                            Open Link
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            className="action-button preview"
-                            onClick={() => window.open(item.viewURL, '_blank')}
-                          >
-                            Preview
-                          </button>
-                          <a
-                            href={item.downloadUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="action-button download"
-                          >
-                            Download
-                          </a>
-                        </>
-                      )}
-                      {canManageItem(item.office) && (
-                        <button
-                          className="action-button delete"
-                          onClick={() => setDeleteModal({
-                            show: true,
-                            itemId: item.id,
-                            itemName: item.fileName,
-                            category: item.category
-                          })}
-                        >
-                          <FaTrash />
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </section>
+								{activeTab === 'Uploaded by Me' && item.status === 'rejected' && (
+									<div className="comments-section">
+										<button
+											className="comments-toggle"
+											onClick={() => toggleComments(item.id)}
+										>
+											View Rejection Comments
+										</button>
+										{expandedFileId === item.id && (
+											<div className="comments-content">
+												{item.comments && item.comments.length > 0 ? (
+													item.comments.map((comment, index) => (
+														<div key={index} className="comment-item">
+															<div className="comment-header">
+																<span className="comment-author">
+																	{comment.author?.name || 'Unknown'}
+																</span>
+																<span className="comment-date">
+																	{new Date(comment.createdAt).toLocaleDateString()}
+																</span>
+															</div>
+															<p className="comment-text">{comment.content}</p>
+														</div>
+													))
+												) : (
+													<p className="no-comments">No comments available</p>
+												)}
+											</div>
+										)}
+									</div>
+								)}
+							</div>
+						))}
+					</div>
+				) : (
+					<table className="archive-table">
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>Category</th>
+								<th>Author</th>
+								<th>Office</th>
+								<th>Date</th>
+								{activeTab === 'Uploaded by Me' && <th>Status</th>}
+								<th className="actions-cell">Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							{filteredItems.map((item) => (
+								<tr key={item.id}>
+									<td className="name-cell">{item.fileName}</td>
+									<td className="category-cell">
+										<span className={`category-badge ${item.category.toLowerCase()}`}>
+											{item.category}
+										</span>
+									</td>
+									<td className="author-cell">{item.author}</td>
+									<td className="office-cell">{item.office}</td>
+									<td className="date-cell">{item.modifiedDate}</td>
+									{activeTab === 'Uploaded by Me' && (
+										<td className="status-cell">
+											<div className="status-container">
+												<span className={`status-badge ${item.status?.toLowerCase()}`}>
+													{item.status}
+												</span>
+												{item.status?.toLowerCase() === 'rejected' && item.comments && (
+													<button
+														className="comments-toggle"
+														onClick={() => toggleComments(item.id)}
+													>
+														View Comments
+													</button>
+												)}
+											</div>
+											{expandedFileId === item.id && item.comments && (
+												<div className="comments-content">
+													{item.comments.map((comment, index) => (
+														<div key={index} className="comment-item">
+															<div className="comment-header">
+																<span className="comment-author">
+																	{comment.author?.name || 'Unknown'}
+																</span>
+																<span className="comment-date">
+																	{new Date(comment.createdAt).toLocaleDateString()}
+																</span>
+															</div>
+															<p className="comment-text">{comment.content}</p>
+														</div>
+													))}
+												</div>
+											)}
+										</td>
+									)}
+									<td className="actions-cell">
+										<div className="card-actions">
+											{item.category === 'Announcements' ? (
+												<>
+													{canManageItem(item.office) && (
+														<button
+															className="action-button edit"
+															onClick={() => setEditAnnouncementModal({
+																show: true,
+																id: item.id,
+																title: item.fileName,
+																office: item.office,
+																link: item.downloadUrl,
+																image: item.image
+															})}
+														>
+															Edit
+														</button>
+													)}
+													<button
+														className="action-button open-link"
+														onClick={() => window.open(item.downloadUrl, '_blank')}
+														disabled={!item.downloadUrl || item.downloadUrl === '#'}
+													>
+														Open Link
+													</button>
+												</>
+											) : item.category === 'Links' ? (
+												<>
+													{canManageItem(item.office) && (
+														<>
+															<button
+																className="action-button pin"
+																onClick={() => {
+																	const endpoint = item.pinned ? 'unpin' : 'pin';
+																	axios.put(
+																		`http://localhost:5000/api/quicklinks/${item.id}/${endpoint}`,
+																		{},
+																		{
+																			headers: {
+																				'Authorization': `Bearer ${localStorage.getItem('token')}`
+																			}
+																		}
+																	).then(() => {
+																		// Refresh the links list
+																		axios.get('http://localhost:5000/api/quicklinks')
+																			.then(res => {
+																				const mapped = res.data.data.map(mapQuickLinkData);
+																				setArchiveItems(mapped);
+																			});
+																	});
+																}}
+															>
+																{item.pinned ? 'Unpin' : 'Pin'}
+															</button>
+															<button
+																className="action-button edit"
+																onClick={() => setEditLinkModal({
+																	show: true,
+																	id: item.id,
+																	title: item.fileName,
+																	office: item.office,
+																	url: item.downloadUrl,
+																	pinned: item.pinned
+																})}
+															>
+																Edit
+															</button>
+														</>
+													)}
+													<button
+														className="action-button open-link"
+														onClick={() => window.open(item.downloadUrl, '_blank')}
+														disabled={!item.downloadUrl || item.downloadUrl === '#'}
+													>
+														Open Link
+													</button>
+												</>
+											) : (
+												<>
+													<button
+														className="action-button preview"
+														onClick={() => window.open(item.viewURL, '_blank')}
+													>
+														Preview
+													</button>
+													<a
+														href={item.downloadUrl}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="action-button download"
+													>
+														Download
+													</a>
+												</>
+											)}
+											{canManageItem(item.office) && (
+												<button
+													className="action-button delete"
+													onClick={() => setDeleteModal({
+														show: true,
+														itemId: item.id,
+														itemName: item.fileName,
+														category: item.category
+													})}
+												>
+													<FaTrash />
+												</button>
+											)}
+										</div>
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				)}
+			</section>
 
 			{/* Delete Confirmation Modal */}
 			{deleteModal.show && (

@@ -130,33 +130,35 @@ exports.rejectFile = async (req, res, next) => {
 	console.log(`[REJECT FILE] Request to reject file: ${req.params.id} with comment: "${comment}"`);
 
 	try {
-		const file = await File.findByIdAndUpdate(
-			req.params.id,
-			{ status: 'rejected', rejectionComment: comment },
-			{ new: true }
-		);
+		const file = await File.findById(req.params.id);
 
 		if (!file) {
 			console.warn(`[REJECT FILE] File not found: ${req.params.id}`);
 			return res.status(404).json({ success: false, error: 'File not found' });
 		}
 
-		// if (file.status === 'approved' || file.status === 'rejected') {
-		// 	return res.status(400).json({ success: false, error: 'File has already been processed' });
-		// }
+			// Update file status to rejected
+			file.status = 'rejected';
+			
+			// Add the comment to the file's comments array
+			if (comment) {
+				// Initialize comments array if it doesn't exist
+				if (!file.comments) {
+					file.comments = [];
+				}
+				
+				// Add the new comment with the user's ID as author
+				file.comments.push({
+					author: req.user.id,
+					content: comment
+				});
+			}
 
-		// file.status = 'rejected';
-		// if (comment) {
-		// 	file.comments = file.comments || [];
-		// 	file.comments.push({
-		// 		author: req.user.id,
-		// 		content: comment,
-		// 	});
-		// }
-
-		// await file.save();
-		console.log(`[REJECT FILE] File rejected and comment added`);
-		res.status(200).json({ success: true, data: file });
+			// Save the updated file
+			await file.save();
+			
+			console.log(`[REJECT FILE] File rejected and comment added`);
+			res.status(200).json({ success: true, data: file });
 	} catch (err) {
 		console.error(`[REJECT FILE] Error: ${err.message}`);
 		res.status(500).json({ success: false, error: 'Server error' });

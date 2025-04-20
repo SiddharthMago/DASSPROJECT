@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import '../css/contacts.css';
 import { contactService } from "../services/api";
+import { FaPlus } from 'react-icons/fa';
 
 function ContactsAdmin({ darkMode }) {
     const navigate = useNavigate();
@@ -276,7 +277,7 @@ function ContactsAdmin({ darkMode }) {
                     <p class="page-subtitle">All users registered on Intranet network</p>
 
                     <button className="add-contact-btn" onClick={startAddingContact}>
-                        Add New Contact
+                        <FaPlus /> Add new user
                     </button>
                 </div>
 
@@ -284,7 +285,7 @@ function ContactsAdmin({ darkMode }) {
                 {isAddingContact && (
                     <div className="edit-contact-overlay">
                         <div className="edit-contact-form">
-                            <h2>Add New Contact</h2>
+                            <h2>Add new user</h2>
 
                             {/* <div className="edit-form-group">
                                 <label>Profile Image</label>
@@ -637,7 +638,7 @@ function ContactsAdmin({ darkMode }) {
                     ) : (
                         !loading && (
                             <div className="no-results">
-                                <p>No contacts found matching your criteria.</p>
+                                <p>No users found matching your criteria.</p>
                             </div>
                         )
                     )}

@@ -66,7 +66,7 @@ function Archive({ darkMode, userRole }) {
 	// Set active tab from URL parameter on component mount
 	useEffect(() => {
 		const tabParam = searchParams.get('tab');
-		if (tabParam && ['All', 'Files', 'Announcements', 'Links', 'Events'].includes(tabParam)) {
+		if (tabParam && ['All', 'Files', 'Announcements', 'Links'].includes(tabParam)) {
 			setActiveTab(tabParam);
 		}
 	}, [searchParams]);
@@ -691,7 +691,7 @@ function Archive({ darkMode, userRole }) {
 			{/* Category Tabs */}
 			<nav className="category-tabs">
 				<ul className="tab-list">
-					{['All', 'Files', 'Announcements', 'Links', 'Events'].map((tab) => (
+					{['All', 'Files', 'Announcements', 'Links'].map((tab) => (
 						<li key={tab}>
 							<button
 								className={`tab-button ${activeTab === tab ? 'active' : ''}`}

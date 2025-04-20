@@ -66,13 +66,13 @@ function NavBar_Admin({ darkMode, setDarkMode }) {
             {/* Navigation links - will transform based on screen size */}
             <div className={`navbar-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
                 <Link to="/admin/home" onClick={() => setMobileMenuOpen(false)}>Home</Link>
-                <Link to="/admin/archive?tab=All" onClick={() => setMobileMenuOpen(false)}>Search</Link>
+                <Link to="/admin/archive?tab=All" onClick={() => setMobileMenuOpen(false)}>Search/Archive</Link>
                 <Link to="/admin/archive?tab=Announcements" onClick={() => setMobileMenuOpen(false)}>Announcements</Link>
                 <Link to="/admin/home#offices" onClick={() => setMobileMenuOpen(false)}>Offices</Link>
                 <Link to="/admin/archive?tab=Links" onClick={() => setMobileMenuOpen(false)}>Quick Links</Link>
                 {/* Admin-specific navigation links */}
                 <Link to="/admin/add-file" onClick={() => setMobileMenuOpen(false)}>Add file</Link>
-                <Link to="/admin/contacts" onClick={() => setMobileMenuOpen(false)}>Contacts</Link>
+                <Link to="/admin/contacts" onClick={() => setMobileMenuOpen(false)}>Users</Link>
                 {isLoggedIn ? (
                     <Link onClick={() => handleLogOut()}>Log Out</Link>
                 ) : (

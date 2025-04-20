@@ -180,7 +180,7 @@ function ContactsUser({ darkMode }) {
 					) : (
 						!loading && (
 							<div className="no-results">
-								<p>No contacts found matching your criteria.</p>
+								<p>No users found matching your criteria.</p>
 							</div>
 						)
 					)}

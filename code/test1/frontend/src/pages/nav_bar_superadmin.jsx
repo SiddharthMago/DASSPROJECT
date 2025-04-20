@@ -66,13 +66,13 @@ function NavBar_SuperAdmin({ darkMode, setDarkMode }) {
             {/* Navigation links - will transform based on screen size */}
             <div className={`navbar-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
                 <Link to="/superadmin/home" onClick={() => setMobileMenuOpen(false)}>Home</Link>
-                <Link to="/superadmin/archive?tab=All" onClick={() => setMobileMenuOpen(false)}>Search</Link>
+                <Link to="/superadmin/archive?tab=All" onClick={() => setMobileMenuOpen(false)}>Search/Archive</Link>
                 <Link to="/superadmin/archive?tab=Announcements" onClick={() => setMobileMenuOpen(false)}>Announcements</Link>
                 <Link to="/superadmin/home#offices" onClick={() => setMobileMenuOpen(false)}>Offices</Link>
                 <Link to="/superadmin/archive?tab=Links" onClick={() => setMobileMenuOpen(false)}>Quick Links</Link>
                 {/* Admin-specific navigation links */}
                 <Link to="/superadmin/pending_approval" onClick={() => setMobileMenuOpen(false)}>Pending Approval</Link>
-                <Link to="/superadmin/contacts" onClick={() => setMobileMenuOpen(false)}>Contacts</Link>
+                <Link to="/superadmin/contacts" onClick={() => setMobileMenuOpen(false)}>Users</Link>
                 <Link to="/superadmin/add-file" onClick={() => setMobileMenuOpen(false)}>Add file</Link>
                 {isLoggedIn ? (
                     <Link onClick={() => handleLogOut()}>Log Out</Link>

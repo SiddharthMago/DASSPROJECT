@@ -66,11 +66,11 @@ function NavBar_User({ darkMode, setDarkMode }){
             {/* Navigation links - will transform based on screen size */}
             <div className={`navbar-links ${mobileMenuOpen ? 'mobile-open' : ''}`}>
                 <Link to="/user/home" onClick={() => setMobileMenuOpen(false)}>Home</Link>
-                <Link to="/user/archive?tab=All" onClick={() => setMobileMenuOpen(false)}>Search</Link>
+                <Link to="/user/archive?tab=All" onClick={() => setMobileMenuOpen(false)}>Search/Archive</Link>
                 <Link to="/user/archive?tab=Announcements" onClick={() => setMobileMenuOpen(false)}>Announcements</Link>
                 <Link to="/user/home#offices" onClick={() => setMobileMenuOpen(false)}>Offices</Link>
                 <Link to="/user/archive?tab=Links" onClick={() => setMobileMenuOpen(false)}>Quick Links</Link>
-                <Link to="/user/contacts" onClick={() => setMobileMenuOpen(false)}>Contacts</Link>
+                <Link to="/user/contacts" onClick={() => setMobileMenuOpen(false)}>Users</Link>
                 {isLoggedIn ? (
                     <Link onClick={() => handleLogOut()}>Log Out</Link>
                 ) : (

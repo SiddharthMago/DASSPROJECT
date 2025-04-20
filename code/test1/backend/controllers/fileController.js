@@ -232,7 +232,7 @@ exports.addFileVersion = async (req, res, next) => {
 		// Check if either a file or URL is provided
 		if (!req.file && !url) {
 			return next(new ErrorResponse(`Please upload a file or provide a URL`, 400));
-		}b
+		}
 
 		// Use relative path
 		let filePath = req.file ? `uploads/files/${req.file.filename}` : null;
@@ -241,7 +241,9 @@ exports.addFileVersion = async (req, res, next) => {
 		const versionHistory = [
 			{
 				name: originalFile.name,
-				fileId: originalFile._id
+				fileId: originalFile._id,
+				filePath: originalFile.filePath,
+				url: originalFile.url,
 			}
 		];
 

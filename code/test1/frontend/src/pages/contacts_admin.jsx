@@ -272,7 +272,8 @@ function ContactsAdmin({ darkMode }) {
             {/* Main Content */}
             <div className="contacts-content">
                 <div>
-                    <h1 className="page-title">Contacts Directory</h1>
+                    <h1 className="page-title">USERS</h1>
+                    <p class="page-subtitle">All users registered on Intranet network</p>
 
                     <button className="add-contact-btn" onClick={startAddingContact}>
                         Add New Contact

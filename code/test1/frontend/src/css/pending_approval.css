@@ -50,10 +50,10 @@ body {
 .pending-approvals-container {
   min-height: 100vh;
   padding: 2rem;
-  background-color: var(--body-bg);
+  background-color: var(--bg-primary);
   color: var(--text-primary);
   transition: background-color 0.3s, color 0.3s;
-  max-width: 1400px;
+  /* max-width: 1400px; */
   margin: 0 auto;
 }
 
@@ -181,6 +181,14 @@ body {
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
+
+.section-title {
+	text-align: center;
+	margin-bottom: 2rem;
+	font-size: 1.5rem;
+	color: var(--text-primary);
+  font-weight: 600;
+  }
 
 /* Table Styles */
 .archive-table {

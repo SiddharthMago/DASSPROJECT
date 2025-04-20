@@ -599,7 +599,7 @@ function Archive({ darkMode, userRole }) {
 
 			{/* Header Section */}
 			<header className="archive-header">
-				<h1 className="page-title">Archive</h1>
+				<h1 className="page-title">ARCHIVE</h1>
 				<p className="page-subtitle">Browse and access all institutional resources</p>
 			</header>
 

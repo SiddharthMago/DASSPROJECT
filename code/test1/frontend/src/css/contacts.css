@@ -8,6 +8,13 @@
     margin-bottom: 1.5rem; /* Add spacing below the title */
     color: var(--text-primary); /* Ensure it matches the theme */
 }
+
+.page-subtitle {
+    font-size: 1rem;
+    color: var(--text-primary);
+    opacity: 0.7;
+    text-align: center; /* Center the subtitle */
+  }
 /* Contacts Page Specific Styles */
 .contacts-container {
     min-height: 100vh;
@@ -326,7 +333,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin: 0 auto; /* Center the button horizontally */
+    margin: 2% auto; /* Center the button horizontally */
     justify-content: center; /* Center the content inside the button */
 }
 
@@ -335,11 +342,11 @@
 }
 
 .admin-filters {
-    background-color: var(--card-bg);
+    background-color: var(--bg-primary);
     padding: 1.5rem;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    border: 1px solid var(--card-border);
+    /* border-radius: 10px; */
+    /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); */
+    /* border: 1px solid var(--card-border); */
     margin-bottom: 2rem;
 }
 

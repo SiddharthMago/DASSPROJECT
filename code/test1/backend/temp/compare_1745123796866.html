@@ -1,0 +1,601 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+
+<head>
+    <meta http-equiv="Content-Type"
+          content="text/html; charset=utf-8" />
+    <title></title>
+    <style type="text/css">
+        table.diff {font-family:Courier; border:medium;}
+        .diff_header {background-color:#e0e0e0}
+        td.diff_header {text-align:right}
+        .diff_next {background-color:#c0c0c0}
+        .diff_add {background-color:#aaffaa}
+        .diff_chg {background-color:#ffff77}
+        .diff_sub {background-color:#ffaaaa}
+    </style>
+
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+            @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
+            :root {
+                --bg-color: #f8f9fa;
+                --text-color: #333;
+                --card-bg: #fff;
+                --header-bg: #e9ecef;
+                --border-color: #ddd;
+                --diff-add-bg: #e6ffec;
+                --diff-chg-bg: #ffefdb;
+                --diff-sub-bg: #ffebe9;
+                --diff-text: #24292f;
+                --primary-color: #2563eb;
+                --primary-hover: #1d4ed8;
+                --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+                --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+                --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            }
+
+            [data-theme="dark"] {
+                --bg-color: #1a1a1a;
+                --text-color: #f0f0f0;
+                --card-bg: #2d2d2d;
+                --header-bg: #333;
+                --border-color: #444;
+                --diff-add-bg: #1e4620;
+                --diff-chg-bg: #5c3c00;
+                --diff-sub-bg: #5c1a1a;
+                --diff-text: #f0f0f0;
+                --primary-color: #3b82f6;
+                --primary-hover: #60a5fa;
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                line-height: 1.6;
+                margin: 0;
+                padding: 0;
+                background-color: var(--bg-color);
+                color: var(--text-color);
+                transition: background-color 0.3s, color 0.3s;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 2rem;
+                flex: 1;
+            }
+
+            .comparison-header {
+                margin-bottom: 2rem;
+                padding: 2rem;
+                background-color: var(--header-bg);
+                border-radius: 12px;
+                box-shadow: var(--shadow);
+                text-align: center;
+            }
+
+            .comparison-header h1 {
+                margin-bottom: 1.5rem;
+                font-size: 2.5rem;
+                color: var(--primary-color);
+            }
+
+            .file-info {
+                margin: 1rem auto;
+                padding: 1.5rem;
+                background-color: var(--card-bg);
+                border-radius: 12px;
+                border: 1px solid var(--border-color);
+                max-width: 600px;
+                box-shadow: var(--shadow-sm);
+            }
+
+            .file-info p {
+                margin: 0.75rem 0;
+                color: var(--text-color);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .file-info strong {
+                color: var(--primary-color);
+                font-weight: 500;
+            }
+
+            .file-info .timestamp {
+                margin-top: 1.5rem;
+                font-size: 0.9rem;
+                opacity: 0.8;
+            }
+
+            .summary {
+                margin: 2rem auto;
+                padding: 2rem;
+                background-color: var(--card-bg);
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                max-width: 800px;
+                box-shadow: var(--shadow);
+            }
+
+            .summary h2 {
+                text-align: center;
+                margin-bottom: 2rem;
+                color: var(--primary-color);
+            }
+
+            .summary-stats {
+                display: flex;
+                justify-content: center;
+                gap: 3rem;
+                margin-top: 1rem;
+            }
+
+            .stat-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 1.5rem;
+                background-color: var(--header-bg);
+                border-radius: 12px;
+                min-width: 180px;
+                box-shadow: var(--shadow-sm);
+                transition: transform 0.2s, box-shadow 0.2s;
+            }
+
+            .stat-item:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--shadow);
+            }
+
+            .stat-label {
+                font-size: 1rem;
+                color: var(--text-color);
+                opacity: 0.8;
+                margin-bottom: 0.75rem;
+            }
+
+            .stat-value {
+                font-size: 2rem;
+                font-weight: 600;
+                color: var(--primary-color);
+            }
+
+            table.diff {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 0.95rem;
+                background-color: var(--card-bg);
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: var(--shadow);
+                margin: 2rem auto;
+            }
+
+            table.diff th {
+                background-color: var(--header-bg);
+                padding: 1rem;
+                text-align: center;
+                font-weight: 600;
+                color: var(--text-color);
+                border-bottom: 2px solid var(--border-color);
+            }
+
+            table.diff td {
+                padding: 0.75rem;
+                vertical-align: top;
+                border-bottom: 1px solid var(--border-color);
+                font-family: 'Consolas', 'Monaco', monospace;
+                line-height: 1.5;
+            }
+
+            table.diff tr:last-child td {
+                border-bottom: none;
+            }
+
+            table.diff .diff_header {
+                background-color: var(--header-bg);
+                color: var(--text-color);
+                font-weight: 600;
+                padding: 0.5rem;
+                text-align: center;
+            }
+
+            table.diff .diff_next {
+                background-color: var(--header-bg);
+                width: 3%;
+                text-align: center;
+            }
+
+            table.diff .diff_add {
+                background-color: var(--diff-add-bg);
+                color: var(--diff-text);
+            }
+
+            table.diff .diff_chg {
+                background-color: var(--diff-chg-bg);
+                color: var(--diff-text);
+            }
+
+            table.diff .diff_sub {
+                background-color: var(--diff-sub-bg);
+                color: var(--diff-text);
+            }
+
+            table.diff tr:hover td {
+                background-color: rgba(var(--primary-color-rgb), 0.05);
+            }
+
+            table.diff .diff_add:hover td,
+            table.diff .diff_chg:hover td,
+            table.diff .diff_sub:hover td {
+                background-color: rgba(var(--primary-color-rgb), 0.1);
+            }
+
+            .diff-container {
+                position: relative;
+                margin: 2rem 0;
+                overflow-x: auto;
+            }
+
+            .diff-container::before,
+            .diff-container::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                width: 20px;
+                pointer-events: none;
+                z-index: 1;
+            }
+
+            .diff-container::before {
+                left: 0;
+                background: linear-gradient(to right, var(--bg-color), transparent);
+            }
+
+            .diff-container::after {
+                right: 0;
+                background: linear-gradient(to left, var(--bg-color), transparent);
+            }
+
+            .diff-line-number {
+                color: var(--text-color);
+                opacity: 0.6;
+                font-size: 0.85rem;
+                padding-right: 1rem;
+                text-align: right;
+                user-select: none;
+            }
+
+            .diff-content {
+                white-space: pre-wrap;
+                word-break: break-word;
+            }
+
+            .diff-highlight {
+                background-color: rgba(var(--primary-color-rgb), 0.1);
+                padding: 0.2rem;
+                border-radius: 3px;
+            }
+
+            @media (max-width: 768px) {
+                .container {
+                    padding: 1rem;
+                }
+
+                .comparison-header {
+                    padding: 1.5rem;
+                }
+
+                .comparison-header h1 {
+                    font-size: 2rem;
+                }
+
+                .file-info {
+                    padding: 1rem;
+                }
+
+                .summary {
+                    padding: 1.5rem;
+                }
+
+                .summary-stats {
+                    flex-direction: column;
+                    gap: 1rem;
+                }
+
+                .stat-item {
+                    width: 100%;
+                }
+
+                table.diff {
+                    font-size: 0.85rem;
+                }
+
+                table.diff td {
+                    padding: 0.5rem;
+                }
+
+                .diff-line-number {
+                    font-size: 0.75rem;
+                }
+            }
+        </style>
+        
+        <script>
+            // Theme toggle functionality
+            document.addEventListener('DOMContentLoaded', function() {
+                const actionButtons = document.createElement('div');
+                actionButtons.className = 'action-buttons';
+                
+                // Theme toggle button
+                const themeToggle = document.createElement('button');
+                themeToggle.className = 'action-button';
+                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                themeToggle.title = 'Toggle Dark Mode';
+                
+                // Download button
+                const downloadButton = document.createElement('button');
+                downloadButton.className = 'action-button';
+                downloadButton.innerHTML = '<i class="fas fa-download"></i>';
+                downloadButton.title = 'Download Comparison';
+                
+                // Add click handlers
+                themeToggle.addEventListener('click', function() {
+                    const html = document.documentElement;
+                    const currentTheme = html.getAttribute('data-theme');
+                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                    html.setAttribute('data-theme', newTheme);
+                    
+                    // Update icon
+                    const icon = this.querySelector('i');
+                    icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                });
+                
+                downloadButton.addEventListener('click', function() {
+                    const html = document.documentElement.outerHTML;
+                    const blob = new Blob([html], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'pdf_comparison.html';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+                
+                actionButtons.appendChild(themeToggle);
+                actionButtons.appendChild(downloadButton);
+                document.body.appendChild(actionButtons);
+
+                // Add page navigation functionality
+                const pageHeaders = document.querySelectorAll('tr:has(td:contains("--- Page"))');
+                if (pageHeaders.length > 0) {
+                    const jumpDiv = document.createElement('div');
+                    jumpDiv.id = 'pagejump';
+                    
+                    const label = document.createElement('label');
+                    label.textContent = 'Jump to Page:';
+                    jumpDiv.appendChild(label);
+                    
+                    const select = document.createElement('select');
+                    pageHeaders.forEach(header => {
+                        const pageText = header.textContent.match(/--- Page (\d+) ---/);
+                        if (pageText && pageText[1]) {
+                            const option = document.createElement('option');
+                            option.value = header.id || '';
+                            option.textContent = pageText[1];
+                            select.appendChild(option);
+                        }
+                    });
+                    
+                    select.addEventListener('change', function() {
+                        if (this.value) {
+                            document.getElementById(this.value).scrollIntoView({
+                                behavior: 'smooth'
+                            });
+                        }
+                    });
+                    
+                    jumpDiv.appendChild(select);
+                    document.body.appendChild(jumpDiv);
+                }
+
+                // Enhance diff table functionality
+                const diffTable = document.querySelector('table.diff');
+                if (diffTable) {
+                    // Add line numbers
+                    const rows = diffTable.querySelectorAll('tr');
+                    rows.forEach((row, index) => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length > 0) {
+                            cells[0].classList.add('diff-line-number');
+                            cells[0].textContent = index + 1;
+                        }
+                    });
+
+                    // Add hover effect for changed lines
+                    const changedRows = diffTable.querySelectorAll('.diff_add, .diff_chg, .diff_sub');
+                    changedRows.forEach(row => {
+                        row.addEventListener('mouseenter', function() {
+                            this.classList.add('diff-highlight');
+                        });
+                        row.addEventListener('mouseleave', function() {
+                            this.classList.remove('diff-highlight');
+                        });
+                    });
+
+                    // Wrap table in container for better scrolling
+                    const container = document.createElement('div');
+                    container.className = 'diff-container';
+                    diffTable.parentNode.insertBefore(container, diffTable);
+                    container.appendChild(diffTable);
+                }
+            });
+        </script>
+        </head>
+
+<body>
+        <div class="container">
+            <div class="comparison-header">
+                <h1>PDF Comparison Results</h1>
+                <div class="file-info">
+                    <p><strong>Original:</strong> 1745072810517-72bc48b7-5c58-49bb-8c54-16933e8e7398_Minutes_of_the_Meeting_5-3-25.pdf</p>
+                    <p><strong>Modified:</strong> 1745072192504-55Almanac_S25-Final.pdf</p>
+                    <p class="timestamp"><strong>Generated on:</strong> 2025-04-20 10:06:37</p>
+                </div>
+        <div class="summary">
+            <h2>Comparison Summary</h2>
+            <div class="summary-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Similarity</span>
+                    <span class="stat-value">2.96%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Changed Lines</span>
+                    <span class="stat-value">83</span>
+                </div>
+            </div>
+        </div>
+        
+            </div>
+        </div>
+        
+    
+    <table class="diff" id="difflib_chg_to0__top"
+           cellspacing="0" cellpadding="0" rules="groups" >
+        <colgroup></colgroup> <colgroup></colgroup> <colgroup></colgroup>
+        <colgroup></colgroup> <colgroup></colgroup> <colgroup></colgroup>
+        <thead><tr><th class="diff_next"><br /></th><th colspan="2" class="diff_header">1745072810517-72bc48b7-5c58-49bb-8c54-16933e8e7398_Minutes_of_the_Meeting_5-3-25.pdf</th><th class="diff_next"><br /></th><th colspan="2" class="diff_header">1745072192504-55Almanac_S25-Final.pdf</th></tr></thead>
+        <tbody>
+            <tr><td class="diff_next" id="difflib_chg_to0__0"><a href="#difflib_chg_to0__0">f</a></td><td class="diff_header" id="from0_1">1</td><td nowrap="nowrap">---&nbsp;Page&nbsp;1&nbsp;---</td><td class="diff_next"><a href="#difflib_chg_to0__0">f</a></td><td class="diff_header" id="to0_1">1</td><td nowrap="nowrap">---&nbsp;Page&nbsp;1&nbsp;---</td></tr>
+            <tr><td class="diff_next"><a href="#difflib_chg_to0__top">t</a></td><td class="diff_header" id="from0_2">2</td><td nowrap="nowrap"><span class="diff_sub">Minutes&nbsp;of&nbsp;the&nbsp;Meeting&nbsp;5-3-25</span></td><td class="diff_next"><a href="#difflib_chg_to0__top">t</a></td><td class="diff_header" id="to0_2">2</td><td nowrap="nowrap"><span class="diff_add">IIIT&nbsp;Hyderabad&nbsp;-&nbsp;ACADEMIC&nbsp;CALENDAR&nbsp;::&nbsp;SPRING&nbsp;2025&nbsp;-&nbsp;Final</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_3">3</td><td nowrap="nowrap"><span class="diff_sub">Date:&nbsp;5325</span></td><td class="diff_next"></td><td class="diff_header" id="to0_3">3</td><td nowrap="nowrap"><span class="diff_add">Jan-25&nbsp;Feb-25&nbsp;Mar-25&nbsp;Apr-25&nbsp;May-25</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_4">4</td><td nowrap="nowrap"><span class="diff_sub">Time:&nbsp;330&nbsp;p.m.</span></td><td class="diff_next"></td><td class="diff_header" id="to0_4">4</td><td nowrap="nowrap"><span class="diff_add">Day&nbsp;Date&nbsp;DETAILS&nbsp;C&nbsp;C&nbsp;o&nbsp;la&nbsp;u&nbsp;s&nbsp;n&nbsp;s&nbsp;t&nbsp;Date&nbsp;DETAILS&nbsp;C&nbsp;C&nbsp;o&nbsp;la&nbsp;u&nbsp;s&nbsp;n&nbsp;s&nbsp;t&nbsp;Date&nbsp;DETAILS</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap">&nbsp;</td><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap"><span class="diff_add">&nbsp;C&nbsp;C&nbsp;o&nbsp;la&nbsp;u&nbsp;s&nbsp;n&nbsp;s&nbsp;t&nbsp;Date&nbsp;DETAILS&nbsp;C&nbsp;C&nbsp;o&nbsp;la&nbsp;u&nbsp;s&nbsp;n&nbsp;s&nbsp;t&nbsp;Date&nbsp;DETAILS&nbsp;C&nbsp;C&nbsp;o&nbsp;la&nbsp;u&nbsp;s&nbsp;n&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap">&nbsp;</td><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap"><span class="diff_add">s&nbsp;t</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_5">5</td><td nowrap="nowrap"><span class="diff_sub">Attendees:&nbsp;Siddharth&nbsp;Mago,&nbsp;Nilanjana&nbsp;De,&nbsp;Shravani&nbsp;K,&nbsp;Aviral&nbsp;Malhotra</span></td><td class="diff_next"></td><td class="diff_header" id="to0_5">5</td><td nowrap="nowrap"><span class="diff_add">Su</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_6">6</td><td nowrap="nowrap"><span class="diff_sub">Meeting&nbsp;Platform:&nbsp;Physical</span></td><td class="diff_next"></td><td class="diff_header" id="to0_6">6</td><td nowrap="nowrap"><span class="diff_add">Mo&nbsp;Students&nbsp;reporting&nbsp;from&nbsp;30th&nbsp;Dec</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_7">7</td><td nowrap="nowrap"><span class="diff_sub">Agenda:</span></td><td class="diff_next"></td><td class="diff_header" id="to0_7">7</td><td nowrap="nowrap"><span class="diff_add">2024</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_8">8</td><td nowrap="nowrap"><span class="diff_sub">Website&nbsp;design&nbsp;approval&nbsp;based&nbsp;on&nbsp;feedback&nbsp;of&nbsp;last&nbsp;design</span></td><td class="diff_next"></td><td class="diff_header" id="to0_8">8</td><td nowrap="nowrap"><span class="diff_add">Tu&nbsp;1&nbsp;22</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_9">9</td><td nowrap="nowrap"><span class="diff_sub">Discussion:</span></td><td class="diff_next"></td><td class="diff_header" id="to0_9">9</td><td nowrap="nowrap"><span class="diff_add">We&nbsp;1&nbsp;Last&nbsp;day&nbsp;of&nbsp;Reporting&nbsp;2&nbsp;22</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_10">10</td><td nowrap="nowrap"><span class="diff_sub">The&nbsp;team&nbsp;showed&nbsp;3&nbsp;different&nbsp;designs&nbsp;to&nbsp;the&nbsp;client.</span></td><td class="diff_next"></td><td class="diff_header" id="to0_10">10</td><td nowrap="nowrap"><span class="diff_add">Th&nbsp;2&nbsp;First&nbsp;Day&nbsp;of&nbsp;Classes&nbsp;1&nbsp;3&nbsp;23&nbsp;1</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_11">11</td><td nowrap="nowrap"><span class="diff_sub">The&nbsp;team&nbsp;had&nbsp;a&nbsp;discussion&nbsp;with&nbsp;the&nbsp;client&nbsp;for&nbsp;the&nbsp;choice&nbsp;of&nbsp;technology&nbsp;for&nbsp;the</span></td><td class="diff_next"></td><td class="diff_header" id="to0_11">11</td><td nowrap="nowrap"><span class="diff_add">End&nbsp;Sem&nbsp;Exams/Lab</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_12">12</td><td nowrap="nowrap"><span class="diff_sub">backend.</span></td><td class="diff_next"></td><td class="diff_header" id="to0_12">12</td><td nowrap="nowrap"><span class="diff_add">Quiz-2&nbsp;(Regular&nbsp;classes</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_13">13</td><td nowrap="nowrap"><span class="diff_sub">The&nbsp;client&nbsp;will&nbsp;reach&nbsp;out&nbsp;to&nbsp;the&nbsp;team&nbsp;confirming&nbsp;the&nbsp;use&nbsp;of&nbsp;MongoDB&nbsp;for&nbsp;the</span></td><td class="diff_next"></td><td class="diff_header" id="to0_13">13</td><td nowrap="nowrap"><span class="diff_add">Exams&nbsp;incl&nbsp;Proj</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_14">14</td><td nowrap="nowrap"><span class="diff_sub">backend.</span></td><td class="diff_next"></td><td class="diff_header" id="to0_14">14</td><td nowrap="nowrap"><span class="diff_add">Fr&nbsp;3&nbsp;1&nbsp;4&nbsp;will&nbsp;continue&nbsp;for&nbsp;courses&nbsp;23&nbsp;2&nbsp;Presentations&nbsp;/&nbsp;Paper</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_15">15</td><td nowrap="nowrap"><span class="diff_sub">The&nbsp;team&nbsp;discussed&nbsp;roadmap&nbsp;for&nbsp;the&nbsp;future.</span></td><td class="diff_next"></td><td class="diff_header" id="to0_15">15</td><td nowrap="nowrap"><span class="diff_add">not&nbsp;conducting&nbsp;the&nbsp;quiz.)</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_16">16</td><td nowrap="nowrap"><span class="diff_sub">Clientʼs&nbsp;feedback:</span></td><td class="diff_next"></td><td class="diff_header" id="to0_16">16</td><td nowrap="nowrap"><span class="diff_add">checking&nbsp;&amp;Distribution</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_17">17</td><td nowrap="nowrap"><span class="diff_sub">Announcements&nbsp;should&nbsp;automatically&nbsp;change.</span></td><td class="diff_next"></td><td class="diff_header" id="to0_17">17</td><td nowrap="nowrap"><span class="diff_add">Sa&nbsp;4&nbsp;1&nbsp;1&nbsp;Quiz-1&nbsp;9&nbsp;1&nbsp;Mid&nbsp;Exams&nbsp;5&nbsp;23&nbsp;3</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_18">18</td><td nowrap="nowrap"><span class="diff_sub">Section&nbsp;for&nbsp;campus&nbsp;offices&nbsp;must&nbsp;be&nbsp;on&nbsp;the&nbsp;front&nbsp;page.</span></td><td class="diff_next"></td><td class="diff_header" id="to0_18">18</td><td nowrap="nowrap"><span class="diff_add">Su&nbsp;5&nbsp;2&nbsp;2&nbsp;6&nbsp;4</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_19">19</td><td nowrap="nowrap"><span class="diff_sub">The&nbsp;client&nbsp;wants&nbsp;a&nbsp;sidebar&nbsp;to&nbsp;be&nbsp;implemented&nbsp;for&nbsp;filtering&nbsp;the&nbsp;results.</span></td><td class="diff_next"></td><td class="diff_header" id="to0_19">19</td><td nowrap="nowrap"><span class="diff_add">Faculty&nbsp;signup&nbsp;for&nbsp;MS/PhD&nbsp;Faculty&nbsp;Approval&nbsp;for</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_20">20</td><td nowrap="nowrap"><span class="diff_sub">The&nbsp;FAQ&nbsp;section&nbsp;should&nbsp;have&nbsp;a&nbsp;form&nbsp;so&nbsp;students&nbsp;can&nbsp;submit&nbsp;new&nbsp;questions.</span></td><td class="diff_next"></td><td class="diff_header" id="to0_20">20</td><td nowrap="nowrap"><span class="diff_add">Mo&nbsp;6&nbsp;2&nbsp;3&nbsp;9&nbsp;3&nbsp;15&nbsp;7&nbsp;students&nbsp;24&nbsp;5&nbsp;Summer&nbsp;projects/BTP1</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_21">21</td><td nowrap="nowrap"><span class="diff_sub">These&nbsp;questions&nbsp;will&nbsp;get&nbsp;approved&nbsp;by&nbsp;the&nbsp;super&nbsp;admin.</span></td><td class="diff_next"></td><td class="diff_header" id="to0_21">21</td><td nowrap="nowrap"><span class="diff_add">VIVA&nbsp;VOCE-I&nbsp;(5th&nbsp;May)</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_22">22</td><td nowrap="nowrap"><span class="diff_sub">Pending&nbsp;approval&nbsp;should&nbsp;have&nbsp;a&nbsp;comment&nbsp;option&nbsp;alongside&nbsp;accept/reject.</span></td><td class="diff_next"></td><td class="diff_header" id="to0_22">22</td><td nowrap="nowrap"><span class="diff_add">Tu&nbsp;7&nbsp;2&nbsp;4&nbsp;9&nbsp;4&nbsp;15&nbsp;8&nbsp;24&nbsp;6</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_23">23</td><td nowrap="nowrap"><span class="diff_sub">Minutes&nbsp;of&nbsp;the&nbsp;Meeting&nbsp;5325&nbsp;1</span></td><td class="diff_next"></td><td class="diff_header" id="to0_23">23</td><td nowrap="nowrap"><span class="diff_add">We&nbsp;8&nbsp;2&nbsp;5&nbsp;Wo&nbsp;Th&nbsp;rk&nbsp;e&nbsp;s&nbsp;s&nbsp;h&nbsp;is&nbsp;o&nbsp;p&nbsp;P&nbsp;r&nbsp;(&nbsp;o&nbsp;T&nbsp;p&nbsp;P&nbsp;o&nbsp;W&nbsp;s&nbsp;W&nbsp;al&nbsp;)&nbsp;W&nbsp;-&nbsp;S&nbsp;r&nbsp;e&nbsp;i&nbsp;s&nbsp;t&nbsp;s&nbsp;in</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap">&nbsp;</td><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap"><span class="diff_add">&nbsp;io&nbsp;g&nbsp;n&nbsp;1&nbsp;10&nbsp;5&nbsp;15&nbsp;9&nbsp;Technical&nbsp;W&nbsp;Se&nbsp;r&nbsp;s&nbsp;it&nbsp;s&nbsp;i&nbsp;i&nbsp;n&nbsp;o&nbsp;g&nbsp;n&nbsp;W&nbsp;1&nbsp;orkshop&nbsp;-&nbsp;24&nbsp;7&nbsp;Paper</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap">&nbsp;</td><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap"><span class="diff_add">&nbsp;Checking&nbsp;&amp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_24">24</td><td nowrap="nowrap"><span class="diff_sub">&nbsp;</span></td><td class="diff_next"></td><td class="diff_header" id="to0_24">24</td><td nowrap="nowrap"><span class="diff_add">Distribution&nbsp;(5-9&nbsp;May)</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_25">25</td><td nowrap="nowrap"><span class="diff_sub">---&nbsp;Page&nbsp;2&nbsp;---</span></td><td class="diff_next"></td><td class="diff_header" id="to0_25">25</td><td nowrap="nowrap"><span class="diff_add">Late&nbsp;Registration&nbsp;(or)</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_26">26</td><td nowrap="nowrap"><span class="diff_sub">Edit&nbsp;file&nbsp;option&nbsp;should&nbsp;allow&nbsp;the&nbsp;user&nbsp;to&nbsp;upload&nbsp;a&nbsp;new&nbsp;version&nbsp;of&nbsp;the&nbsp;same&nbsp;file.</span></td><td class="diff_next"></td><td class="diff_header" id="to0_26">26</td><td nowrap="nowrap"><span class="diff_add">Th&nbsp;9&nbsp;3&nbsp;6&nbsp;10&nbsp;6&nbsp;16&nbsp;10&nbsp;25&nbsp;8</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_27">27</td><td nowrap="nowrap"><span class="diff_sub">Editing&nbsp;the&nbsp;same&nbsp;file&nbsp;should&nbsp;not&nbsp;be&nbsp;allowed.</span></td><td class="diff_next"></td><td class="diff_header" id="to0_27">27</td><td nowrap="nowrap"><span class="diff_add">Add&amp;Drop&nbsp;Courses</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_28">28</td><td nowrap="nowrap"><span class="diff_sub">User&nbsp;should&nbsp;be&nbsp;able&nbsp;to&nbsp;compare&nbsp;two&nbsp;files&nbsp;side&nbsp;by&nbsp;side.</span></td><td class="diff_next"></td><td class="diff_header" id="to0_28">28</td><td nowrap="nowrap"><span class="diff_add">Fr&nbsp;10&nbsp;3&nbsp;7&nbsp;10&nbsp;7&nbsp;16&nbsp;11&nbsp;25&nbsp;9</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header" id="from0_29">29</td><td nowrap="nowrap"><span class="diff_sub">Minutes&nbsp;of&nbsp;the&nbsp;Meeting&nbsp;5325&nbsp;2</span></td><td class="diff_next"></td><td class="diff_header" id="to0_29">29</td><td nowrap="nowrap"><span class="diff_add">Withdrawal&nbsp;of&nbsp;H1&nbsp;Technical&nbsp;Writing&nbsp;Workshop&nbsp;-&nbsp;Course&nbsp;Grades&nbsp;Due&nbsp;&amp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_30">30</td><td nowrap="nowrap"><span class="diff_add">Sa&nbsp;11&nbsp;3&nbsp;8&nbsp;courses&nbsp;with&nbsp;"W"&nbsp;grade;&nbsp;11&nbsp;8&nbsp;12&nbsp;Session&nbsp;2;&nbsp;25&nbsp;10&nbsp;Submission&nbsp;of&nbsp;final</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_31">31</td><td nowrap="nowrap"><span class="diff_add">TPWW&nbsp;-&nbsp;Session&nbsp;2&nbsp;R&amp;D&nbsp;Showcase&nbsp;RC&nbsp;Alloca&nbsp;st&nbsp;t&nbsp;u&nbsp;io&nbsp;d&nbsp;n&nbsp;e&nbsp;n&nbsp;t&nbsp;t&nbsp;o&nbsp;s&nbsp;Honours&nbsp;MS/PhD</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap">&nbsp;</td><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap"><span class="diff_add">&nbsp;thesis</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_32">32</td><td nowrap="nowrap"><span class="diff_add">Su&nbsp;12&nbsp;9&nbsp;9&nbsp;13&nbsp;11</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_33">33</td><td nowrap="nowrap"><span class="diff_add">Withdrawal&nbsp;of&nbsp;Full&nbsp;Grade&nbsp;Moderation</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_34">34</td><td nowrap="nowrap"><span class="diff_add">Mo&nbsp;13&nbsp;Bhogi&nbsp;H&nbsp;10&nbsp;11&nbsp;10&nbsp;course&nbsp;/&nbsp;proj&nbsp;with&nbsp;"W"&nbsp;17&nbsp;14&nbsp;Withdrawal&nbsp;of&nbsp;H2&nbsp;courses&nbsp;26&nbsp;</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap">&nbsp;</td><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap"><span class="diff_add">12&nbsp;Meeting&nbsp;(12&amp;13&nbsp;May)</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_35">35</td><td nowrap="nowrap"><span class="diff_add">grade&nbsp;with&nbsp;"W"&nbsp;grade&nbsp;Start&nbsp;of&nbsp;Summer</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_36">36</td><td nowrap="nowrap"><span class="diff_add">Vacation(12&nbsp;May)</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_37">37</td><td nowrap="nowrap"><span class="diff_add">Tu&nbsp;14&nbsp;Pongal/Sankranti&nbsp;H&nbsp;11&nbsp;11&nbsp;11&nbsp;17&nbsp;15&nbsp;26&nbsp;13</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_38">38</td><td nowrap="nowrap"><span class="diff_add">Hons&nbsp;Proj/SemProj/Inde.</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_39">39</td><td nowrap="nowrap"><span class="diff_add">We&nbsp;15&nbsp;Study&nbsp;approvals&nbsp;by&nbsp;4&nbsp;12&nbsp;12&nbsp;12&nbsp;Reseaech&nbsp;Communication&nbsp;16&nbsp;16&nbsp;26&nbsp;14</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_40">40</td><td nowrap="nowrap"><span class="diff_add">Workshop&nbsp;(RCW)-&nbsp;Session&nbsp;1</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_41">41</td><td nowrap="nowrap"><span class="diff_add">Faculty</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_42">42</td><td nowrap="nowrap"><span class="diff_add">Project&nbsp;Report</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_43">43</td><td nowrap="nowrap"><span class="diff_add">Th&nbsp;16&nbsp;4&nbsp;13&nbsp;12&nbsp;13&nbsp;18&nbsp;17&nbsp;Friday&nbsp;Timetable&nbsp;27&nbsp;15</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_44">44</td><td nowrap="nowrap"><span class="diff_add">Submission</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_45">45</td><td nowrap="nowrap"><span class="diff_add">Fr&nbsp;17&nbsp;4&nbsp;14&nbsp;14&nbsp;Holi&nbsp;H&nbsp;18&nbsp;Good&nbsp;Friday&nbsp;H&nbsp;16</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_46">46</td><td nowrap="nowrap"><span class="diff_add">Deadline&nbsp;for&nbsp;Quiz1&nbsp;&amp;&nbsp;Mid</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_47">47</td><td nowrap="nowrap"><span class="diff_add">Sa&nbsp;18&nbsp;5&nbsp;15&nbsp;Felicity&nbsp;15&nbsp;evaluations;&nbsp;17&nbsp;19&nbsp;Summer&nbsp;Project&nbsp;Registration&nbsp;27&nbsp;17&nbsp;Hons</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap">&nbsp;</td><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap"><span class="diff_add">/SemProj/Inde.&nbsp;Study</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_48">48</td><td nowrap="nowrap"><span class="diff_add">Form&nbsp;Open&nbsp;Grade&nbsp;Due</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_49">49</td><td nowrap="nowrap"><span class="diff_add">RCW&nbsp;-&nbsp;Session&nbsp;2</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_50">50</td><td nowrap="nowrap"><span class="diff_add">Su&nbsp;19&nbsp;16&nbsp;16&nbsp;20&nbsp;18</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_51">51</td><td nowrap="nowrap"><span class="diff_add">FN&nbsp;classes&nbsp;are&nbsp;canceled,&nbsp;Honours&nbsp;Form&nbsp;with&nbsp;RC</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_52">52</td><td nowrap="nowrap"><span class="diff_add">Mo&nbsp;20&nbsp;5&nbsp;17&nbsp;but&nbsp;AN&nbsp;classes&nbsp;will&nbsp;13&nbsp;17&nbsp;Preferences&nbsp;for&nbsp;UG2&nbsp;Students&nbsp;19&nbsp;21&nbsp;27&nbsp;19</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_53">53</td><td nowrap="nowrap"><span class="diff_add">proceed&nbsp;as&nbsp;scheduled&nbsp;-&nbsp;Open</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_54">54</td><td nowrap="nowrap"><span class="diff_add">Tu&nbsp;21&nbsp;5&nbsp;18&nbsp;12&nbsp;18&nbsp;18&nbsp;22&nbsp;28&nbsp;20</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_55">55</td><td nowrap="nowrap"><span class="diff_add">We&nbsp;22&nbsp;6&nbsp;19&nbsp;Evaluations&nbsp;of&nbsp;TPWW&nbsp;13&nbsp;19&nbsp;18&nbsp;23&nbsp;Summer&nbsp;Project&nbsp;Registration&nbsp;28&nbsp;21</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_56">56</td><td nowrap="nowrap"><span class="diff_add">Conducted&nbsp;by&nbsp;the&nbsp;Panel&nbsp;Form&nbsp;close</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_57">57</td><td nowrap="nowrap"><span class="diff_add">Th&nbsp;23&nbsp;6&nbsp;20&nbsp;14&nbsp;20&nbsp;20&nbsp;24&nbsp;Last&nbsp;day&nbsp;of&nbsp;Classes&nbsp;28&nbsp;22</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_58">58</td><td nowrap="nowrap"><span class="diff_add">Fr&nbsp;24&nbsp;6&nbsp;21&nbsp;13&nbsp;21&nbsp;19&nbsp;25&nbsp;Preparation&nbsp;&amp;&nbsp;Lab&nbsp;Exams&nbsp;23&nbsp;Declaration&nbsp;of&nbsp;S25&nbsp;Grades</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_59">59</td><td nowrap="nowrap"><span class="diff_add">17th&nbsp;February,&nbsp;Monday's&nbsp;Honours&nbsp;Form&nbsp;with&nbsp;RC</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_60">60</td><td nowrap="nowrap"><span class="diff_add">Sa&nbsp;25&nbsp;7&nbsp;22&nbsp;FN&nbsp;classes&nbsp;will&nbsp;be&nbsp;held&nbsp;14&nbsp;22&nbsp;Preferences&nbsp;for&nbsp;UG2&nbsp;students&nbsp;19&nbsp;26&nbsp;24</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_61">61</td><td nowrap="nowrap"><span class="diff_add">today&nbsp;in&nbsp;the&nbsp;AN&nbsp;session.&nbsp;-&nbsp;Close</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_62">62</td><td nowrap="nowrap"><span class="diff_add">Su&nbsp;26&nbsp;Republic&nbsp;day&nbsp;23&nbsp;23&nbsp;27&nbsp;25</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_63">63</td><td nowrap="nowrap"><span class="diff_add">Deadline&nbsp;for&nbsp;BTP-1&nbsp;Report&nbsp;End&nbsp;Sem&nbsp;Exams/Lab&nbsp;Exams&nbsp;incl</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_64">64</td><td nowrap="nowrap"><span class="diff_add">Mo&nbsp;27&nbsp;Submission&nbsp;7&nbsp;24&nbsp;Tuesday&nbsp;Timetable&nbsp;14&nbsp;24&nbsp;21&nbsp;28&nbsp;Proj&nbsp;Presentations&nbsp;/&nbsp;Paper&nbsp;2</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap">&nbsp;</td><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap"><span class="diff_add">6</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_65">65</td><td nowrap="nowrap"><span class="diff_add">checking&nbsp;&amp;Distribution</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_66">66</td><td nowrap="nowrap"><span class="diff_add">Tu&nbsp;28&nbsp;7&nbsp;25&nbsp;Mid&nbsp;Exams&nbsp;25&nbsp;20&nbsp;29&nbsp;27</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_67">67</td><td nowrap="nowrap"><span class="diff_add">We&nbsp;29&nbsp;8&nbsp;26&nbsp;Mahashivarathri&nbsp;H&nbsp;26&nbsp;20&nbsp;30&nbsp;28</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_68">68</td><td nowrap="nowrap"><span class="diff_add">White&nbsp;Friday&nbsp;Week&nbsp;for</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_69">69</td><td nowrap="nowrap"><span class="diff_add">Research&nbsp;Students</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_70">70</td><td nowrap="nowrap"><span class="diff_add">Th&nbsp;30&nbsp;Quiz-1&nbsp;(Regular&nbsp;classes&nbsp;8&nbsp;27&nbsp;27&nbsp;22&nbsp;29</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_71">71</td><td nowrap="nowrap"><span class="diff_add">will&nbsp;continue&nbsp;for&nbsp;courses&nbsp;Mid&nbsp;Exams</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_72">72</td><td nowrap="nowrap"><span class="diff_add">Fr&nbsp;31&nbsp;not&nbsp;conducting&nbsp;the&nbsp;quiz).&nbsp;8&nbsp;28&nbsp;28&nbsp;21&nbsp;30</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_73">73</td><td nowrap="nowrap"><span class="diff_add">Sa&nbsp;29&nbsp;21&nbsp;31</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_74">74</td><td nowrap="nowrap"><span class="diff_add">Note:&nbsp;Deadline&nbsp;for&nbsp;submitting&nbsp;final</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_75">75</td><td nowrap="nowrap"><span class="diff_add">Su&nbsp;30&nbsp;Ugadi&nbsp;H</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_76">76</td><td nowrap="nowrap"><span class="diff_add">thesis&nbsp;hardbound&nbsp;copy&nbsp;to&nbsp;get&nbsp;July</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_77">77</td><td nowrap="nowrap"><span class="diff_add">Mo&nbsp;31&nbsp;Ramzan&nbsp;H&nbsp;2025&nbsp;dated&nbsp;degree&nbsp;is&nbsp;30th&nbsp;June</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_78">78</td><td nowrap="nowrap"><span class="diff_add">2025</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_79">79</td><td nowrap="nowrap"><span class="diff_add">Classes&nbsp;count&nbsp;24&nbsp;18&nbsp;21&nbsp;21&nbsp;Total&nbsp;Class&nbsp;Days&nbsp;84</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_80">80</td><td nowrap="nowrap"><span class="diff_add">Duration&nbsp;of&nbsp;Half&nbsp;Courses:&nbsp;H1&nbsp;Courses&nbsp;-&nbsp;2nd&nbsp;Jan&nbsp;to&nbsp;24th&nbsp;Feb&nbsp;2025;&nbsp;H2&nbsp;Courses&nbsp;-&nbsp;3r</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap">&nbsp;</td><td class="diff_next"></td><td class="diff_header">></td><td nowrap="nowrap"><span class="diff_add">d&nbsp;March&nbsp;to&nbsp;24th&nbsp;April&nbsp;2025</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_81">81</td><td nowrap="nowrap"><span class="diff_add">Start&nbsp;of&nbsp;M25&nbsp;Semester&nbsp;-&nbsp;Last&nbsp;week&nbsp;of&nbsp;July&nbsp;2025&nbsp;-&nbsp;26th&nbsp;July&nbsp;(Tentatively)</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_82">82</td><td nowrap="nowrap"><span class="diff_add">Sd/-</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_83">83</td><td nowrap="nowrap"><span class="diff_add">Date:&nbsp;18&nbsp;November&nbsp;2024</span></td></tr>
+            <tr><td class="diff_next"></td><td class="diff_header"></td><td nowrap="nowrap"></td><td class="diff_next"></td><td class="diff_header" id="to0_84">84</td><td nowrap="nowrap"><span class="diff_add">Registrar</span></td></tr>
+        </tbody>
+    </table>
+    <table class="diff" summary="Legends">
+        <tr> <th colspan="2"> Legends </th> </tr>
+        <tr> <td> <table border="" summary="Colors">
+                      <tr><th> Colors </th> </tr>
+                      <tr><td class="diff_add">&nbsp;Added&nbsp;</td></tr>
+                      <tr><td class="diff_chg">Changed</td> </tr>
+                      <tr><td class="diff_sub">Deleted</td> </tr>
+                  </table></td>
+             <td> <table border="" summary="Links">
+                      <tr><th colspan="2"> Links </th> </tr>
+                      <tr><td>(f)irst change</td> </tr>
+                      <tr><td>(n)ext change</td> </tr>
+                      <tr><td>(t)op</td> </tr>
+                  </table></td> </tr>
+    </table>
+</body>
+
+</html>

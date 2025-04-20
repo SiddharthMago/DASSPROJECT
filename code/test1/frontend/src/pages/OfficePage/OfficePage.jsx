@@ -56,14 +56,14 @@ const OfficePage = ({ darkMode }) => {
     if (!acc[file.category]) {
       acc[file.category] = [];
     }
-    // Pass the complete file object with _id to properly identify files
+    // Create a card object with all necessary properties including versions
     acc[file.category].push({
-      _id: file._id,
       title: file.name,
       url: file.url,
       filePath: file.filePath,
-      versions: file.versions,
-      createdAt: file.createdAt
+      versions: file.versions || [], // Include versions array
+      createdAt: file.createdAt, // Include creation date for current version
+      _id: file._id // Include ID for potential API calls
     });
     return acc;
   }, {});

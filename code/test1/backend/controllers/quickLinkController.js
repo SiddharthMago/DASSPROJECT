@@ -29,7 +29,7 @@ exports.addQuickLink = async (req, res, next) => {
       title,
       url,
       office,
-      approved: true,
+      approved: false,
       pinned: true,
       author: req.user._id
     });
@@ -106,7 +106,8 @@ exports.editQuickLink = async (req, res, next) => {
 // @access  Public
 exports.getAllApprovedQuickLinks = async (req, res, next) => {
   try {
-    const quickLinks = await QuickLink.find({ approved: true });
+    const quickLinks = await QuickLink.find({ approved: true })
+      .populate('author', 'name email');
 
     res.status(200).json({
       success: true,
@@ -123,7 +124,8 @@ exports.getAllApprovedQuickLinks = async (req, res, next) => {
 // @access  Admin/Superadmin
 exports.getAllUnapprovedQuickLinks = async (req, res, next) => {
   try {
-    const quickLinks = await QuickLink.find({ approved: false });
+    const quickLinks = await QuickLink.find({ approved: false })
+      .populate('author', 'name email');
 
     res.status(200).json({
       success: true,
@@ -211,15 +213,16 @@ exports.approveQuickLink = async (req, res, next) => {
 // @route   GET /api/quicklinks/pinned
 // @access  Public
 exports.getAllPinnedQuickLinks = async (req, res, next) => {
-    try {
-      const pinnedQuickLinks = await QuickLink.find({ pinned: true });
-  
-      res.status(200).json({
-        success: true,
-        count: pinnedQuickLinks.length,
-        data: pinnedQuickLinks,
-      });
-    } catch (err) {
-      res.status(500).json({ success: false, error: 'Server error' });
-    }
-  };
+  try {
+    const pinnedQuickLinks = await QuickLink.find({ pinned: true })
+      .populate('author', 'name email');
+
+    res.status(200).json({
+      success: true,
+      count: pinnedQuickLinks.length,
+      data: pinnedQuickLinks,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+};

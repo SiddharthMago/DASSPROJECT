@@ -29,7 +29,7 @@ exports.addAnnouncement = async (req, res, next) => {
       office,
       image: imagePath || undefined,
       link: link || undefined,
-      approved: approved === 'true' || true, // Set to true by default
+      approved: false, // Always set to false for new announcements
       author: req.user._id // Add the author field from the authenticated user
     });
 
@@ -121,7 +121,8 @@ exports.approveAnnouncement = async (req, res, next) => {
 // @access  Public
 exports.getAllAnnouncements = async (req, res, next) => {
   try {
-    const announcements = await Announcement.find({ approved: true });
+    const announcements = await Announcement.find({ approved: true })
+      .sort({ createdAt: -1 }); // Sort by newest first
 
     res.status(200).json({
       success: true,
@@ -158,6 +159,7 @@ exports.getLatestAnnouncements = async (req, res, next) => {
 exports.getUnapprovedAnnouncements = async (req, res, next) => {
   try {
     const unapprovedAnnouncements = await Announcement.find({ approved: false })
+      .populate('author', 'name') // Populate the author field with the name
       .sort({ createdAt: -1 }); // Sort by createdAt in descending order
 
     res.status(200).json({

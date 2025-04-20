@@ -96,8 +96,11 @@ function Archive({ darkMode, userRole }) {
 
 	// Function to fetch author details
 	const fetchAuthorDetails = async (authorId) => {
-		if (!authorId || authorDetails[authorId]) return;
+		// Skip if authorId is missing, already fetched, or not a string
+		if (!authorId || authorDetails[authorId] || typeof authorId !== 'string') return;
+		
 		try {
+			console.log("[archive] fetching author details for ID:", authorId);
 			const token = localStorage.getItem('token');
 			const response = await axios.get(`http://localhost:5000/api/auth_cas/user?id=${authorId}`, {
 				headers: {
@@ -155,6 +158,56 @@ function Archive({ darkMode, userRole }) {
 		return mappedFile;
 	};
 
+	// Map announcement data consistently
+	const mapAnnouncementData = (announcement) => {
+		const mappedAnnouncement = {
+			id: announcement._id,
+			fileName: announcement.title,
+			authorId: announcement.author, // Store the author ObjectId
+			author: announcement.author ? announcement.author.name : announcement.office, // Default to office name as fallback
+			office: announcement.office,
+			modifiedDate: new Date(announcement.createdAt).toLocaleDateString(),
+			category: 'Announcements',
+			downloadUrl: announcement.link || '#',
+			image: announcement.image
+		};
+
+		// If we have the author details, update the author name
+		if (announcement.author && authorDetails[announcement.author]) {
+			mappedAnnouncement.author = authorDetails[announcement.author];
+		} else if (announcement.author) {
+			// Fetch author details if we don't have them
+			fetchAuthorDetails(announcement.author);
+		}
+
+		return mappedAnnouncement;
+	};
+
+	// Map quickLink data consistently
+	const mapQuickLinkData = (quickLink) => {
+		const mappedQuickLink = {
+			id: quickLink._id,
+			fileName: quickLink.title,
+			authorId: quickLink.author, // Store the author ObjectId
+			author: quickLink.author ? quickLink.author.name : quickLink.office , // Default to office name as fallback
+			office: quickLink.office,
+			modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
+			category: 'Links',
+			downloadUrl: quickLink.url,
+			pinned: quickLink.pinned
+		};
+
+		// // If we have the author details, update the author name
+		// if (quickLink.author && authorDetails[quickLink.author]) {
+		// 	mappedQuickLink.author = authorDetails[quickLink.author];
+		// } else if (quickLink.author) {
+		// 	// Fetch author details if we don't have them
+		// 	fetchAuthorDetails(quickLink.author);
+		// }
+
+		return mappedQuickLink;
+	};
+
 	// Fetch data based on active tab
 	useEffect(() => {
 		const fetchData = async () => {
@@ -170,27 +223,9 @@ function Archive({ darkMode, userRole }) {
 
 					const files = filesRes.data.data.map(mapFileData);
 
-					const announcements = announcementsRes.data.data.map((announcement) => ({
-						id: announcement._id,
-						fileName: announcement.title,
-						author: announcement.office,
-						office: announcement.office,
-						modifiedDate: new Date(announcement.createdAt).toLocaleDateString(),
-						category: 'Announcements',
-						downloadUrl: announcement.link || '#',
-						image: announcement.image
-					}));
+					const announcements = announcementsRes.data.data.map(mapAnnouncementData);
 
-					const quickLinks = quickLinksRes.data.data.map((quickLink) => ({
-						id: quickLink._id,
-						fileName: quickLink.title,
-						author: quickLink.office,
-						office: quickLink.office,
-						modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
-						category: 'Links',
-						downloadUrl: quickLink.url,
-						pinned: quickLink.pinned
-					}));
+					const quickLinks = quickLinksRes.data.data.map(mapQuickLinkData);
 
 					// Combine all items and sort by date
 					const allItems = [...files, ...announcements, ...quickLinks].sort((a, b) =>
@@ -228,7 +263,7 @@ function Archive({ darkMode, userRole }) {
 						return {
 							id: file._id,
 							fileName: file.name,
-							author: file.author?.name || 'Unknown',
+							author: file.author?.name || file.office,
 							office: file.office,
 							modifiedDate: new Date(file.createdAt).toLocaleDateString(),
 							category: 'Files',
@@ -241,29 +276,11 @@ function Archive({ darkMode, userRole }) {
 					setArchiveItems(mapped);
 				} else if (activeTab === 'Announcements') {
 					const res = await axios.get('http://localhost:5000/api/announcements');
-					const mapped = res.data.data.map((announcement) => ({
-						id: announcement._id,
-						fileName: announcement.title,
-						author: announcement.office,
-						office: announcement.office,
-						modifiedDate: new Date(announcement.createdAt).toLocaleDateString(),
-						category: 'Announcements',
-						downloadUrl: announcement.link || '#',
-						image: announcement.image
-					}));
+					const mapped = res.data.data.map(mapAnnouncementData);
 					setArchiveItems(mapped);
 				} else if (activeTab === 'Links') {
 					const res = await axios.get('http://localhost:5000/api/quicklinks');
-					const mapped = res.data.data.map((quickLink) => ({
-						id: quickLink._id,
-						fileName: quickLink.title,
-						author: quickLink.office,
-						office: quickLink.office,
-						modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
-						category: 'Links',
-						downloadUrl: quickLink.url,
-						pinned: quickLink.pinned
-					}));
+					const mapped = res.data.data.map(mapQuickLinkData);
 					setArchiveItems(mapped);
 				}
 			} catch (err) {
@@ -336,37 +353,12 @@ function Archive({ darkMode, userRole }) {
 						axios.get('http://localhost:5000/api/quicklinks')
 					]);
 
-					const files = filesRes.data.data.map((file) => ({
-						id: file._id,
-						fileName: file.name,
-						author: file.author?.name || 'Unknown',
-						office: file.office,
-						modifiedDate: new Date(file.createdAt).toLocaleDateString(),
-						category: 'Files',
-						downloadUrl: file.url || `http://localhost:5000${file.filePath?.replace(/\\/g, '/')}`,
-					}));
+					// Use mapFileData for files to properly handle author information
+					const files = filesRes.data.data.map(mapFileData);
 
-					const announcements = announcementsRes.data.data.map((announcement) => ({
-						id: announcement._id,
-						fileName: announcement.title,
-						author: announcement.office,
-						office: announcement.office,
-						modifiedDate: new Date(announcement.createdAt).toLocaleDateString(),
-						category: 'Announcements',
-						downloadUrl: announcement.link || '#',
-						image: announcement.image
-					}));
+					const announcements = announcementsRes.data.data.map(mapAnnouncementData);
 
-					const quickLinks = quickLinksRes.data.data.map((quickLink) => ({
-						id: quickLink._id,
-						fileName: quickLink.title,
-						author: quickLink.office,
-						office: quickLink.office,
-						modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
-						category: 'Links',
-						downloadUrl: quickLink.url,
-						pinned: quickLink.pinned
-					}));
+					const quickLinks = quickLinksRes.data.data.map(mapQuickLinkData);
 
 					const allItems = [...files, ...announcements, ...quickLinks].sort((a, b) =>
 						new Date(b.modifiedDate) - new Date(a.modifiedDate)
@@ -374,41 +366,16 @@ function Archive({ darkMode, userRole }) {
 					setArchiveItems(allItems);
 				} else if (activeTab === 'Links') {
 					const res = await axios.get('http://localhost:5000/api/quicklinks');
-					const mapped = res.data.data.map((quickLink) => ({
-						id: quickLink._id,
-						fileName: quickLink.title,
-						author: quickLink.office,
-						office: quickLink.office,
-						modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
-						category: 'Links',
-						downloadUrl: quickLink.url,
-						pinned: quickLink.pinned
-					}));
+					const mapped = res.data.data.map(mapQuickLinkData);
 					setArchiveItems(mapped);
 				} else if (activeTab === 'Announcements') {
 					const res = await axios.get('http://localhost:5000/api/announcements');
-					const mapped = res.data.data.map((announcement) => ({
-						id: announcement._id,
-						fileName: announcement.title,
-						author: announcement.office,
-						office: announcement.office,
-						modifiedDate: new Date(announcement.createdAt).toLocaleDateString(),
-						category: 'Announcements',
-						downloadUrl: announcement.link || '#',
-						image: announcement.image
-					}));
+					const mapped = res.data.data.map(mapAnnouncementData);
 					setArchiveItems(mapped);
 				} else if (activeTab === 'Files') {
 					const res = await axios.get('http://localhost:5000/api/files/approved');
-					const mapped = res.data.data.map((file) => ({
-						id: file._id,
-						fileName: file.name,
-						author: file.author?.name || 'Unknown',
-						office: file.office,
-						modifiedDate: new Date(file.createdAt).toLocaleDateString(),
-						category: 'Files',
-						downloadUrl: file.url || `http://localhost:5000${file.filePath?.replace(/\\/g, '/')}`,
-					}));
+					// Use mapFileData for files to properly handle author information
+					const mapped = res.data.data.map(mapFileData);
 					setArchiveItems(mapped);
 				}
 
@@ -460,16 +427,7 @@ function Archive({ darkMode, userRole }) {
 			if (response.data.success) {
 				// Refresh the announcements list
 				const announcementsRes = await axios.get('http://localhost:5000/api/announcements');
-				const mapped = announcementsRes.data.data.map((announcement) => ({
-					id: announcement._id,
-					fileName: announcement.title,
-					author: announcement.office,
-					office: announcement.office,
-					modifiedDate: new Date(announcement.createdAt).toLocaleDateString(),
-					category: 'Announcements',
-					downloadUrl: announcement.link || '#',
-					image: announcement.image
-				}));
+				const mapped = announcementsRes.data.data.map(mapAnnouncementData);
 				setArchiveItems(mapped);
 
 				// Close modal and reset form
@@ -519,16 +477,7 @@ function Archive({ darkMode, userRole }) {
 			if (response.data.success) {
 				// Refresh the links list
 				const linksRes = await axios.get('http://localhost:5000/api/quicklinks');
-				const mapped = linksRes.data.data.map((quickLink) => ({
-					id: quickLink._id,
-					fileName: quickLink.title,
-					author: quickLink.office,
-					office: quickLink.office,
-					modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
-					category: 'Links',
-					downloadUrl: quickLink.url,
-					pinned: quickLink.pinned
-				}));
+				const mapped = linksRes.data.data.map(mapQuickLinkData);
 				setArchiveItems(mapped);
 
 				// Close modal and reset form
@@ -576,16 +525,7 @@ function Archive({ darkMode, userRole }) {
 			if (response.data.success) {
 				// Refresh the announcements list
 				const announcementsRes = await axios.get('http://localhost:5000/api/announcements');
-				const mapped = announcementsRes.data.data.map((announcement) => ({
-					id: announcement._id,
-					fileName: announcement.title,
-					author: announcement.office,
-					office: announcement.office,
-					modifiedDate: new Date(announcement.createdAt).toLocaleDateString(),
-					category: 'Announcements',
-					downloadUrl: announcement.link || '#',
-					image: announcement.image
-				}));
+				const mapped = announcementsRes.data.data.map(mapAnnouncementData);
 				setArchiveItems(mapped);
 
 				// Close modal and reset form
@@ -629,16 +569,7 @@ function Archive({ darkMode, userRole }) {
 			if (response.data.success) {
 				// Refresh the links list
 				const linksRes = await axios.get('http://localhost:5000/api/quicklinks');
-				const mapped = linksRes.data.data.map((quickLink) => ({
-					id: quickLink._id,
-					fileName: quickLink.title,
-					author: quickLink.office,
-					office: quickLink.office,
-					modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
-					category: 'Links',
-					downloadUrl: quickLink.url,
-					pinned: quickLink.pinned
-				}));
+				const mapped = linksRes.data.data.map(mapQuickLinkData);
 				setArchiveItems(mapped);
 
 				// Close modal and reset form
@@ -668,7 +599,7 @@ function Archive({ darkMode, userRole }) {
 
 			{/* Header Section */}
 			<header className="archive-header">
-				<h1 className="page-title">Archive</h1>
+				<h1 className="page-title">ARCHIVE</h1>
 				<p className="page-subtitle">Browse and access all institutional resources</p>
 			</header>
 
@@ -880,16 +811,7 @@ function Archive({ darkMode, userRole }) {
                                 // Refresh the links list
                                 axios.get('http://localhost:5000/api/quicklinks')
                                   .then(res => {
-                                    const mapped = res.data.data.map((quickLink) => ({
-                                      id: quickLink._id,
-                                      fileName: quickLink.title,
-                                      author: quickLink.office,
-                                      office: quickLink.office,
-                                      modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
-                                      category: 'Links',
-                                      downloadUrl: quickLink.url,
-                                      pinned: quickLink.pinned
-                                    }));
+                                    const mapped = res.data.data.map(mapQuickLinkData);
                                     setArchiveItems(mapped);
                                   });
                               });
@@ -1093,16 +1015,7 @@ function Archive({ darkMode, userRole }) {
                                     // Refresh the links list
                                     axios.get('http://localhost:5000/api/quicklinks')
                                       .then(res => {
-                                        const mapped = res.data.data.map((quickLink) => ({
-                                          id: quickLink._id,
-                                          fileName: quickLink.title,
-                                          author: quickLink.office,
-                                          office: quickLink.office,
-                                          modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
-                                          category: 'Links',
-                                          downloadUrl: quickLink.url,
-                                          pinned: quickLink.pinned
-                                        }));
+                                        const mapped = res.data.data.map(mapQuickLinkData);
                                         setArchiveItems(mapped);
                                       });
                                   });

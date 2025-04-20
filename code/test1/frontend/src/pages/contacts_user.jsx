@@ -14,6 +14,7 @@ function ContactsUser({ darkMode }) {
 	// Filter state
 	const [filterRole, setFilterRole] = useState('all');
 	const [searchTerm, setSearchTerm] = useState('');
+	const [filterOffice, setFilterOffice] = useState('all');
 
 	const fetchContacts = async () => {
 		try {
@@ -40,7 +41,7 @@ function ContactsUser({ darkMode }) {
 		setMobileMenuOpen(!mobileMenuOpen);
 	};
 
-	// Filter contacts by role and search term with null checks
+	// Filter contacts by role, office and search term with null checks
 	const filteredContacts = contacts.filter(contact => {
 		// Check if contact is valid
 		if (!contact) return false;
@@ -48,12 +49,15 @@ function ContactsUser({ darkMode }) {
 		// Check for role match
 		const matchesRole = filterRole === 'all' || contact.role === filterRole;
 
+		// Check for office match
+		const matchesOffice = filterOffice === 'all' || contact.office === filterOffice;
+
 		// Check for search term match with null checks
 		const matchesSearch =
 			(contact.name ? contact.name.toLowerCase().includes(searchTerm.toLowerCase()) : false) ||
 			(contact.email ? contact.email.toLowerCase().includes(searchTerm.toLowerCase()) : false);
 
-		return matchesRole && matchesSearch;
+		return matchesRole && matchesOffice && matchesSearch;
 	});
 
 	const roles = {
@@ -70,10 +74,11 @@ function ContactsUser({ darkMode }) {
 			/>
 			{/* Main Content */}
 			<div className="contacts-content">
-				<h1 className="page-title">Contacts Directory</h1>
+				<h1 className="page-title">USERS</h1>
+				<p class="page-subtitle">All users registered on Intranet network</p>
 
 				{/* Filters and Search */}
-				<div className="contacts-filters">
+				<div className="contacts-filters admin-filters">
 					<div className="search-bar">
 						<input
 							type="text"
@@ -82,6 +87,35 @@ function ContactsUser({ darkMode }) {
 							onChange={(e) => setSearchTerm(e.target.value)}
 						/>
 						<button className="search-button">🔍</button>
+					</div>
+
+					<div className="office-filter">
+						<label>Office:</label>
+						<select
+							value={filterOffice}
+							onChange={(e) => setFilterOffice(e.target.value)}
+						>
+							<option value="all">All Offices</option>
+							<option value="Admissions Office">Admissions Office</option>
+							<option value="Library Office">Library Office</option>
+							<option value="Examinations Office">Examinations Office</option>
+							<option value="Academic Office">Academic Office</option>
+							<option value="Student Affairs Office">Student Affairs Office</option>
+							<option value="Mess Office">Mess Office</option>
+							<option value="Hostel Office">Hostel Office</option>
+							<option value="Alumni Cell">Alumni Cell</option>
+							<option value="Faculty Portal">Faculty Portal</option>
+							<option value="Placement Cell">Placement Cell</option>
+							<option value="Outreach Office">Outreach Office</option>
+							<option value="Statistical Cell">Statistical Cell</option>
+							<option value="R&D Office">R&D Office</option>
+							<option value="General Administration">General Administration</option>
+							<option value="Accounts Office">Accounts Office</option>
+							<option value="IT Services Office">IT Services Office</option>
+							<option value="Communication Office">Communication Office</option>
+							<option value="Engineering Office">Engineering Office</option>
+							<option value="HR & Personnel">HR & Personnel</option>
+						</select>
 					</div>
 
 					<div className="filters-row">
@@ -121,15 +155,12 @@ function ContactsUser({ darkMode }) {
 				{error && <div className="error-message">{error}</div>}
 
 				{/* Contact Cards */}
-				<div className="contacts-grid">
+				<div className="contacts-grid admin-grid">
 					{!loading && filteredContacts.length > 0 ? (
 						filteredContacts.map(contact => (
-							<div key={contact.email || Math.random()} className="contact-card">
-								{/* <div className="contact-image-container">
-								</div> */}
+							<div key={contact.email || Math.random()} className="contact-card admin-contact-card">
 								<div className="contact-details">
 									<h2 className="contact-name">{contact.name || 'No Name'}</h2>
-
 									<a href={`mailto:${contact.email}`} className="contact-email">
 										{contact.email || 'No Email'}
 									</a>
@@ -138,14 +169,9 @@ function ContactsUser({ darkMode }) {
 										<div className='office-indicator'>{contact.office}</div>
 									)}
 
-									{contact.role && contact.role !== "None" && (
-										<div className='office-indicator'>{roles[contact.role]}</div>
-									)}
-
-									{/* Optionally display role badge */}
 									<div className="role-indicator">
 										<span className={`role-badge ${contact.role || 'user'}`}>
-											{contact.role || 'user'}
+											{roles[contact.role] || 'user'}
 										</span>
 									</div>
 								</div>

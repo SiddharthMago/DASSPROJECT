@@ -3,92 +3,44 @@
 
 /* Office Page Specific Styles - Scoped to avoid affecting other components */
 .office-page {
-  /* Updated color variables to match your site's theme */
-  --office-bg-light: #f8f9fa;
-  --office-bg-dark: #121212;
-  --office-text-light: #333333;
-  --office-text-dark: #e0e0e0;
-  --office-card-bg-light: #2e5bbb; /* Updated to match accent color */
-  --office-card-bg-dark: #2e5bbb; /* Kept similar to light mode for consistency */
-  --office-section-bg-light: rgba(46, 91, 187, 0.12); /* Lighter version of accent */
-  --office-section-bg-dark: rgba(91, 142, 255, 0.15); /* Dark mode version */
-  --office-card-text: #ffffff; /* Always white text for file cards */
-  --office-shadow-light: rgba(19, 19, 19, 0.08);
-  --office-shadow-dark: rgba(19, 19, 19, 0.3);
-  --office-faq-bg-light: rgba(46, 91, 187, 0.05);
-  --office-faq-active-bg-light: rgba(46, 91, 187, 0.1);
-  --office-faq-bg-dark: rgba(91, 142, 255, 0.08);
-  --office-faq-active-bg-dark: rgba(91, 142, 255, 0.12);
-  --office-title-bg-light: #21438f; /* Match theme accent color */
-  --office-title-bg-dark: #5b8eff; /* Dark mode accent color */
-  
-  /* Use light mode variables by default */
-  --office-bg: var(--office-bg-light);
-  --office-text: var(--office-text-light);
-  --office-card-bg: var(--office-card-bg-light);
-  --office-section-bg: var(--office-section-bg-light);
-  --office-shadow: var(--office-shadow-light);
-  --office-faq-bg: var(--office-faq-bg-light);
-  --office-faq-active-bg: var(--office-faq-active-bg-light);
-  --office-title-bg: var(--office-title-bg-light);
+  /* Use the same color variables as home.css */
+  --bg-primary: #f8f9fa;
+  --text-primary: #333;
+  --accent-color: #2e5bbb;
+  --card-bg: #ffffff;
+  --card-border: #e0e0e0;
+  --navbar-bg: #ffffff;
+  --announcement-bg: #e6f7ff;
+  --dot-color: #888;
+  --dot-active: #2e5bbb;
   
   min-height: 100vh;
   font-family: "Barlow", sans-serif;
-  background-color: var(--office-bg);
-  color: var(--office-text);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
   transition: background-color 0.3s, color 0.3s;
   width: 100%;
-  padding-bottom: 40px;
-  padding-top: 40px;
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
-/* Office Page Variables - Formal dark, white, gray theme */
-.office-page {
-  /* Updated formal color variables */
-  --office-bg-light: #f8f9fa;
-  --office-bg-dark: #121212;
-  --office-text-light: #333333;
-  --office-text-dark: #e0e0e0;
-  --office-card-bg-light: #2c3e50; /* Formal dark blue-gray */
-  --office-card-bg-dark: #1a2530; /* Darker version for dark mode */
-  --office-section-bg-light: #5b8fff19; /* Light gray section */
-  --office-section-bg-dark: rgba(34, 40, 49, 0.9); /* Dark gray section */
-  --office-card-text: #ffffff; /* Always white text for file cards */
-  --office-shadow-light: rgba(0, 0, 0, 0.08);
-  --office-shadow-dark: rgba(0, 0, 0, 0.15);
-  --office-faq-bg-light: rgba(255, 255, 255, 0.6);
-  --office-faq-active-bg-light: rgba(255, 255, 255, 0.9);
-  --office-faq-bg-dark: rgba(40, 45, 50, 0.6);
-  --office-faq-active-bg-dark: rgba(45, 52, 58, 0.8);
-  --office-title-bg-light: #34495e; /* Formal dark blue-gray for titles */
-  --office-title-bg-dark: #2c3e50; /* Similar shade for dark mode */
-  
-  /* Use light mode variables by default */
-  --office-bg: var(--office-bg-light);
-  --office-text: var(--office-text-light);
-  --office-card-bg: var(--office-card-bg-light);
-  --office-section-bg: var(--office-section-bg-light);
-  --office-shadow: var(--office-shadow-light);
-  --office-faq-bg: var(--office-faq-bg-light);
-  --office-faq-active-bg: var(--office-faq-active-bg-light);
-  --office-title-bg: var(--office-title-bg-light);
-}
-
-/* Dark mode styles */
+/* Dark mode styles - matching home.css */
 .office-page.dark-mode {
-  --office-bg: var(--office-bg-dark);
-  --office-text: var(--office-text-dark);
-  --office-card-bg: var(--office-title-bg-dark);
-  --office-section-bg: var(--office-section-bg-dark);
-  --office-shadow: var(--office-shadow-dark);
-  --office-faq-bg: var(--office-faq-bg-dark);
-  --office-faq-active-bg: var(--office-faq-active-bg-dark);
-  --office-title-bg: var(--office-title-bg-dark);
+  --bg-primary: #121212;
+  --text-primary: #e0e0e0;
+  --accent-color: #5b8eff;
+  --card-bg: #1e1e1e;
+  --card-border: #333;
+  --navbar-bg: #1a1a1a;
+  --announcement-bg: #003366;
+  --dot-color: #aaa;
+  --dot-active: #ffffff;
 }
 
-/* Page Title */
+/* Page Title - matching home.css section titles */
 .office-page-title {
-  color: var(--office-text);
+  color: var(--accent-color);
   font-size: clamp(28px, 5vw, 38px);
   font-weight: 700;
   text-align: center;
@@ -96,80 +48,89 @@
   margin-bottom: 40px;
 }
 
-/* Page Title */
-.office-page-title {
-  color: var(--office-text);
-  font-size: clamp(28px, 5vw, 38px);
-  font-weight: 700;
-  text-align: center;
-  letter-spacing: clamp(4px, 1vw, 6.27px);
-  margin-bottom: 40px;
-}
-
-/* Admission Section */
+/* Admission Section - matching home.css office blocks */
 .admission-section {
   width: 90%;
-  max-width: 1373px;
+  max-width: 1200px;
   margin: 0 auto 40px;
-  padding: 30px; /* Reduced padding from 40px to 30px */
-  border-radius: 40px;
-  box-shadow: 0px 4px 162px 828px var(--office-shadow) inset;
-  background-color: var(--office-section-bg);
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.admission-section:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
 
 .offices-section-title {
   width: fit-content;
-  margin: 0 auto 20px; /* Reduced margin from 40px to 30px */
-  padding: 8px 30px; /* Reduced padding */
-  border-radius: 64px;
-  color: #fff;
-  font-size: 22px; /* Reduced from 24px */
+  margin: 0 auto 20px;
+  padding: 8px 30px;
+  border-radius: 20px;
+  color: white;
+  font-size: 22px;
   font-weight: 600;
   letter-spacing: 3.96px;
-  background-color: var(--office-title-bg);
+  background-color: var(--accent-color);
   text-align: center;
 }
 
-/* Hybrid Grid-List Layout - More compact with more columns */
+/* File Grid Layout - matching home.css grid layouts */
 .file-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Reduced from 220px to 180px */
-  gap: 1.4rem; /* Reduced from 15px */
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.4rem;
   width: 100%;
-  padding: 0 5px; /* Reduced padding */
+  padding: 0 5px;
 }
 
-/* File Item - More compact with better contrast */
+/* File Item - matching home.css card styles */
 .file-item {
-  background-color: var(--office-card-bg) !important;
-  border-radius: 8px; /* Reduced from 10px */
+  background-color: #2e5bbb !important; /* Much darker blue for better contrast in light mode */
+  border-radius: 10px;
   padding: 10px 8px;
-  color: var(--office-card-text);
+  color: white !important;
   transition: transform 0.3s, box-shadow 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  height: 60px; /* Reduced from 90px */
+  height: 60px;
   cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* Added subtle shadow for better depth */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid var(--card-border);
 }
 
 .file-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.25);
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  border-color: var(--accent-color);
+  background-color: #0a2d6b; /* Even darker on hover for better contrast */
+}
+
+/* Dark mode file item colors */
+.dark-mode .file-item {
+  background-color: #4a6bff; /* Brighter blue for dark mode */
+}
+
+.dark-mode .file-item:hover {
+  background-color: #5b8eff; /* Slightly brighter on hover */
 }
 
 .file-title {
-  font-size: 16px !important;
-  font-weight: 400 !important; /* Reduced from 600 */ 
-  letter-spacing: 0.8px; /* Reduced from 1px */
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.8px;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 200px; /* Kept the same */
-  color: var(--office-card-text) !important;
+  max-width: 200px;
+  color: white !important;
 }
 
 /* File link styling - removing default link styling */
@@ -180,28 +141,35 @@
   position: relative;
 }
 
-/* FAQ Section */
+/* FAQ Section - matching home.css section styles */
 .faq-section {
   width: 90%;
-  max-width: 1373px;
+  max-width: 1200px;
   margin: 0 auto 40px;
-  padding: 30px; /* Reduced from 40px to 30px */
-  border-radius: 40px;
-  box-shadow: 0px 4px 162px 828px var(--office-shadow) inset;
-  background-color: var(--office-section-bg);
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.faq-section:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
 }
 
 .faq-title {
-  color: #fff;
-  font-size: 22px; /* Reduced from 24px */
+  color: white;
+  font-size: 22px;
   font-weight: 600;
   text-align: center;
   letter-spacing: 3.96px;
   width: fit-content;
-  margin: 0 auto 30px; /* Reduced from 40px */
-  padding: 8px 30px; /* Reduced padding */
-  border-radius: 64px;
-  background-color: var(--office-title-bg);
+  margin: 0 auto 30px;
+  padding: 8px 30px;
+  border-radius: 20px;
+  background-color: var(--accent-color);
 }
 
 .faq-container {
@@ -212,11 +180,11 @@
 
 .faq-item {
   margin-bottom: 20px;
-  border-radius: 15px;
-  background-color: var(--office-faq-bg);
+  border-radius: 8px;
+  background-color: var(--card-bg);
   overflow: hidden;
   transition: background-color 0.3s;
-  background-color: var(--office-card-bg) !important;
+  border: 1px solid var(--card-border);
 }
 
 .faq-question {
@@ -225,7 +193,7 @@
   border: none;
   text-align: left;
   padding: 20px 25px;
-  color: #fff;
+  color: var(--text-primary);
   font-size: 18px;
   font-weight: 500;
   letter-spacing: 1.5px;
@@ -255,7 +223,7 @@
 }
 
 .faq-answer p {
-  color: #fff;
+  color: var(--text-primary);
   font-size: 18px;
   line-height: 1.6;
   margin: 0;
@@ -264,64 +232,138 @@
 }
 
 .faq-item.active {
-  background-color: var(--office-faq-active-bg);
+  background-color: var(--announcement-bg);
 }
 
-/* Responsive adjustments */
-@media (max-width: 991px) {
+/* Version Dialogue - matching home.css card styles */
+.version-dialogue {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
+  width: 300px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  padding: 12px;
+  margin-top: 5px;
+  pointer-events: auto;
+}
+
+.version-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.version-item {
+  padding: 6px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.version-item:last-child {
+  border-bottom: none;
+}
+
+.current-version {
+  font-weight: bold;
+  background-color: var(--announcement-bg);
+  padding: 6px;
+  border-radius: 4px;
+}
+
+.version-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 10px;
+}
+
+.version-date {
+  flex: 0 0 90px;
+  font-size: 12px;
+  color: var(--text-primary);
+  opacity: 0.7;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.version-link {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  color: inherit;
+  text-decoration: none;
+  align-items: center;
+}
+
+.version-link:hover {
+  text-decoration: underline;
+}
+
+/* Responsive adjustments - matching home.css breakpoints */
+@media (max-width: 1024px) {
   .admission-section,
   .faq-section {
-    padding: 20px; /* Further reduced */
+    padding: 20px;
   }
   
   .offices-section-title,
   .faq-title {
-    font-size: 18px; /* Further reduced */
-    padding: 6px 16px; /* Further reduced */
-    margin-bottom: 14px; /* Further reduced */
+    font-size: 18px;
+    padding: 6px 16px;
+    margin-bottom: 14px;
   }
   
   .file-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* Further reduced */
-    gap: 8px; /* Further reduced */
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
   }
   
   .file-title {
-    font-size: 13px; /* Further reduced */
-    max-width: 130px; /* Further reduced */
+    font-size: 13px;
+    max-width: 130px;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .office-page-title {
-    font-size: 24px; /* Further reduced */
-    letter-spacing: 3px; /* Further reduced */
-    margin-bottom: 30px; /* Further reduced */
+    font-size: 24px;
+    letter-spacing: 3px;
+    margin-bottom: 30px;
   }
   
   .file-grid {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); /* Further reduced */
-    gap: 8px; /* Further reduced */
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px;
   }
   
   .file-item {
-    padding: 8px 6px; /* Further reduced */
-    height: 60px; /* Further reduced */
+    padding: 8px 6px;
+    height: 60px;
   }
   
   .file-title {
-    font-size: 12px; /* Further reduced */
-    max-width: 110px; /* Further reduced */
-    font-weight: 600; /* Consistent with desktop */
+    font-size: 12px;
+    max-width: 110px;
+    font-weight: 600;
   }
   
   .faq-question {
-    font-size: 16px; /* Further reduced */
-    padding: 16px 20px; /* Further reduced */
+    font-size: 16px;
+    padding: 16px 20px;
   }
   
   .faq-answer p {
-    font-size: 14px; /* Further reduced */
+    font-size: 14px;
   }
 }
 
@@ -332,7 +374,7 @@
     right: -8px;
     width: 24px; /* Slightly reduced */
     height: 24px; /* Slightly reduced */
-    background-color: var(--office-title-bg-light);
+    background-color: var(--accent-color);
     color: white;
     border-radius: 4px;
     display: flex;
@@ -356,7 +398,7 @@
 
 /* Dark mode styling for delete button */
 .dark-mode .delete-btn {
-    background-color: var(--office-title-bg-dark);
+    background-color: var(--accent-color);
     color: white;
 }
 
@@ -365,115 +407,33 @@
   cursor: help;
 }
 
-/* Version dialogue styling */
-.version-dialogue {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 100;
-  width: 300px; /* Increased width for better alignment */
-  background-color: white;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  padding: 12px;
-  margin-top: 5px;
-  pointer-events: auto;
-}
+/* CSS for section header with centered title and right-aligned button */
 
-/* Dark mode styles for dialogue */
-.dark-mode .version-dialogue {
-  background-color: #333;
-  border-color: #555;
-  color: #f5f5f5;
-}
-
-.version-dialogue h3 {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 5px;
-}
-
-.dark-mode .version-dialogue h3 {
-  border-bottom-color: #555;
-}
-
-.version-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.version-item {
-  padding: 6px 0;
+.section-header {
+  position: relative;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  border-bottom: 1px solid #f5f5f5;
-}
-
-.dark-mode .version-item {
-  border-bottom-color: #444;
-}
-
-.version-item:last-child {
-  border-bottom: none;
-}
-
-.current-version {
-  font-weight: bold;
-  background-color: #f5f5f5;
-  padding: 6px;
-  border-radius: 3px;
-}
-
-.dark-mode .current-version {
-  background-color: #444;
-}
-
-/* Fixed width for version names to ensure uniform layout */
-.version-name {
-  flex: 1;
-  min-width: 0; /* Ensures text-overflow works properly */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding-right: 10px;
-}
-
-/* Fixed width for version dates */
-.version-date {
-  flex: 0 0 90px; /* Fixed width for dates */
-  font-size: 12px;
-  color: #777;
-  white-space: nowrap;
-  text-align: right;
-}
-
-.dark-mode .version-date {
-  color: #aaa;
-}
-
-.version-link {
-  display: flex;
-  justify-content: space-between;
+  margin-bottom: 20px;
   width: 100%;
-  color: inherit;
-  text-decoration: none;
-  align-items: center;
 }
 
-.version-link:hover {
-  text-decoration: underline;
+/* Keep the title centered */
+.offices-section-title {
+  margin: 0 auto 20px; /* Maintain original margins but use auto for left/right */
+  position: relative;
+  z-index: 1;
 }
 
+/* Position the add button to the right */
 .add-file-button {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
   padding: 6px 12px;
   border-radius: 20px;
-  background-color: var(--office-title-bg);
+  background-color: var(--accent-color);
   color: white;
   text-decoration: none;
   font-size: 14px;
@@ -484,17 +444,17 @@
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  margin-left: 10px;
+  z-index: 2;
 }
 
 .add-file-button:hover {
-  transform: translateY(-2px);
+  transform: translateY(calc(-50% - 2px));
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
   opacity: 0.95;
 }
 
 .dark-mode .add-file-button {
-  background-color: var(--office-title-bg-dark);
+  background-color: var(--accent-color);
 }
 
 /* Responsive styles */
@@ -537,7 +497,7 @@
   transform: translateY(-50%);
   padding: 6px 12px;
   border-radius: 20px;
-  background-color: var(--office-title-bg);
+  background-color: var(--accent-color);
   color: white;
   text-decoration: none;
   font-size: 14px;
@@ -558,7 +518,7 @@
 }
 
 .dark-mode .add-file-button {
-  background-color: var(--office-title-bg-dark);
+  background-color: var(--accent-color);
 }
 
 /* Responsive styles */

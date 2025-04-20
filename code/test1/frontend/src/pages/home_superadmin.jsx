@@ -875,7 +875,7 @@ useEffect(() => {
       formData.append('title', newAnnouncementText);
       formData.append('office', newAnnouncementOffice);
       formData.append('link', newAnnouncementLink);
-      formData.append('approved', 'true'); // Set approved to true by default
+      formData.append('approved', 'false'); // Set approved to false by default
       if (newAnnouncementImage) {
         formData.append('image', newAnnouncementImage);
       }
@@ -884,7 +884,7 @@ useEffect(() => {
         title: newAnnouncementText,
         office: newAnnouncementOffice,
         link: newAnnouncementLink,
-        approved: true,
+        approved: false,
         hasImage: !!newAnnouncementImage
       });
 

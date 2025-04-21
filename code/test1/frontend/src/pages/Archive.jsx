@@ -141,10 +141,13 @@ function Archive({ darkMode, userRole }) {
 		const role = getRoleFromURL();
 		const viewURL = `/${role}/file/${file._id}`;
 
+		// Check if the file has multiple versions
+		const hasMultipleVersions = file.versions && file.versions.length > 0;
+
 		console.log('[archive] generated viewurl:', viewURL);
 		const mappedFile = {
 			id: file._id,
-			fileName: file.name,
+			fileName: hasMultipleVersions ? `${file.name} *` : file.name, // Add asterisk for files with versions
 			authorId: file.author, // Store the author ObjectId
 			author: 'Loading...', // Initial state
 			office: file.office,
@@ -154,6 +157,8 @@ function Archive({ darkMode, userRole }) {
 			viewURL: viewURL,
 			// Use URL if available, otherwise use filepath
 			downloadUrl: file.url || (filePath ? `http://localhost:5000${filePath}` : null),
+			// Track if file has multiple versions
+			hasVersions: hasMultipleVersions
 		};
 
 		// If we have the author details, update the author name

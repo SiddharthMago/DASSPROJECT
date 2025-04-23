@@ -56,6 +56,28 @@ const AdminOfficePage = ({ darkMode }) => {
           }
         });
         
+        // Process the files to filter out older versions
+        const allFiles = filesResponse.data.data;
+        
+        // Collect all the version IDs
+        const versionIds = new Set();
+        
+        allFiles.forEach(file => {
+          if (file.versions && file.versions.length > 0) {
+            file.versions.forEach(version => {
+              if (version._id) {
+                versionIds.add(version._id.toString());
+              }
+            });
+          }
+        });
+        
+        // Filter files to only include those that are not in any version arrays
+        const latestFiles = allFiles.filter(file => !versionIds.has(file._id.toString()));
+        
+        console.log("Admin view - All files:", allFiles.length);
+        console.log("Admin view - Latest files (not in version arrays):", latestFiles.length);
+        
         // Fetch FAQs for the specific office
         const faqsResponse = await axios.get(`/api/offices/faqs/${encodeURIComponent(officeName)}`, {
           headers: {
@@ -64,7 +86,7 @@ const AdminOfficePage = ({ darkMode }) => {
         });
         
         // Group files by category
-        const groupedFiles = filesResponse.data.data.reduce((acc, file) => {
+        const groupedFiles = latestFiles.reduce((acc, file) => {
           if (!acc[file.category]) {
             acc[file.category] = [];
           }

@@ -1,16 +1,47 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import axios from 'axios';
+import ReactDOM from "react-dom";
 
 const AdminOfficeSection = ({ title, category, cards, darkMode, canEdit = false }) => {
   // State to track which file is being hovered
   const [hoveredFileIndex, setHoveredFileIndex] = useState(null);
+  // Ref to store position of the hovered file
+  const hoveredItemRef = useRef(null);
+  // Ref for the dialogue box to detect hovers
+  const dialogueRef = useRef(null);
+  // Create a state for portal container
+  const [portalContainer, setPortalContainer] = useState(null);
+  // State to keep track of mouse being over the dialogue
+  const [isOverDialogue, setIsOverDialogue] = useState(false);
+  // Timer ref for delayed closing
+  const closeTimerRef = useRef(null);
   // State to store user role
   const [userRole, setUserRole] = useState(null);
   
   // Use location to determine if we're in admin or superadmin route
   const location = useLocation();
+  
+  // Effect to create a portal container when component mounts
+  useEffect(() => {
+    // Create portal container for version dialogues
+    const container = document.createElement('div');
+    container.classList.add('version-dialogue-container');
+    document.body.appendChild(container);
+    setPortalContainer(container);
+
+    // Clean up on unmount
+    return () => {
+      // Remove the portal container
+      document.body.removeChild(container);
+      
+      // Clear any pending timers
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+      }
+    };
+  }, []);
   
   // Determine base path from current URL or fetch from user profile
   useEffect(() => {
@@ -113,9 +144,12 @@ const AdminOfficeSection = ({ title, category, cards, darkMode, canEdit = false 
       return version.url;
     }
     
-    // If it has a filePath but it's not a web URL, go to file page with version ID
+    // If version has _id, use that
+    const versionId = version._id || version.id || '';
+    
+    // Generate the correct path based on user role
     const basePath = userRole === 'superadmin' ? '/superadmin' : '/admin';
-    return `${basePath}/file/${cardId}?version=${version._id || version.id || ''}`;
+    return `${basePath}/file/${versionId}`;
   };
 
   // Function to determine if the link should open in a new tab
@@ -126,6 +160,54 @@ const AdminOfficeSection = ({ title, category, cards, darkMode, canEdit = false 
   // Function to determine if a version link should open in a new tab
   const shouldVersionOpenNewTab = (version) => {
     return version.url && isWebUrl(version.url);
+  };
+
+  // Function to cancel any pending close timer
+  const cancelCloseTimer = () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  };
+
+  // Handler for mouse enter on file item
+  const handleMouseEnter = (index, e) => {
+    // Cancel any pending close timer
+    cancelCloseTimer();
+    
+    setHoveredFileIndex(index);
+    // Save reference to the current target for positioning
+    hoveredItemRef.current = e.currentTarget;
+  };
+
+  // Handler for mouse leave on file item
+  const handleMouseLeave = () => {
+    // Set a delay before closing the dialogue
+    // This creates a tolerance window for moving to the dialogue
+    closeTimerRef.current = setTimeout(() => {
+      // Only close the dialogue if mouse is not over the dialogue
+      if (!isOverDialogue) {
+        setHoveredFileIndex(null);
+        hoveredItemRef.current = null;
+      }
+    }, 300); // 300ms delay gives time to move to the dialogue
+  };
+
+  // Handler for mouse enter on dialogue
+  const handleDialogueMouseEnter = () => {
+    // Cancel any pending close timer
+    cancelCloseTimer();
+    setIsOverDialogue(true);
+  };
+
+  // Handler for mouse leave on dialogue
+  const handleDialogueMouseLeave = () => {
+    // Set a delay before closing the dialogue
+    closeTimerRef.current = setTimeout(() => {
+      setIsOverDialogue(false);
+      setHoveredFileIndex(null);
+      hoveredItemRef.current = null;
+    }, 200); // Slightly shorter delay when leaving the dialogue
   };
 
   const handleDelete = async (e, card) => {
@@ -162,6 +244,158 @@ const AdminOfficeSection = ({ title, category, cards, darkMode, canEdit = false 
     }
   };
 
+  // Function to render version dialogue in a portal
+  const renderVersionDialogue = () => {
+    if (hoveredFileIndex === null || !hoveredItemRef.current || !portalContainer) return null;
+    
+    const card = cards[hoveredFileIndex];
+    if (!card.versions || card.versions.length === 0) return null;
+
+    // Get position of the hovered item
+    const rect = hoveredItemRef.current.getBoundingClientRect();
+    
+    // Calculate position for the dialogue - match user view exactly
+    const dialogueStyle = {
+      position: 'fixed',
+      zIndex: 10000,
+      backgroundColor: darkMode ? '#2c2c2c' : '#ffffff',
+      border: `1px solid ${darkMode ? '#444' : '#ddd'}`,
+      borderRadius: '8px',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+      padding: '12px',
+      width: '250px',
+      maxHeight: '300px',
+      overflowY: 'auto',
+      left: `${rect.left}px`,
+      top: `${rect.bottom + 5}px`, // 5px below the item - exactly like user view
+    };
+
+    return ReactDOM.createPortal(
+      <div 
+        style={dialogueStyle} 
+        className="version-dialogue-portal"
+        ref={dialogueRef}
+        onMouseEnter={handleDialogueMouseEnter}
+        onMouseLeave={handleDialogueMouseLeave}
+      >
+        <h3 style={{
+          margin: '0 0 8px 0',
+          fontSize: '16px',
+          color: darkMode ? '#ffffff' : '#333333'
+        }}>Versions</h3>
+        <ul style={{
+          listStyle: 'none',
+          padding: '0',
+          margin: '0'
+        }}>
+          {/* Current version */}
+          <li style={{
+            padding: '6px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            borderBottom: `1px solid ${darkMode ? '#444' : '#eee'}`,
+            fontWeight: 'bold',
+            backgroundColor: darkMode ? '#003366' : '#e6f7ff',
+            borderRadius: '4px',
+            marginBottom: '4px'
+          }}>
+            <Link 
+              to={getCardLink(card)}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                width: '100%',
+                color: 'inherit',
+                textDecoration: 'none'
+              }}
+            >
+              <span style={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                paddingRight: '10px',
+                maxWidth: '150px'
+              }}>Current: {card.title}</span>
+              <span style={{
+                fontSize: '12px',
+                opacity: '0.7',
+                whiteSpace: 'nowrap',
+                textAlign: 'right'
+              }}>{formatDate(card.createdAt)}</span>
+            </Link>
+          </li>
+          
+          {/* Previous versions */}
+          {card.versions.map((version, vIndex) => (
+            <li key={vIndex} style={{
+              padding: '6px 0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              borderBottom: vIndex === card.versions.length - 1 ? 'none' : `1px solid ${darkMode ? '#444' : '#eee'}`
+            }}>
+              {shouldVersionOpenNewTab(version) ? (
+                <a 
+                  href={getVersionLink(version, card.id)}
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    color: 'inherit',
+                    textDecoration: 'none'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span style={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    paddingRight: '10px',
+                    maxWidth: '150px'
+                  }}>{version.name}</span>
+                  <span style={{
+                    fontSize: '12px',
+                    opacity: '0.7',
+                    whiteSpace: 'nowrap',
+                    textAlign: 'right'
+                  }}>{formatDate(version.createdAt)}</span>
+                </a>
+              ) : (
+                <Link
+                  to={getVersionLink(version, card.id)}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    width: '100%',
+                    color: 'inherit',
+                    textDecoration: 'none'
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span style={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    paddingRight: '10px',
+                    maxWidth: '150px'
+                  }}>{version.name}</span>
+                  <span style={{
+                    fontSize: '12px',
+                    opacity: '0.7',
+                    whiteSpace: 'nowrap',
+                    textAlign: 'right'
+                  }}>{formatDate(version.createdAt)}</span>
+                </Link>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>,
+      portalContainer
+    );
+  };
+
   return (
     <section className="admission-section">
       <div className="section-header">
@@ -178,10 +412,11 @@ const AdminOfficeSection = ({ title, category, cards, darkMode, canEdit = false 
       <div className="file-grid">
         {cards.map((card, index) => (
           <div 
-            key={card.id} 
+            key={card.id || index} 
             className="file-item-wrapper"
-            onMouseEnter={() => setHoveredFileIndex(index)}
-            onMouseLeave={() => setHoveredFileIndex(null)}
+            onMouseEnter={(e) => handleMouseEnter(index, e)}
+            onMouseLeave={handleMouseLeave}
+            style={{ position: 'relative' }}
           >
             {canEdit && (
               <div 
@@ -219,130 +454,12 @@ const AdminOfficeSection = ({ title, category, cards, darkMode, canEdit = false 
                 </div>
               </Link>
             )}
-            
-            {/* Version hover dialogue box */}
-            {hoveredFileIndex === index && 
-             card.versions && 
-             card.versions.length > 0 && (
-              <div 
-                className="version-dialogue"
-              >
-                <h3>Versions</h3>
-                <ul className="version-list">
-                  {/* Current version */}
-                  <li className="version-item current-version">
-                    <span className="version-name">Current: {card.title}</span>
-                    <span className="version-date">{formatDate(card.createdAt)}</span>
-                  </li>
-                  
-                  {/* Previous versions */}
-                  {card.versions.map((version, vIndex) => (
-                    <li key={vIndex} className="version-item">
-                      {shouldVersionOpenNewTab(version) ? (
-                        // External version links open in new tab
-                        <a 
-                          href={getVersionLink(version, card.id)}
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="version-link"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <span className="version-name">{version.name}</span>
-                          <span className="version-date">{formatDate(version.createdAt)}</span>
-                        </a>
-                      ) : (
-                        // Internal version links use React Router Link
-                        <Link
-                          to={getVersionLink(version, card.id)}
-                          className="version-link"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <span className="version-name">{version.name}</span>
-                          <span className="version-date">{formatDate(version.createdAt)}</span>
-                        </Link>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
         ))}
       </div>
-
-      {/* Inline styles */}
-      <style jsx>{`
-        .file-item-wrapper {
-          position: relative;
-          margin-bottom: 15px;
-        }
-        
-        .file-item-wrapper .delete-btn {
-          display: flex !important;
-          opacity: 1 !important;
-          visibility: visible !important;
-        }
-        
-        .version-dialogue {
-          position: absolute;
-          z-index: 10;
-          background-color: ${darkMode ? '#2c2c2c' : '#ffffff'};
-          border: 1px solid ${darkMode ? '#444' : '#ddd'};
-          border-radius: 4px;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-          padding: 10px;
-          width: 250px;
-          max-height: 300px;
-          overflow-y: auto;
-          margin-top: 5px;
-        }
-        
-        .version-list {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-        }
-        
-        .version-item {
-          display: flex;
-          justify-content: space-between;
-          padding: 5px 0;
-          border-bottom: 1px solid ${darkMode ? '#444' : '#eee'};
-        }
-        
-        .version-item:last-child {
-          border-bottom: none;
-        }
-        
-        .current-version {
-          font-weight: bold;
-          color: ${darkMode ? '#64b5f6' : '#0066cc'};
-        }
-        
-        .version-name {
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          max-width: 150px;
-        }
-        
-        .version-date {
-          font-size: 0.8em;
-          color: ${darkMode ? '#aaa' : '#666'};
-        }
-        
-        .version-link {
-          display: flex;
-          justify-content: space-between;
-          width: 100%;
-          text-decoration: none;
-          color: inherit;
-        }
-        
-        .version-link:hover {
-          text-decoration: underline;
-        }
-      `}</style>
+      
+      {/* Render version dialogue through portal */}
+      {renderVersionDialogue()}
     </section>
   );
 };

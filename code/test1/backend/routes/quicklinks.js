@@ -9,6 +9,7 @@ const {
   pinQuickLink,
   unpinQuickLink,
   approveQuickLink,
+  getMyQuickLinks,
 } = require('../controllers/quickLinkController');
 const { protect, authorize } = require('../middleware/auth');
 
@@ -23,5 +24,6 @@ router.get('/pinned', getAllPinnedQuickLinks); // Public route to get all pinned
 router.put('/:id/pin', protect, authorize('admin', 'superadmin'), pinQuickLink);
 router.put('/:id/unpin', protect, authorize('admin', 'superadmin'), unpinQuickLink);
 router.put('/:id/approve', protect, authorize('superadmin'), approveQuickLink);
+router.get('/my-links', protect, authorize('admin', 'superadmin'), getMyQuickLinks);
 
 module.exports = router;

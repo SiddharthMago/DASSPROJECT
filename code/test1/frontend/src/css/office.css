@@ -556,3 +556,40 @@
     }
   }
 }
+
+/* Version dialogue styles - improved to prevent z-index issues */
+.version-dialogue {
+  display: block !important; /* Force display when active */
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important; /* Enhanced shadow */
+  pointer-events: all !important; /* Ensure the dialogue can be interacted with */
+  overflow: visible !important; /* Ensure content is not cut off */
+}
+
+/* Ensure file item wrapper has proper stacking context */
+.file-item-wrapper {
+  position: relative;
+  z-index: 1; /* Base z-index */
+  isolation: isolate; /* Create a new stacking context */
+}
+
+/* Create a higher stacking context for the file-item-wrapper when hovered */
+.file-item-wrapper:hover {
+  z-index: 1000; /* Higher z-index when hovered */
+  isolation: isolate; /* Create a new stacking context */
+}
+
+/* Override any potential overflow issues in parent containers */
+.file-grid {
+  overflow: visible !important;
+}
+
+.admission-section {
+  overflow: visible !important;
+  padding-bottom: 50px; /* Add extra padding at the bottom to prevent cutoff */
+}
+
+/* Prevent any other elements from having extremely high z-indices that could conflict */
+.admission-section, .faq-section, .office-page-title, .file-grid {
+  position: relative;
+  z-index: 1; /* Keep these at baseline z-index */
+}

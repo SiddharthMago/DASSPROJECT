@@ -12,8 +12,6 @@ const OfficePage = ({ darkMode }) => {
   const [faqs, setFaqs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [userOffice, setUserOffice] = useState(null);
-  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
     const fetchOfficeContent = async () => {
@@ -24,11 +22,37 @@ const OfficePage = ({ darkMode }) => {
         const filesResponse = await axios.get(`/api/files/office/${encodeURIComponent(officeName)}`, {
           params: { status: 'approved' }
         });
+
+        // Process the files to filter out older versions
+        const allFiles = filesResponse.data.data;
+        // Create a map to track the latest version of each file (by name or other identifier)
+        const latestVersionMap = new Map();
+        
+        // For each file, check if it's in another file's versions array
+        const fileIds = new Set(allFiles.map(file => file._id.toString()));
+        const versionIds = new Set();
+        
+        // Collect all the version IDs
+        allFiles.forEach(file => {
+          if (file.versions && file.versions.length > 0) {
+            file.versions.forEach(version => {
+              if (version._id) {
+                versionIds.add(version._id.toString());
+              }
+            });
+          }
+        });
+        
+        // Filter files to only include those that are not in any version arrays
+        const latestFiles = allFiles.filter(file => !versionIds.has(file._id.toString()));
+        
+        console.log("All files:", allFiles.length);
+        console.log("Latest files (not in version arrays):", latestFiles.length);
         
         // Fetch FAQs for the specific office
         const faqsResponse = await axios.get(`/api/faqs/office/${encodeURIComponent(officeName)}`);
         
-        setFiles(filesResponse.data.data);
+        setFiles(latestFiles);
         setFaqs(faqsResponse.data.data);
         setLoading(false);
       } catch (err) {
@@ -61,7 +85,7 @@ const OfficePage = ({ darkMode }) => {
       title: file.name,
       url: file.url,
       filePath: file.filePath,
-      versions: file.versions || [], // Include versions array
+      versions: file.versions || [], // Include versions array as is
       createdAt: file.createdAt, // Include creation date for current version
       _id: file._id // Include ID for potential API calls
     });

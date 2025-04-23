@@ -7,6 +7,7 @@ const {
   getUnapprovedAnnouncements,
   deleteAnnouncement,
   updateAnnouncement,
+  getMyAnnouncements,
 } = require('../controllers/announcementController');
 const { protect, authorize } = require('../middleware/auth');
 const multer = require('multer');
@@ -45,5 +46,6 @@ router.get('/latest', getLatestAnnouncements); // Public route to get the latest
 router.get('/unapproved', protect, authorize('superadmin'), getUnapprovedAnnouncements); // Admin/Superadmin route to get unapproved announcements
 router.delete('/:id', protect, authorize('admin', 'superadmin'), deleteAnnouncement); // Admin/Superadmin route to delete an announcement
 router.put('/:id', protect, authorize('admin', 'superadmin'), upload.single('image'), updateAnnouncement);
+router.get('/my-announcements', protect, authorize('admin', 'superadmin'), getMyAnnouncements);
 
 module.exports = router;

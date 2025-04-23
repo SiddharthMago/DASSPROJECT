@@ -191,3 +191,27 @@ exports.deleteAnnouncement = async (req, res, next) => {
     res.status(500).json({ success: false, error: 'Server error' });
   }
 };
+
+// @desc    Get announcements created by the current user
+// @route   GET /api/announcements/my-announcements
+// @access  Admin/Superadmin
+exports.getMyAnnouncements = async (req, res, next) => {
+  try {
+    // Find all announcements where the author is the current user
+    const announcements = await Announcement.find({ author: req.user._id })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: announcements.length,
+      data: announcements,
+    });
+  } catch (err) {
+    console.error('Error fetching user announcements:', err);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Server error',
+      details: err.message
+    });
+  }
+};

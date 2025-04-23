@@ -226,7 +226,7 @@ function Archive({ darkMode, userRole }) {
 	const filteredItems = useMemo(() => {
 		return archiveItems.filter((item) => {
 			const matchesCategory = activeTab === 'All' ||
-				(activeTab === 'Uploaded by Me' ? item.category === 'Files' : item.category === activeTab);
+				(activeTab === 'Uploaded by Me' ? true : item.category === activeTab);
 			const matchesOffice =
 				selectedOffice === 'All' || item.office.toLowerCase().includes(selectedOffice.toLowerCase());
 			const matchesSearch =
@@ -296,7 +296,91 @@ function Archive({ darkMode, userRole }) {
 				apiCache.lastFetch = now;
 				const mapped = res.data.data.map(mapQuickLinkData);
 				setArchiveItems(mapped);
-			}
+			} else if (activeTab === 'Uploaded by Me') {
+				const token = localStorage.getItem('token');
+				if (!token) {
+				  console.error('No token found');
+				  setError('Please log in to view your uploaded content');
+				  setLoading(false);
+				  return;
+				}
+			  
+				try {
+				  // Fetch all content types uploaded by the current user
+				  const [filesRes, announcementsRes, quickLinksRes] = await Promise.all([
+					axios.get('http://localhost:5000/api/files/my-files', {
+					  headers: { Authorization: `Bearer ${token}` }
+					}),
+					axios.get('http://localhost:5000/api/announcements/my-announcements', {
+					  headers: { Authorization: `Bearer ${token}` }
+					}),
+					axios.get('http://localhost:5000/api/quicklinks/my-links', {
+					  headers: { Authorization: `Bearer ${token}` }
+					})
+				  ]);
+			  
+				  // Map each content type using the appropriate mapping functions
+				  const files = filesRes.data.data.map(file => {
+					const filePath = file.filePath ? `/${file.filePath.replace(/\\/g, '/')}` : '';
+					const role = getRoleFromURL();
+					const viewURL = `/${role}/file/${file._id}`;
+			  
+					return {
+					  id: file._id,
+					  fileName: file.name,
+					  author: file.author?.name || 'Siddharth Mago',
+					  office: file.office,
+					  modifiedDate: new Date(file.createdAt).toLocaleDateString(),
+					  category: 'Files',
+					  status: file.status,
+					  comments: file.comments || [],
+					  rejectionComment: file.rejectionComment,
+					  viewURL: viewURL,
+					  downloadUrl: file.url || (filePath ? `http://localhost:5000${filePath}` : null),
+					};
+				  });
+			  
+				  const announcements = announcementsRes.data.data.map(announcement => {
+					return {
+					  id: announcement._id,
+					  fileName: announcement.title,
+					  author: announcement.author?.name || 'You',
+					  office: announcement.office,
+					  modifiedDate: new Date(announcement.createdAt).toLocaleDateString(),
+					  category: 'Announcements',
+					  status: announcement.approved ? 'approved' : 'pending',
+					  downloadUrl: announcement.link || '#',
+					  image: announcement.image
+					};
+				  });
+			  
+				  const quickLinks = quickLinksRes.data.data.map(link => {
+					return {
+					  id: link._id,
+					  fileName: link.title,
+					  author: link.author?.name || 'You',
+					  office: link.office,
+					  modifiedDate: new Date(link.createdAt).toLocaleDateString(),
+					  category: 'Links',
+					  status: link.approved ? 'approved' : 'pending',
+					  downloadUrl: link.url,
+					  pinned: link.pinned
+					};
+				  });
+			  
+				  // Combine all items and sort by date
+				  const allUserItems = [...files, ...announcements, ...quickLinks].sort((a, b) =>
+					new Date(b.modifiedDate) - new Date(a.modifiedDate)
+				  );
+				  
+				  setArchiveItems(allUserItems);
+				} catch (err) {
+				  console.error('Error fetching user content:', err);
+				  setError('Failed to fetch your uploaded content: ' + (err.response?.data?.error || err.message));
+				} finally {
+				  setLoading(false);
+				}
+			  }
 		} catch (err) {
 			console.error('Failed to fetch data:', err);
 			setError(err.response?.data?.error || 'Failed to fetch data');
@@ -382,7 +466,7 @@ function Archive({ darkMode, userRole }) {
 					const mapped = res.data.data.map(mapFileData);
 					setArchiveItems(mapped);
 				}
-
+				
 				setDeleteModal({ show: false, itemId: null, itemName: '', category: '' });
 			} else {
 				alert('Failed to delete item: ' + response.data.error);

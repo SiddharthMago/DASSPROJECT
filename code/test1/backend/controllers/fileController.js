@@ -101,20 +101,18 @@ exports.approveFile = async (req, res, next) => {
 
 	try {
 		const file = await File.findByIdAndUpdate(
-			req.params.id,
-			{ status: 'approved' },
-			{ new: true }
+		req.params.id,
+		{ status: 'approved' },
+		{ new: true }
 		);
 
 		if (!file) {
-			console.warn(`[APPROVE FILE] File not found: ${req.params.id}`);
-			return res.status(404).json({ success: false, error: 'File not found' });
+		console.warn(`[APPROVE FILE] File not found: ${req.params.id}`);
+		return res.status(404).json({ success: false, error: 'File not found' });
 		}
 
-		await File.updateMany(
-            { _id: { $in: file.versions } },
-            { $addToSet: { versions: file._id } } // Add the new version ID to the versions array
-        );
+		// No need to update older versions - that's handled during creation
+		// We're removing the bidirectional update as requested
 
 		console.log(`[APPROVE FILE] File approved: ${file._id}`);
 		res.status(200).json({ success: true, data: file });
@@ -224,57 +222,59 @@ exports.getPendingFiles = async (req, res, next) => {
 exports.addFileVersion = async (req, res, next) => {
 	const { name, url } = req.body;
 	console.log(`[ADD FILE VERSION] Adding version to file: ${req.params.id}`);
-
+  
 	try {
-		const originalFile = await File.findById(req.params.id);
-		if (!originalFile) {
-			return res.status(404).json({ success: false, error: 'File not found' });
+	  const originalFile = await File.findById(req.params.id);
+	  if (!originalFile) {
+		return res.status(404).json({ success: false, error: 'File not found' });
+	  }
+  
+	  // Check if either a file or URL is provided
+	  if (!req.file && !url) {
+		return next(new ErrorResponse(`Please upload a file or provide a URL`, 400));
+	  }
+  
+	  // Use relative path
+	  let filePath = req.file ? `uploads/files/${req.file.filename}` : null;
+  
+	  // Create version history array with the original file's information
+	  const versionHistory = [
+		{
+		  name: originalFile.name,
+		  // Use _id instead of fileId to match the expected format
+		  _id: originalFile._id,
+		  filePath: originalFile.filePath,
+		  url: originalFile.url,
+		  createdAt: originalFile.createdAt
 		}
-
-		// Check if either a file or URL is provided
-		if (!req.file && !url) {
-			return next(new ErrorResponse(`Please upload a file or provide a URL`, 400));
-		}
-
-		// Use relative path
-		let filePath = req.file ? `uploads/files/${req.file.filename}` : null;
-
-		// Create version history array with the original file's information
-		const versionHistory = [
-			{
-				name: originalFile.name,
-				fileId: originalFile._id,
-				filePath: originalFile.filePath,
-				url: originalFile.url,
-			}
-		];
-
-		// Add previous versions if they exist
-		if (originalFile.versions && originalFile.versions.length > 0) {
-			versionHistory.push(...originalFile.versions);
-		}
-
-		const newFileData = {
-			name,
-			url: url || null,
-			filePath,
-			office: originalFile.office,
-			category: originalFile.category,
-			status: "pending",
-			author: req.user.id,
-			versions: versionHistory  // Now contains properly structured version history
-		};
-
-		const newFile = await File.create(newFileData);
-
-		console.log(`[ADD FILE VERSION] Version added successfully to file: ${newFile._id}`);
-		res.status(201).json({ success: true, data: newFile });
+	  ];
+  
+	  // Add previous versions if they exist
+	  if (originalFile.versions && originalFile.versions.length > 0) {
+		versionHistory.push(...originalFile.versions);
+	  }
+  
+	  const newFileData = {
+		name,
+		url: url || null,
+		filePath,
+		office: originalFile.office,
+		category: originalFile.category,
+		status: "pending",
+		author: req.user.id,
+		versions: versionHistory  // Now contains properly structured version history
+	  };
+  
+	  const newFile = await File.create(newFileData);
+  
+	  console.log(`[ADD FILE VERSION] Version added successfully to file: ${newFile._id}`);
+	  res.status(201).json({ success: true, data: newFile });
 	}
 	catch (err) {
-		console.error(`[ADD FILE VERSION] Error: ${err.message}`);
-		res.status(400).json({ success: false, error: err.message });
+	  console.error(`[ADD FILE VERSION] Error: ${err.message}`);
+	  res.status(400).json({ success: false, error: err.message });
 	}
-};
+  };
 
 // @desc    Get categories for a specific office
 exports.getOfficeCategories = async (req, res, next) => {

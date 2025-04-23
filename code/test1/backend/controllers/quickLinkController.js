@@ -226,3 +226,27 @@ exports.getAllPinnedQuickLinks = async (req, res, next) => {
     res.status(500).json({ success: false, error: 'Server error' });
   }
 };
+
+// @desc    Get quick links created by the current user
+// @route   GET /api/quicklinks/my-links
+// @access  Admin/Superadmin
+exports.getMyQuickLinks = async (req, res, next) => {
+  try {
+    // Find all quick links where the author is the current user
+    const quickLinks = await QuickLink.find({ author: req.user._id })
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: quickLinks.length,
+      data: quickLinks,
+    });
+  } catch (err) {
+    console.error('Error fetching user quick links:', err);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Server error',
+      details: err.message
+    });
+  }
+};

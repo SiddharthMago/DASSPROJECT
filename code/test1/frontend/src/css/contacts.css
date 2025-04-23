@@ -342,7 +342,7 @@
 }
 
 .admin-filters {
-    background-color: var(--bg-primary);
+    /* background-color: var(--bg-primary); */
     padding: 1.5rem;
     /* border-radius: 10px; */
     /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); */

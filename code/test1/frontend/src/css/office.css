@@ -40,7 +40,7 @@
 
 /* Page Title - matching home.css section titles */
 .office-page-title {
-  color: var(--accent-color);
+  color: var(--text-primary);
   font-size: clamp(28px, 5vw, 38px);
   font-weight: 700;
   text-align: center;
@@ -71,11 +71,11 @@
   margin: 0 auto 20px;
   padding: 8px 30px;
   border-radius: 20px;
-  color: white;
+  color: var(--text-primary);
   font-size: 22px;
   font-weight: 600;
   letter-spacing: 3.96px;
-  background-color: var(--accent-color);
+  background-color: var(--card-bg);
   text-align: center;
 }
 
@@ -90,10 +90,10 @@
 
 /* File Item - matching home.css card styles */
 .file-item {
-  background-color: #2e5bbb !important; /* Much darker blue for better contrast in light mode */
+  /* background-color: #2e5bbb !important; */
   border-radius: 10px;
   padding: 10px 8px;
-  color: white !important;
+  /* color: white !important; */
   transition: transform 0.3s, box-shadow 0.3s;
   display: flex;
   align-items: center;
@@ -109,17 +109,18 @@
   transform: translateY(-5px);
   box-shadow: 0 6px 12px rgba(0,0,0,0.15);
   border-color: var(--accent-color);
-  background-color: #0a2d6b; /* Even darker on hover for better contrast */
+  /* background-color: #0a2d6b; Even darker on hover for better contrast */
 }
 
 /* Dark mode file item colors */
-.dark-mode .file-item {
-  background-color: #4a6bff; /* Brighter blue for dark mode */
-}
+/* .dark-mode .file-item { */
+  /* background-color: #4a6bff; */
+ /* } */
 
-.dark-mode .file-item:hover {
-  background-color: #5b8eff; /* Slightly brighter on hover */
-}
+/* .dark-mode .file-item:hover { */
+  /* background-color: #5b8eff; */
+  /* color: rgb(225, 16, 16); */
+/* } */
 
 .file-title {
   font-size: 16px;
@@ -130,7 +131,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 200px;
-  color: white !important;
+  color: var(--text-primary);
 }
 
 /* File link styling - removing default link styling */
@@ -160,7 +161,7 @@
 }
 
 .faq-title {
-  color: white;
+  color: var(--text-primary);
   font-size: 22px;
   font-weight: 600;
   text-align: center;
@@ -169,7 +170,7 @@
   margin: 0 auto 30px;
   padding: 8px 30px;
   border-radius: 20px;
-  background-color: var(--accent-color);
+  /* background-color: var(--accent-color); */
 }
 
 .faq-container {
@@ -231,9 +232,16 @@
   font-family: "Barlow", sans-serif;
 }
 
-.faq-item.active {
-  background-color: var(--announcement-bg);
-}
+.faq-item:hover {
+  transform: translateY(-5px);
+  transition: 0.3s;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  border-color: var(--accent-color);
+ }
+
+ /* .faq-item.active {
+  border-color: var(--card-border);
+ } */
 
 /* Version Dialogue - matching home.css card styles */
 .version-dialogue {

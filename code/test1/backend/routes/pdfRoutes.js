@@ -14,7 +14,7 @@ router.post('/compare-pdfs', async (req, res) => {
     }
 
     const outputDir = path.join(__dirname, '../temp');
-    const outputFile = path.join(outputDir, `compare_${Date.now()}.html`);
+    const outputFile = path.join(outputDir, `compare_${Date.now()}`);
 
     // Ensure the temp directory exists
     if (!fs.existsSync(outputDir)) {
@@ -34,13 +34,20 @@ router.post('/compare-pdfs', async (req, res) => {
         console.log('PDF comparison output:', stdout);
 
         // Serve the generated HTML file
-        res.json({ success: true, htmlPath: `/temp/${path.basename(outputFile)}` });
+        res.json({ success: true, htmlPath: `/temp/${path.basename(outputFile)}/pdf_diff.html` });
 
-        // Delete the file after a delay (e.g., 10 minutes)
+        // Delete the directory after a delay (1 minute)
         setTimeout(() => {
-            if (fs.existsSync(outputFile)) {
-                fs.unlinkSync(outputFile);
-                console.log('Deleted temporary HTML file:', outputFile);
+            const folderPath = outputFile;
+            if (fs.existsSync(folderPath)) {
+                // Remove directory recursively
+                fs.rm(folderPath, { recursive: true, force: true }, (err) => {
+                    if (err) {
+                        console.error('Error deleting temporary folder:', err);
+                    } else {
+                        console.log('Deleted temporary folder:', folderPath);
+                    }
+                });
             }
         }, 10 * 60 * 1000); // 10 minutes
     });

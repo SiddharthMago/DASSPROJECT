@@ -1,869 +1,608 @@
 #!/usr/bin/env python3
-"""
-Enhanced PDF Comparison Tool
-
-This script compares two PDF files by:
-1. Converting PDFs to text (with OCR support for image-based PDFs)
-2. Finding differences between their content at both line and word level
-3. Generating an HTML file with color-coded differences
-4. Providing detailed statistics about the differences
-"""
-
 import os
 import sys
-import re
-import pdfplumber
-import difflib
 import argparse
+import time
 from datetime import datetime
-from pathlib import Path
-from tqdm import tqdm
-import tempfile
-import webbrowser
-
-# Optional OCR support - will be used if available
-try:
-    import pytesseract
-    from PIL import Image
-    HAS_OCR = True
-except ImportError:
-    HAS_OCR = False
+import cv2
+import numpy as np
+import pytesseract
+import easyocr
+from pdf2image import convert_from_path
+from PIL import Image, ImageDraw, ImageFont
+import difflib
+from jinja2 import Template
+import re
+import shutil
+from fuzzywuzzy import fuzz
+from docx import Document
+from fpdf import FPDF
 
 class PDFComparer:
-    """Class to handle PDF comparison and visualization."""
-    
-    def __init__(self, pdf1_path, pdf2_path, output_path=None, page_range=None, 
-                 use_ocr=False, word_level=False):
-        """Initialize with paths to PDF files and comparison options.
+    def _convert_docx_to_pdf(self, docx_path, output_pdf_path):
+        """Convert a .docx file to a PDF file."""
+        print(f"Converting {docx_path} to PDF...")
+
+        # Load the .docx file
+        doc = Document(docx_path)
+
+        # Create a PDF object
+        pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
+
+        # Add content from the .docx file to the PDF
+        for paragraph in doc.paragraphs:
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+            pdf.multi_cell(0, 10, paragraph.text)
+
+        # Save the PDF
+        pdf.output(output_pdf_path)
+        print(f"Converted {docx_path} to {output_pdf_path}")
+
+    def _ensure_pdf(self, file_path):
+        """Ensure the input file is a PDF. If not, convert it to PDF."""
+        if file_path.lower().endswith('.pdf'):
+            return file_path  # Already a PDF
+
+        if file_path.lower().endswith('.docx'):
+            # Convert .docx to PDF
+            output_pdf_path = file_path.rsplit('.', 1)[0] + '.pdf'
+            self._convert_docx_to_pdf(file_path, output_pdf_path)
+            return output_pdf_path
+
+        raise ValueError(f"Unsupported file format: {file_path}. Only .pdf and .docx are supported.")
+
+    def __init__(self, pdf1_path, pdf2_path, output_dir=None, dpi=300):
+        """
+        Initialize with paths to two files to compare (PDF or DOCX).
         
         Args:
-            pdf1_path: Path to the first PDF file
-            pdf2_path: Path to the second PDF file
-            output_path: Path for the HTML output file
-            page_range: Tuple of (start_page, end_page) to compare specific pages
-            use_ocr: Whether to use OCR for text extraction
-            word_level: Whether to perform word-level comparison
+            pdf1_path (str): Path to the first file (PDF or DOCX)
+            pdf2_path (str): Path to the second file (PDF or DOCX)
+            output_dir (str): Directory to save results (default creates timestamp folder)
+            dpi (int): DPI for PDF to image conversion (higher means better quality but slower)
         """
-        self.pdf1_path = pdf1_path
-        self.pdf2_path = pdf2_path
-        self.page_range = page_range
-        self.use_ocr = use_ocr
-        self.word_level = word_level
+        # Ensure both files are PDFs
+        self.pdf1_path = self._ensure_pdf(pdf1_path)
+        self.pdf2_path = self._ensure_pdf(pdf2_path)
         
-        # Check OCR availability if requested
-        if self.use_ocr and not HAS_OCR:
-            print("Warning: OCR requested but pytesseract is not installed.")
-            print("Installing with: pip install pytesseract pillow")
-            print("You may also need to install Tesseract OCR on your system.")
-            self.use_ocr = False
-        
-        # Create default output path if not provided
-        if output_path is None:
+        # Create output directory with timestamp if not specified
+        if output_dir is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            self.output_path = f"pdf_diff_{timestamp}.html"
+            self.output_dir = os.path.join("fileComparison", f"pdf_diff_{timestamp}")
         else:
-            self.output_path = output_path
+            self.output_dir = output_dir
+            
+        self.image_dir = os.path.join(self.output_dir, "images")
+        self.dpi = dpi
+        
+        # Create output directories
+        os.makedirs(self.output_dir, exist_ok=True)
+        os.makedirs(self.image_dir, exist_ok=True)
+        
+        # Store text and image data
+        self.pdf1_images = []
+        self.pdf2_images = []
+        self.pdf1_text = []
+        self.pdf2_text = []
+        self.diff_images = []
+        self.word_diff_images = []
+        
+    def convert_pdfs_to_images(self):
+        """Convert both PDFs to images for processing"""
+        print(f"Converting {os.path.basename(self.pdf1_path)} to images...")
+        self.pdf1_images = convert_from_path(self.pdf1_path, dpi=self.dpi)
+        
+        print(f"Converting {os.path.basename(self.pdf2_path)} to images...")
+        self.pdf2_images = convert_from_path(self.pdf2_path, dpi=self.dpi)
+        
+        # Handle case where PDFs have different page counts
+        max_pages = max(len(self.pdf1_images), len(self.pdf2_images))
+        min_pages = min(len(self.pdf1_images), len(self.pdf2_images))
+        
+        print(f"PDF 1 has {len(self.pdf1_images)} pages, PDF 2 has {len(self.pdf2_images)} pages")
+        
+        # Pad the shorter PDF with blank pages
+        if len(self.pdf1_images) < max_pages:
+            blank = Image.new('RGB', self.pdf1_images[0].size, (255, 255, 255))
+            for _ in range(max_pages - len(self.pdf1_images)):
+                self.pdf1_images.append(blank.copy())
+                
+        if len(self.pdf2_images) < max_pages:
+            blank = Image.new('RGB', self.pdf2_images[0].size, (255, 255, 255))
+            for _ in range(max_pages - len(self.pdf2_images)):
+                self.pdf2_images.append(blank.copy())
     
     def extract_text_from_pdf(self, pdf_path):
-        """Extract text content from a PDF file.
+        """Extract text from a PDF file using pdfplumber."""
+        import pdfplumber
+        print(f"Extracting text from {os.path.basename(pdf_path)}...")
         
-        Uses pdfplumber for text extraction, with optional OCR backup
-        for pages where text extraction fails.
+        text_pages = []
+        with pdfplumber.open(pdf_path) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text() or ""
+                text_pages.append(text)
+        
+        return text_pages
+
+    def apply_text_extraction(self):
+        """Extract text from both PDFs directly."""
+        print("Extracting text from PDFs...")
+        self.pdf1_text = self.extract_text_from_pdf(self.pdf1_path)
+        self.pdf2_text = self.extract_text_from_pdf(self.pdf2_path)
+
+    def find_word_differences(self, text1, text2):
         """
-        text = []
-        try:
-            with pdfplumber.open(pdf_path) as pdf:
-                # Determine pages to process
-                if self.page_range:
-                    start, end = self.page_range
-                    # Adjust for 0-based indexing
-                    start = max(0, start - 1)
-                    end = min(len(pdf.pages), end)
-                    pages_to_process = range(start, end)
-                else:
-                    pages_to_process = range(len(pdf.pages))
-                
-                print(f"Extracting text from {Path(pdf_path).name}...")
-                for i in tqdm(pages_to_process, desc="Extracting Pages"):
-                    page = pdf.pages[i]
-                    page_text = page.extract_text()
-                    
-                    # If no text found and OCR is enabled, try OCR
-                    if not page_text and self.use_ocr:
-                        page_text = self._extract_text_with_ocr(page)
-                    
-                    if page_text:
-                        text.append(f"--- Page {i+1} ---\n{page_text}")
-                    else:
-                        text.append(f"--- Page {i+1} ---\n[No text found on this page]")
-            
-            return "\n\n".join(text)
-        except Exception as e:
-            print(f"Error extracting text from {pdf_path}: {e}")
-            return ""
-    
-    def _extract_text_with_ocr(self, page):
-        """Extract text from a PDF page using OCR."""
-        if not HAS_OCR:
-            return ""
+        Find word-level differences between two text strings using improved matching
         
-        try:
-            # Render the page as an image
-            img = page.to_image(resolution=300)
-            
-            # Save image to a temporary file
-            with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as temp:
-                temp_filename = temp.name
-                img.save(temp_filename)
-            
-            # Extract text using OCR
-            text = pytesseract.image_to_string(Image.open(temp_filename))
-            
-            # Clean up temporary file
-            os.unlink(temp_filename)
-            
-            return text
-        except Exception as e:
-            print(f"OCR processing error: {e}")
-            return ""
-    
-    def compare_texts(self, text1, text2):
-        """Compare two text strings and return a list of differences."""
-        # Split text into lines for better comparison
-        text1_lines = text1.splitlines()
-        text2_lines = text2.splitlines()
+        Returns:
+            dict: Contains 'insertions', 'deletions', and 'modifications' lists
+        """
+        # Split texts into words - improved tokenization
+        words1 = re.findall(r'\S+|\n', text1)
+        words2 = re.findall(r'\S+|\n', text2)
         
-        # Generate diff
-        diff = difflib.HtmlDiff(wrapcolumn=80)
-        diff_html = diff.make_file(text1_lines, text2_lines, 
-                                  fromdesc=Path(self.pdf1_path).name, 
-                                  todesc=Path(self.pdf2_path).name)
+        # Normalize words to improve matching
+        norm_words1 = [w.strip().lower() for w in words1]
+        norm_words2 = [w.strip().lower() for w in words2]
         
-        return diff_html
-    
-    def word_level_comparison(self, text1, text2):
-        """Perform word-level comparison and generate enhanced HTML."""
-        # Split the texts into words
-        def tokenize(text):
-            # Split by whitespace but keep punctuation attached to words
-            return re.findall(r'\S+', text)
+        # Use SequenceMatcher for better alignment
+        matcher = difflib.SequenceMatcher(None, norm_words1, norm_words2)
         
-        words1 = tokenize(text1)
-        words2 = tokenize(text2)
+        insertions = []
+        deletions = []
+        modifications = []
         
-        # Get the differences
-        matcher = difflib.SequenceMatcher(None, words1, words2)
-        
-        result1 = []  # Original text with highlights
-        result2 = []  # Modified text with highlights
-        
+        # Process the opcodes to identify differences
         for tag, i1, i2, j1, j2 in matcher.get_opcodes():
-            if tag == 'equal':
-                # Add unchanged text
-                result1.extend(words1[i1:i2])
-                result2.extend(words2[j1:j2])
-            elif tag == 'replace':
-                # Highlight modified text
-                result1.extend([f'<span class="diff-delete">{word}</span>' for word in words1[i1:i2]])
-                result2.extend([f'<span class="diff-add">{word}</span>' for word in words2[j1:j2]])
+            if tag == 'replace':
+                # These are modifications - words that were replaced
+                for i in range(i1, i2):
+                    if i < len(words1):  # Safety check
+                        deletions.append(words1[i])
+                
+                for j in range(j1, j2):
+                    if j < len(words2):  # Safety check
+                        insertions.append(words2[j])
+                        
+                # Pair modifications if counts match or close
+                mod_len = min(i2-i1, j2-j1)
+                for k in range(mod_len):
+                    if (i1+k < len(words1) and j1+k < len(words2) and 
+                        fuzz.ratio(norm_words1[i1+k], norm_words2[j1+k]) < 85):
+                        # Only mark as modification if similarity below threshold
+                        modifications.append((words1[i1+k], words2[j1+k]))
+                        
             elif tag == 'delete':
-                # Highlight deleted text
-                result1.extend([f'<span class="diff-delete">{word}</span>' for word in words1[i1:i2]])
+                # Words in first sequence but not in second
+                for i in range(i1, i2):
+                    if i < len(words1):
+                        deletions.append(words1[i])
+                    
             elif tag == 'insert':
-                # Highlight inserted text
-                result2.extend([f'<span class="diff-add">{word}</span>' for word in words2[j1:j2]])
+                # Words in second sequence but not in first
+                for j in range(j1, j2):
+                    if j < len(words2):
+                        insertions.append(words2[j])
+                        
+        return {
+            'insertions': insertions,
+            'deletions': deletions,
+            'modifications': modifications
+        }
+    
+    def create_annotated_images(self):
+        """Create annotated images showing the differences"""
+        print("Creating annotated comparison images...")
         
-        # Reassemble the texts with highlights
-        highlighted_text1 = ' '.join(result1)
-        highlighted_text2 = ' '.join(result2)
-        
-        # Create HTML output
-        html = f"""<!DOCTYPE html>
-        <html>
+        for page_num in range(len(self.pdf1_images)):
+            print(f"Processing page {page_num+1}/{len(self.pdf1_images)}...")
+            
+            # Get the original images
+            img1 = self.pdf1_images[page_num].copy()
+            img2 = self.pdf2_images[page_num].copy()
+            
+            # Convert PIL images to OpenCV format
+            img1_cv = cv2.cvtColor(np.array(img1), cv2.COLOR_RGB2BGR)
+            img2_cv = cv2.cvtColor(np.array(img2), cv2.COLOR_RGB2BGR)
+            
+            # Find word differences with improved matching
+            diff_dict = self.find_word_differences(self.pdf1_text[page_num], self.pdf2_text[page_num])
+            
+            # Save original images
+            left_img_path = os.path.join(self.image_dir, f"left_{page_num}.png")
+            right_img_path = os.path.join(self.image_dir, f"right_{page_num}.png")
+            img1.save(left_img_path)
+            img2.save(right_img_path)
+            
+            # Create diff image (side by side)
+            h1, w1 = img1_cv.shape[:2]
+            h2, w2 = img2_cv.shape[:2]
+            max_h = max(h1, h2)
+            diff_img = np.ones((max_h, w1 + w2 + 10, 3), dtype=np.uint8) * 255
+            
+            # Place images side by side
+            diff_img[:h1, :w1] = img1_cv
+            diff_img[:h2, w1+10:] = img2_cv
+            
+            # Draw a vertical line between images
+            cv2.line(diff_img, (w1+5, 0), (w1+5, max_h), (100, 100, 100), 2)
+            
+            # Create word difference image with highlighted words
+            word_diff_img1 = img1_cv.copy()
+            word_diff_img2 = img2_cv.copy()
+            
+            # Get OCR data with bounding boxes
+            ocr_data1 = pytesseract.image_to_data(img1, output_type=pytesseract.Output.DICT)
+            ocr_data2 = pytesseract.image_to_data(img2, output_type=pytesseract.Output.DICT)
+            
+            # Filter for more accurate word matches
+            def filter_matches(ocr_data, target_words, min_confidence=40):
+                matches = []
+                for i, word in enumerate(ocr_data['text']):
+                    if word and word.strip():  # Check if word is not empty
+                        confidence = ocr_data['conf'][i]
+                        if confidence >= min_confidence:
+                            # Check if this word is in target_words with fuzzy matching
+                            for target in target_words:
+                                if (target.strip() and 
+                                    (target == word or 
+                                     fuzz.ratio(target.lower(), word.lower()) > 85)):
+                                    matches.append((i, target, word))
+                                    break
+                return matches
+                
+            # Highlight deletions in red on the first image
+            deletion_matches = filter_matches(ocr_data1, diff_dict['deletions'])
+            for i, target, word in deletion_matches:
+                x, y, w, h = (
+                    ocr_data1['left'][i],
+                    ocr_data1['top'][i],
+                    ocr_data1['width'][i],
+                    ocr_data1['height'][i]
+                )
+                # Only draw if dimensions make sense
+                if w > 0 and h > 0 and x >= 0 and y >= 0:
+                    cv2.rectangle(word_diff_img1, (x, y), (x+w, y+h), (0, 0, 255), 2)
+                    # Add semi-transparent red overlay
+                    overlay = word_diff_img1.copy()
+                    cv2.rectangle(overlay, (x, y), (x+w, y+h), (0, 0, 255), -1)
+                    cv2.addWeighted(overlay, 0.3, word_diff_img1, 0.7, 0, word_diff_img1)
+            
+            # Highlight insertions in green on the second image
+            insertion_matches = filter_matches(ocr_data2, diff_dict['insertions'])
+            for i, target, word in insertion_matches:
+                x, y, w, h = (
+                    ocr_data2['left'][i],
+                    ocr_data2['top'][i],
+                    ocr_data2['width'][i],
+                    ocr_data2['height'][i]
+                )
+                # Only draw if dimensions make sense
+                if w > 0 and h > 0 and x >= 0 and y >= 0:
+                    cv2.rectangle(word_diff_img2, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                    # Add semi-transparent green overlay
+                    overlay = word_diff_img2.copy()
+                    cv2.rectangle(overlay, (x, y), (x+w, y+h), (0, 255, 0), -1)
+                    cv2.addWeighted(overlay, 0.3, word_diff_img2, 0.7, 0, word_diff_img2)
+            
+            # Highlight modifications in orange (on both images)
+            for old_word, new_word in diff_dict['modifications']:
+                # Find old_word in the first image
+                for i, word in enumerate(ocr_data1['text']):
+                    if (word and word.strip() and 
+                        (old_word == word or 
+                         fuzz.ratio(old_word.lower(), word.lower()) > 85)):
+                        x, y, w, h = (
+                            ocr_data1['left'][i],
+                            ocr_data1['top'][i],
+                            ocr_data1['width'][i],
+                            ocr_data1['height'][i]
+                        )
+                        # Only draw if dimensions make sense
+                        if w > 0 and h > 0 and x >= 0 and y >= 0:
+                            cv2.rectangle(word_diff_img1, (x, y), (x+w, y+h), (0, 165, 255), 2)
+                            overlay = word_diff_img1.copy()
+                            cv2.rectangle(overlay, (x, y), (x+w, y+h), (0, 165, 255), -1)
+                            cv2.addWeighted(overlay, 0.3, word_diff_img1, 0.7, 0, word_diff_img1)
+                
+                # Find new_word in the second image
+                for i, word in enumerate(ocr_data2['text']):
+                    if (word and word.strip() and 
+                        (new_word == word or 
+                         fuzz.ratio(new_word.lower(), word.lower()) > 85)):
+                        x, y, w, h = (
+                            ocr_data2['left'][i],
+                            ocr_data2['top'][i],
+                            ocr_data2['width'][i],
+                            ocr_data2['height'][i]
+                        )
+                        # Only draw if dimensions make sense
+                        if w > 0 and h > 0 and x >= 0 and y >= 0:
+                            cv2.rectangle(word_diff_img2, (x, y), (x+w, y+h), (0, 165, 255), 2)
+                            overlay = word_diff_img2.copy()
+                            cv2.rectangle(overlay, (x, y), (x+w, y+h), (0, 165, 255), -1)
+                            cv2.addWeighted(overlay, 0.3, word_diff_img2, 0.7, 0, word_diff_img2)
+            
+            # Create combined word diff image
+            word_diff_combined = np.ones((max_h, w1 + w2 + 10, 3), dtype=np.uint8) * 255
+            word_diff_combined[:h1, :w1] = word_diff_img1
+            word_diff_combined[:h2, w1+10:] = word_diff_img2
+            cv2.line(word_diff_combined, (w1+5, 0), (w1+5, max_h), (100, 100, 100), 2)
+            
+            # Save diff images
+            diff_path = os.path.join(self.image_dir, f"diff_{page_num}.png")
+            word_diff_path = os.path.join(self.image_dir, f"word_diff_{page_num}.png")
+            
+            cv2.imwrite(diff_path, diff_img)
+            cv2.imwrite(word_diff_path, word_diff_combined)
+            
+            self.diff_images.append(diff_path)
+            self.word_diff_images.append(word_diff_path)
+    
+    def generate_html_report(self):
+        """Generate an HTML report with the comparison results, including a summary of changes."""
+        html_template = """
+        <!DOCTYPE html>
+        <html lang="en">
         <head>
-            <meta charset="utf-8">
-            <title>PDF Comparison</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>PDF Comparison Report</title>
             <style>
-                body {{ font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; }}
-                .container {{ display: flex; max-width: 100%; }}
-                .column {{ flex: 1; padding: 10px; overflow-wrap: break-word; }}
-                .column-left {{ background-color: #f9f9f9; border-right: 1px solid #ddd; }}
-                .column-right {{ background-color: #f9f9f9; }}
-                h1 {{ text-align: center; color: #333; }}
-                h2 {{ color: #444; border-bottom: 1px solid #ddd; padding-bottom: 5px; }}
-                .diff-add {{ background-color: #e6ffec; color: #24292f; }}
-                .diff-delete {{ background-color: #ffebe9; color: #24292f; }}
-                .comparison-header {{ margin-bottom: 20px; padding: 15px; background-color: #e9ecef; border-radius: 5px; }}
-                .summary {{ margin: 20px 0; padding: 15px; background-color: #fff; border: 1px solid #ddd; border-radius: 5px; }}
-                pre {{ white-space: pre-wrap; }}
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 0;
+                    padding: 0;
+                    background-color: #f5f5f5;
+                }
+                .header {
+                    background-color: #333;
+                    color: white;
+                    padding: 20px;
+                    text-align: center;
+                }
+                .container {
+                    max-width: 1600px;
+                    margin: 0 auto;
+                    padding: 20px;
+                }
+                .summary {
+                    background-color: white;
+                    border-radius: 5px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    margin-bottom: 30px;
+                    padding: 20px;
+                }
+                .comparison-section {
+                    background-color: white;
+                    border-radius: 5px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    margin-bottom: 30px;
+                    padding: 20px;
+                }
+                .page-title {
+                    background-color: #f0f0f0;
+                    padding: 10px;
+                    margin-bottom: 20px;
+                    border-radius: 3px;
+                    text-align: center;
+                }
+                .diff-view, .word-diff-view {
+                    margin-bottom: 30px;
+                }
+                .tabs {
+                    display: flex;
+                    margin-bottom: 10px;
+                    border-bottom: 1px solid #ddd;
+                }
+                .tab {
+                    padding: 10px 20px;
+                    cursor: pointer;
+                    background-color: #f1f1f1;
+                    border: 1px solid #ddd;
+                    border-bottom: none;
+                    border-radius: 5px 5px 0 0;
+                    margin-right: 5px;
+                }
+                .tab.active {
+                    background-color: white;
+                }
+                .tab-content {
+                    display: none;
+                    padding: 10px;
+                    border: 1px solid #ddd;
+                    border-top: none;
+                }
+                .tab-content.active {
+                    display: block;
+                }
+                img {
+                    max-width: 100%;
+                    height: auto;
+                }
+                .legend {
+                    margin-top: 10px;
+                    padding: 10px;
+                    background-color: #f9f9f9;
+                    border-radius: 3px;
+                }
+                .legend-item {
+                    display: inline-block;
+                    margin-right: 20px;
+                }
+                .color-box {
+                    display: inline-block;
+                    width: 15px;
+                    height: 15px;
+                    margin-right: 5px;
+                    vertical-align: middle;
+                }
+                .file-info {
+                    display: flex;
+                    justify-content: space-between;
+                    background-color: #eee;
+                    padding: 10px;
+                    border-radius: 3px;
+                    margin-bottom: 20px;
+                }
+                .file-name {
+                    font-weight: bold;
+                }
             </style>
         </head>
         <body>
-            <div class="comparison-header">
-                <h1>PDF Comparison Results (Word Level)</h1>
-                <p><strong>Original PDF:</strong> {Path(self.pdf1_path).name}</p>
-                <p><strong>Modified PDF:</strong> {Path(self.pdf2_path).name}</p>
-                <p><strong>Generated on:</strong> {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
+            <div class="header">
+                <h1>PDF Comparison Report</h1>
+                <p>Generated on {{ timestamp }}</p>
             </div>
-            {self._generate_comparison_summary(text1, text2)}
+            
             <div class="container">
-                <div class="column column-left">
-                    <h2>Original Document</h2>
-                    <pre>{highlighted_text1}</pre>
+                <div class="file-info">
+                    <div class="file-name">Left PDF: {{ pdf1_name }}</div>
+                    <div class="file-name">Right PDF: {{ pdf2_name }}</div>
                 </div>
-                <div class="column column-right">
-                    <h2>Modified Document</h2>
-                    <pre>{highlighted_text2}</pre>
+
+                <div class="summary">
+                    <h2>Summary of Changes</h2>
+                    <ul>
+                        {% for change in changes %}
+                        <li>{{ change }}</li>
+                        {% endfor %}
+                    </ul>
                 </div>
+                
+                <div class="legend">
+                    <h3>Legend</h3>
+                    <div class="legend-item"><span class="color-box" style="background-color: rgba(0,255,0,0.3);"></span> Added text (green)</div>
+                    <div class="legend-item"><span class="color-box" style="background-color: rgba(255,0,0,0.3);"></span> Deleted text (red)</div>
+                    <div class="legend-item"><span class="color-box" style="background-color: rgba(255,165,0,0.3);"></span> Modified text (orange)</div>
+                </div>
+                
+                {% for page_num in range(total_pages) %}
+                <div class="comparison-section">
+                    <div class="page-title">
+                        <h2>Page {{ page_num + 1 }}</h2>
+                    </div>
+                    
+                    <div class="tabs">
+                        <div class="tab active" onclick="showTab({{ page_num }}, 'word-diff')">Word Differences</div>
+                        <div class="tab" onclick="showTab({{ page_num }}, 'diff')">Side by Side</div>
+                    </div>
+                    
+                    <div class="tab-content active" id="tab-{{ page_num }}-word-diff">
+                        <div class="word-diff-view">
+                            <img src="{{ word_diff_images[page_num] }}" alt="Word difference view for page {{ page_num + 1 }}">
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="tab-{{ page_num }}-diff">
+                        <div class="diff-view">
+                            <img src="{{ diff_images[page_num] }}" alt="Side by side difference view for page {{ page_num + 1 }}">
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
+            
+            <script>
+                function showTab(pageNum, tabName) {
+                    // Hide all tab contents
+                    const tabContents = document.querySelectorAll(`[id^="tab-${pageNum}-"]`);
+                    tabContents.forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Show selected tab content
+                    const selectedTab = document.getElementById(`tab-${pageNum}-${tabName}`);
+                    selectedTab.classList.add('active');
+                    
+                    // Update tab buttons
+                    const tabs = selectedTab.parentElement.previousElementSibling.children;
+                    for (let i = 0; i < tabs.length; i++) {
+                        tabs[i].classList.remove('active');
+                    }
+                    
+                    // Set clicked tab as active
+                    const clickedTabIndex = tabName === 'word-diff' ? 0 : 1;
+                    tabs[clickedTabIndex].classList.add('active');
+                }
+            </script>
         </body>
         </html>
         """
         
-        return html
-    
-    def _generate_comparison_summary(self, text1, text2):
-        """Generate a summary of the comparison statistics."""
-        # Calculate statistics
-        words1 = re.findall(r'\S+', text1)
-        words2 = re.findall(r'\S+', text2)
-        chars1 = len(text1)
-        chars2 = len(text2)
+        # Prepare data for template
+        changes = []
+        for page_num in range(len(self.pdf1_text)):
+            diff_dict = self.find_word_differences(self.pdf1_text[page_num], self.pdf2_text[page_num])
+            if diff_dict['insertions']:
+                changes.append(f"Page {page_num + 1}: {len(diff_dict['insertions'])} insertions.")
+            if diff_dict['deletions']:
+                changes.append(f"Page {page_num + 1}: {len(diff_dict['deletions'])} deletions.")
+            if diff_dict['modifications']:
+                changes.append(f"Page {page_num + 1}: {len(diff_dict['modifications'])} modifications.")
         
-        # Calculate similarity
-        text_matcher = difflib.SequenceMatcher(None, text1, text2)
-        text_similarity = round(text_matcher.ratio() * 100, 2)
+        template_data = {
+            'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'pdf1_name': os.path.basename(self.pdf1_path),
+            'pdf2_name': os.path.basename(self.pdf2_path),
+            'total_pages': len(self.pdf1_images),
+            'diff_images': [os.path.relpath(path, self.output_dir) for path in self.diff_images],
+            'word_diff_images': [os.path.relpath(path, self.output_dir) for path in self.word_diff_images],
+            'changes': changes
+        }
         
-        word_matcher = difflib.SequenceMatcher(None, words1, words2)
-        word_similarity = round(word_matcher.ratio() * 100, 2)
+        # Generate HTML
+        template = Template(html_template)
+        html_content = template.render(**template_data)
         
-        # Count differences
-        changes = 0
-        for tag, i1, i2, j1, j2 in word_matcher.get_opcodes():
-            if tag != 'equal':
-                changes += max(i2 - i1, j2 - j1)
-        
-        return f"""
-        <div class="summary">
-            <h2>Comparison Summary</h2>
-            <ul>
-                <li><strong>Original Document:</strong> {len(words1)} words, {chars1} characters</li>
-                <li><strong>Modified Document:</strong> {len(words2)} words, {chars2} characters</li>
-                <li><strong>Word Difference:</strong> {abs(len(words2) - len(words1))}</li>
-                <li><strong>Character Difference:</strong> {abs(chars2 - chars1)}</li>
-                <li><strong>Changed Words:</strong> {changes}</li>
-                <li><strong>Text Similarity:</strong> {text_similarity}%</li>
-                <li><strong>Word Similarity:</strong> {word_similarity}%</li>
-            </ul>
-        </div>
-        """
-    
-    def enhance_diff_html(self, diff_html):
-        """Enhance the default HTML output with better styling."""
-        # Add custom CSS for better readability
-        css = """
-        <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-            @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
-
-            :root {
-                --bg-color: #f8f9fa;
-                --text-color: #333;
-                --card-bg: #fff;
-                --header-bg: #e9ecef;
-                --border-color: #ddd;
-                --diff-add-bg: #e6ffec;
-                --diff-chg-bg: #ffefdb;
-                --diff-sub-bg: #ffebe9;
-                --diff-text: #24292f;
-                --primary-color: #2563eb;
-                --primary-hover: #1d4ed8;
-                --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-                --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-                --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-            }
-
-            [data-theme="dark"] {
-                --bg-color: #1a1a1a;
-                --text-color: #f0f0f0;
-                --card-bg: #2d2d2d;
-                --header-bg: #333;
-                --border-color: #444;
-                --diff-add-bg: #1e4620;
-                --diff-chg-bg: #5c3c00;
-                --diff-sub-bg: #5c1a1a;
-                --diff-text: #f0f0f0;
-                --primary-color: #3b82f6;
-                --primary-hover: #60a5fa;
-            }
-
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
-
-            body {
-                font-family: 'Inter', sans-serif;
-                line-height: 1.6;
-                margin: 0;
-                padding: 0;
-                background-color: var(--bg-color);
-                color: var(--text-color);
-                transition: background-color 0.3s, color 0.3s;
-                min-height: 100vh;
-                display: flex;
-                flex-direction: column;
-            }
-
-            .container {
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: 2rem;
-                flex: 1;
-            }
-
-            .comparison-header {
-                margin-bottom: 2rem;
-                padding: 2rem;
-                background-color: var(--header-bg);
-                border-radius: 12px;
-                box-shadow: var(--shadow);
-                text-align: center;
-            }
-
-            .comparison-header h1 {
-                margin-bottom: 1.5rem;
-                font-size: 2.5rem;
-                color: var(--primary-color);
-            }
-
-            .file-info {
-                margin: 1rem auto;
-                padding: 1.5rem;
-                background-color: var(--card-bg);
-                border-radius: 12px;
-                border: 1px solid var(--border-color);
-                max-width: 600px;
-                box-shadow: var(--shadow-sm);
-            }
-
-            .file-info p {
-                margin: 0.75rem 0;
-                color: var(--text-color);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                gap: 0.5rem;
-            }
-
-            .file-info strong {
-                color: var(--primary-color);
-                font-weight: 500;
-            }
-
-            .file-info .timestamp {
-                margin-top: 1.5rem;
-                font-size: 0.9rem;
-                opacity: 0.8;
-            }
-
-            .summary {
-                margin: 2rem auto;
-                padding: 2rem;
-                background-color: var(--card-bg);
-                border: 1px solid var(--border-color);
-                border-radius: 12px;
-                max-width: 800px;
-                box-shadow: var(--shadow);
-            }
-
-            .summary h2 {
-                text-align: center;
-                margin-bottom: 2rem;
-                color: var(--primary-color);
-            }
-
-            .summary-stats {
-                display: flex;
-                justify-content: center;
-                gap: 3rem;
-                margin-top: 1rem;
-            }
-
-            .stat-item {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                padding: 1.5rem;
-                background-color: var(--header-bg);
-                border-radius: 12px;
-                min-width: 180px;
-                box-shadow: var(--shadow-sm);
-                transition: transform 0.2s, box-shadow 0.2s;
-            }
-
-            .stat-item:hover {
-                transform: translateY(-2px);
-                box-shadow: var(--shadow);
-            }
-
-            .stat-label {
-                font-size: 1rem;
-                color: var(--text-color);
-                opacity: 0.8;
-                margin-bottom: 0.75rem;
-            }
-
-            .stat-value {
-                font-size: 2rem;
-                font-weight: 600;
-                color: var(--primary-color);
-            }
-
-            table.diff {
-                width: 100%;
-                border-collapse: collapse;
-                font-size: 0.95rem;
-                background-color: var(--card-bg);
-                border-radius: 12px;
-                overflow: hidden;
-                box-shadow: var(--shadow);
-                margin: 2rem auto;
-            }
-
-            table.diff th {
-                background-color: var(--header-bg);
-                padding: 1rem;
-                text-align: center;
-                font-weight: 600;
-                color: var(--text-color);
-                border-bottom: 2px solid var(--border-color);
-            }
-
-            table.diff td {
-                padding: 0.75rem;
-                vertical-align: top;
-                border-bottom: 1px solid var(--border-color);
-                font-family: 'Consolas', 'Monaco', monospace;
-                line-height: 1.5;
-            }
-
-            table.diff tr:last-child td {
-                border-bottom: none;
-            }
-
-            table.diff .diff_header {
-                background-color: var(--header-bg);
-                color: var(--text-color);
-                font-weight: 600;
-                padding: 0.5rem;
-                text-align: center;
-            }
-
-            table.diff .diff_next {
-                background-color: var(--header-bg);
-                width: 3%;
-                text-align: center;
-            }
-
-            table.diff .diff_add {
-                background-color: var(--diff-add-bg);
-                color: var(--diff-text);
-            }
-
-            table.diff .diff_chg {
-                background-color: var(--diff-chg-bg);
-                color: var(--diff-text);
-            }
-
-            table.diff .diff_sub {
-                background-color: var(--diff-sub-bg);
-                color: var(--diff-text);
-            }
-
-            table.diff tr:hover td {
-                background-color: rgba(var(--primary-color-rgb), 0.05);
-            }
-
-            table.diff .diff_add:hover td,
-            table.diff .diff_chg:hover td,
-            table.diff .diff_sub:hover td {
-                background-color: rgba(var(--primary-color-rgb), 0.1);
-            }
-
-            .diff-container {
-                position: relative;
-                margin: 2rem 0;
-                overflow-x: auto;
-            }
-
-            .diff-container::before,
-            .diff-container::after {
-                content: '';
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                width: 20px;
-                pointer-events: none;
-                z-index: 1;
-            }
-
-            .diff-container::before {
-                left: 0;
-                background: linear-gradient(to right, var(--bg-color), transparent);
-            }
-
-            .diff-container::after {
-                right: 0;
-                background: linear-gradient(to left, var(--bg-color), transparent);
-            }
-
-            .diff-line-number {
-                color: var(--text-color);
-                opacity: 0.6;
-                font-size: 0.85rem;
-                padding-right: 1rem;
-                text-align: right;
-                user-select: none;
-            }
-
-            .diff-content {
-                white-space: pre-wrap;
-                word-break: break-word;
-            }
-
-            .diff-highlight {
-                background-color: rgba(var(--primary-color-rgb), 0.1);
-                padding: 0.2rem;
-                border-radius: 3px;
-            }
-
-            @media (max-width: 768px) {
-                .container {
-                    padding: 1rem;
-                }
-
-                .comparison-header {
-                    padding: 1.5rem;
-                }
-
-                .comparison-header h1 {
-                    font-size: 2rem;
-                }
-
-                .file-info {
-                    padding: 1rem;
-                }
-
-                .summary {
-                    padding: 1.5rem;
-                }
-
-                .summary-stats {
-                    flex-direction: column;
-                    gap: 1rem;
-                }
-
-                .stat-item {
-                    width: 100%;
-                }
-
-                table.diff {
-                    font-size: 0.85rem;
-                }
-
-                table.diff td {
-                    padding: 0.5rem;
-                }
-
-                .diff-line-number {
-                    font-size: 0.75rem;
-                }
-            }
-        </style>
-        
-        <script>
-            // Theme toggle functionality
-            document.addEventListener('DOMContentLoaded', function() {
-                const actionButtons = document.createElement('div');
-                actionButtons.className = 'action-buttons';
-                
-                // Theme toggle button
-                const themeToggle = document.createElement('button');
-                themeToggle.className = 'action-button';
-                themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-                themeToggle.title = 'Toggle Dark Mode';
-                
-                // Download button
-                const downloadButton = document.createElement('button');
-                downloadButton.className = 'action-button';
-                downloadButton.innerHTML = '<i class="fas fa-download"></i>';
-                downloadButton.title = 'Download Comparison';
-                
-                // Add click handlers
-                themeToggle.addEventListener('click', function() {
-                    const html = document.documentElement;
-                    const currentTheme = html.getAttribute('data-theme');
-                    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                    html.setAttribute('data-theme', newTheme);
-                    
-                    // Update icon
-                    const icon = this.querySelector('i');
-                    icon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-                });
-                
-                downloadButton.addEventListener('click', function() {
-                    const html = document.documentElement.outerHTML;
-                    const blob = new Blob([html], { type: 'text/html' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'pdf_comparison.html';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                });
-                
-                actionButtons.appendChild(themeToggle);
-                actionButtons.appendChild(downloadButton);
-                document.body.appendChild(actionButtons);
-
-                // Add page navigation functionality
-                const pageHeaders = document.querySelectorAll('tr:has(td:contains("--- Page"))');
-                if (pageHeaders.length > 0) {
-                    const jumpDiv = document.createElement('div');
-                    jumpDiv.id = 'pagejump';
-                    
-                    const label = document.createElement('label');
-                    label.textContent = 'Jump to Page:';
-                    jumpDiv.appendChild(label);
-                    
-                    const select = document.createElement('select');
-                    pageHeaders.forEach(header => {
-                        const pageText = header.textContent.match(/--- Page (\\d+) ---/);
-                        if (pageText && pageText[1]) {
-                            const option = document.createElement('option');
-                            option.value = header.id || '';
-                            option.textContent = pageText[1];
-                            select.appendChild(option);
-                        }
-                    });
-                    
-                    select.addEventListener('change', function() {
-                        if (this.value) {
-                            document.getElementById(this.value).scrollIntoView({
-                                behavior: 'smooth'
-                            });
-                        }
-                    });
-                    
-                    jumpDiv.appendChild(select);
-                    document.body.appendChild(jumpDiv);
-                }
-
-                // Enhance diff table functionality
-                const diffTable = document.querySelector('table.diff');
-                if (diffTable) {
-                    // Add line numbers
-                    const rows = diffTable.querySelectorAll('tr');
-                    rows.forEach((row, index) => {
-                        const cells = row.querySelectorAll('td');
-                        if (cells.length > 0) {
-                            cells[0].classList.add('diff-line-number');
-                            cells[0].textContent = index + 1;
-                        }
-                    });
-
-                    // Add hover effect for changed lines
-                    const changedRows = diffTable.querySelectorAll('.diff_add, .diff_chg, .diff_sub');
-                    changedRows.forEach(row => {
-                        row.addEventListener('mouseenter', function() {
-                            this.classList.add('diff-highlight');
-                        });
-                        row.addEventListener('mouseleave', function() {
-                            this.classList.remove('diff-highlight');
-                        });
-                    });
-
-                    // Wrap table in container for better scrolling
-                    const container = document.createElement('div');
-                    container.className = 'diff-container';
-                    diffTable.parentNode.insertBefore(container, diffTable);
-                    container.appendChild(diffTable);
-                }
-            });
-        </script>
-        """
-        
-        # Insert our custom CSS and JavaScript in the head
-        enhanced_html = diff_html.replace("</head>", f"{css}</head>")
-        
-        # Add a better header/title section with file info cards
-        header = f"""
-        <div class="container">
-            <div class="comparison-header">
-                <h1>PDF Comparison Results</h1>
-                <div class="file-info">
-                    <p><strong>Original:</strong> {Path(self.pdf1_path).name}</p>
-                    <p><strong>Modified:</strong> {Path(self.pdf2_path).name}</p>
-                    <p class="timestamp"><strong>Generated on:</strong> {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
-                </div>
-            </div>
-        </div>
-        """
-        
-        enhanced_html = enhanced_html.replace("<body>", f"<body>{header}")
-        return enhanced_html
-    
-    def add_summary(self, html, text1, text2):
-        """Add a summary section with statistics about differences."""
-        text1_lines = text1.splitlines()
-        text2_lines = text2.splitlines()
-        
-        # Calculate basic stats
-        # Use SequenceMatcher to get more detailed difference info
-        matcher = difflib.SequenceMatcher(None, text1, text2)
-        text_similarity = round(matcher.ratio() * 100, 2)
-        
-        # Count differences more precisely
-        s = difflib.SequenceMatcher(None, text1_lines, text2_lines)
-        changes = 0
-        for tag, i1, i2, j1, j2 in s.get_opcodes():
-            if tag != 'equal':
-                changes += max(i2 - i1, j2 - j1)
-        
-        summary = f"""
-        <div class="summary">
-            <h2>Comparison Summary</h2>
-            <div class="summary-stats">
-                <div class="stat-item">
-                    <span class="stat-label">Similarity</span>
-                    <span class="stat-value">{text_similarity}%</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Changed Lines</span>
-                    <span class="stat-value">{changes}</span>
-                </div>
-            </div>
-        </div>
-        """
-        
-        # Insert after the header
-        header_end = html.find("</div>", html.find("comparison-header")) + 6
-        enhanced_html = html[:header_end] + summary + html[header_end:]
-        return enhanced_html
-    
-    def compare_pdfs(self):
-        """Compare PDFs and generate HTML output with differences."""
-        print(f"Extracting text from {self.pdf1_path}...")
-        text1 = self.extract_text_from_pdf(self.pdf1_path)
-        
-        print(f"Extracting text from {self.pdf2_path}...")
-        text2 = self.extract_text_from_pdf(self.pdf2_path)
-        
-        if not text1 or not text2:
-            print("Error: Failed to extract text from one or both PDFs.")
-            return False
-        
-        print("Comparing texts...")
-        
-        # Choose comparison method based on options
-        if self.word_level:
-            print("Generating word-level comparison...")
-            diff_html = self.word_level_comparison(text1, text2)
+        # Write to file
+        html_path = os.path.join(self.output_dir, "pdf_diff.html")
+        with open(html_path, 'w') as f:
+            f.write(html_content)
             
-            print(f"Writing comparison to {self.output_path}...")
-            with open(self.output_path, 'w', encoding='utf-8') as f:
-                f.write(diff_html)
-        else:
-            print("Generating line-level comparison...")
-            diff_html = self.compare_texts(text1, text2)
-            
-            print("Enhancing HTML output...")
-            enhanced_html = self.enhance_diff_html(diff_html)
-            enhanced_html = self.add_summary(enhanced_html, text1, text2)
-            
-            print(f"Writing comparison to {self.output_path}...")
-            with open(self.output_path, 'w', encoding='utf-8') as f:
-                f.write(enhanced_html)
+        print(f"\nComparison complete! HTML report generated at: {html_path}")
+        return html_path
+    
+    def process(self):
+        """Process the PDFs and generate comparison"""
+        print(f"Starting PDF comparison: {os.path.basename(self.pdf1_path)} vs {os.path.basename(self.pdf2_path)}")
         
-        print(f"Comparison complete! Results saved to {self.output_path}")
-        return True
+        # Main workflow
+        self.convert_pdfs_to_images()
+        self.apply_text_extraction()  # Use direct text extraction instead of OCR
+        self.create_annotated_images()
+        return self.generate_html_report()
 
 def main():
-    """Parse command line arguments and run the comparison."""
-    parser = argparse.ArgumentParser(description="Compare two PDF files and highlight differences")
-    parser.add_argument("pdf1", help="Path to the first PDF file")
-    parser.add_argument("pdf2", help="Path to the second PDF file")
-    parser.add_argument("-o", "--output", help="Path to the output HTML file", default=None)
-    parser.add_argument("-p", "--pages", help="Page range to compare (e.g., '1-5')", default=None)
-    parser.add_argument("--ocr", action="store_true", help="Use OCR for text extraction when needed")
-    parser.add_argument("--word-level", action="store_true", help="Perform word-level comparison")
+    parser = argparse.ArgumentParser(description='Compare two files (PDF or DOCX) and generate a visual diff report')
+    parser.add_argument('file1', help='Path to the first file (PDF or DOCX)')
+    parser.add_argument('file2', help='Path to the second file (PDF or DOCX)')
+    parser.add_argument('-o', '--output', help='Output directory for comparison results')
+    parser.add_argument('-d', '--dpi', type=int, default=300, help='DPI for PDF to image conversion (higher is better quality but slower)')
+
     args = parser.parse_args()
-    
-    if not os.path.isfile(args.pdf1):
-        print(f"Error: First PDF file '{args.pdf1}' not found.")
-        return 1
-    
-    if not os.path.isfile(args.pdf2):
-        print(f"Error: Second PDF file '{args.pdf2}' not found.")
-        return 1
-    
-    # Parse page range if provided
-    page_range = None
-    if args.pages:
-        try:
-            start, end = map(int, args.pages.split('-'))
-            page_range = (start, end)
-        except ValueError:
-            print(f"Error: Invalid page range '{args.pages}'. Format should be 'start-end', e.g., '1-5'.")
-            return 1
-    
-    # Ensure fileComparison folder exists
-    output_folder = ensure_file_comparison_folder()
-    
-    # If output path is not provided, create one in the fileComparison folder
-    if args.output is None:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        args.output = output_folder / f"pdf_diff_{timestamp}.html"
-    
-    comparer = PDFComparer(
-        args.pdf1, 
-        args.pdf2, 
-        args.output, 
-        page_range=page_range,
-        use_ocr=args.ocr,
-        word_level=args.word_level
-    )
-    
-    success = comparer.compare_pdfs()
-    
-    if success:
-        # Open the HTML file in the default browser
-        open_html_file(args.output)
-    
-    return 0 if success else 1
 
-def ensure_file_comparison_folder():
-    """Ensure the fileComparison folder exists and return its path."""
-    folder_path = Path("fileComparison")
-    folder_path.mkdir(exist_ok=True)
-    return folder_path
+    # Check if files exist
+    if not os.path.isfile(args.file1):
+        print(f"Error: File not found: {args.file1}")
+        return 1
 
-def open_html_file(file_path):
-    """Open the HTML file in the default web browser."""
-    # Commented out automatic file opening to prevent duplicate file opening
-    # When called from the API, we don't want to open the file automatically
-    """
-    try:
-        webbrowser.open(f'file://{os.path.abspath(file_path)}')
-    except Exception as e:
-        print(f"Warning: Could not open HTML file automatically: {e}")
-    """
-    print(f"HTML comparison file created at: {file_path}")
-    return
+    if not os.path.isfile(args.file2):
+        print(f"Error: File not found: {args.file2}")
+        return 1
+
+    # Run comparison
+    comparer = PDFComparer(args.file1, args.file2, args.output, args.dpi)
+    html_path = comparer.process()
+
+    print(f"\nSuccess! Report saved to: {html_path}")
+    print(f"Open this file in a web browser to view the comparison.")
+
+    return 0
 
 if __name__ == "__main__":
     sys.exit(main())

@@ -388,7 +388,7 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
         
         .edit-btn {
           background-color: var(--office-title-bg);
-          color: white;
+          color: var(--text-primary);
         }
         
         .edit-btn:hover {

@@ -44,7 +44,9 @@ const OfficePage = ({ darkMode }) => {
         });
         
         // Filter files to only include those that are not in any version arrays
-        const latestFiles = allFiles.filter(file => !versionIds.has(file._id.toString()));
+        const latestFiles = allFiles
+                                    .filter(file => !versionIds.has(file._id.toString()))
+                                    .filter(file => file.status === "approved");
         
         console.log("All files:", allFiles.length);
         console.log("Latest files (not in version arrays):", latestFiles.length);

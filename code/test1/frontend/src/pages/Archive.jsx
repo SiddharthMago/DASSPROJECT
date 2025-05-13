@@ -136,10 +136,10 @@ function Archive({ darkMode, userRole }) {
 	const mapFileData = useCallback((file) => {
 		// Standardize the file path construction for both view and download
 		console.log("[archive] mapping filedata for file: ", file._id);
-		const filePath = file.filePath ? `/${file.filePath.replace(/\\/g, '/')}` : '';
+		const filePath = file.filePath ? `/${file.filePath.replace(/\\/g, '/')}` : null;
 
 		const role = getRoleFromURL();
-		const viewURL = `/${role}/file/${file._id}`;
+		const viewURL = filePath ? `/${role}/file/${file._id}` : null;
 
 		// Check if the file has multiple versions
 		const hasMultipleVersions = file.versions && file.versions.length > 0;
@@ -939,20 +939,40 @@ function Archive({ darkMode, userRole }) {
 										</>
 									) : (
 										<>
-											<button
-												className="action-button preview"
-												onClick={() => window.open(item.viewURL, '_blank')}
-											>
-												Preview
-											</button>
-											<a
-												href={item.downloadUrl}
-												target="_blank"
-												rel="noopener noreferrer"
-												className="action-button download"
-											>
-												Download
-											</a>
+											{item.downloadUrl && !item.viewURL ? (
+												<a
+													href={item.downloadUrl}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="action-button preview"
+												>
+													Preview
+												</a>
+											) : (
+												<>
+													{item.viewURL && (
+														<button 
+															className='action-button preview'
+															onClick={() => {
+																console.log("Preview viewURL: ", item.viewURL);
+																window.open(item.viewURL, "_blank")
+															}}
+														>
+															Preview
+														</button>
+													)}
+													{item.downloadUrl && (
+														<a
+															href={item.downloadUrl}
+															target='_blank'
+															rel='noopener noreferrer'
+															className='action-button download'
+														>
+															Download
+														</a>
+													)}
+												</>
+											)}
 										</>
 									)}
 									{canManageItem(item.office) && (

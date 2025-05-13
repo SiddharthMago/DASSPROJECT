@@ -73,7 +73,7 @@ const AdminOfficePage = ({ darkMode }) => {
         });
         
         // Filter files to only include those that are not in any version arrays
-        const latestFiles = allFiles.filter(file => !versionIds.has(file._id.toString()));
+        const latestFiles = allFiles.filter(file => !versionIds.has(file._id.toString())).filter(file => file.status === "approved");
         
         console.log("Admin view - All files:", allFiles.length);
         console.log("Admin view - Latest files (not in version arrays):", latestFiles.length);

@@ -133,6 +133,11 @@ class PDFComparer:
         self.pdf1_text = self.extract_text_from_pdf(self.pdf1_path)
         self.pdf2_text = self.extract_text_from_pdf(self.pdf2_path)
 
+        # Pad the shorter text list with empty strings to match the longer one
+        max_pages = max(len(self.pdf1_text), len(self.pdf2_text))
+        self.pdf1_text.extend([""] * (max_pages - len(self.pdf1_text)))
+        self.pdf2_text.extend([""] * (max_pages - len(self.pdf2_text)))
+
     def find_word_differences(self, text1, text2):
         """
         Find word-level differences between two text strings using improved matching

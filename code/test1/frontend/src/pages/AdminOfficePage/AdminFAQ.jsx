@@ -362,7 +362,7 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
           letter-spacing: 1px;
           transition: all 0.2s ease;
           background-color: var(--office-title-bg);
-          color: white;
+          color: var(--text-primary);
         }
         
         .admin-button:hover {

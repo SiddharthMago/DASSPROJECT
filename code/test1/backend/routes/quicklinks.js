@@ -10,6 +10,7 @@ const {
   unpinQuickLink,
   approveQuickLink,
   getMyQuickLinks,
+  rejectQuickLink,
 } = require('../controllers/quickLinkController');
 const { protect, authorize } = require('../middleware/auth');
 
@@ -25,5 +26,6 @@ router.put('/:id/pin', protect, authorize('admin', 'superadmin'), pinQuickLink);
 router.put('/:id/unpin', protect, authorize('admin', 'superadmin'), unpinQuickLink);
 router.put('/:id/approve', protect, authorize('superadmin'), approveQuickLink);
 router.get('/my-links', protect, authorize('admin', 'superadmin'), getMyQuickLinks);
+router.put('/:id/reject', protect, authorize('superadmin'), rejectQuickLink);
 
 module.exports = router;

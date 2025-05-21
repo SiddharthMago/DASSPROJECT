@@ -7,23 +7,25 @@ const {
   addPortal,
   deletePortal,
   updatePortal,
-  toggleApproval,
-  togglePin
+  approvePortal,
+  rejectPortal,
+  togglePin,
 } = require('../controllers/portalController');
 const { protect, authorize } = require('../middleware/auth');
 
-// Public routes
+// Public
 router.get('/', getAllApprovedPortals);
 router.get('/pinned', getPinnedPortals);
 
-// Protected routes (admin only)
-router.post('/', protect, authorize('admin', 'superadmin'), addPortal);
-router.delete('/:id', protect, authorize('admin', 'superadmin'), deletePortal);
-router.put('/:id', protect, authorize('admin', 'superadmin'), updatePortal);
-router.put('/:id/pin', protect, authorize('admin', 'superadmin'), togglePin);
+// Admin / Superadmin
+router.post('/', protect, authorize('admin','superadmin'), addPortal);
+router.put('/:id', protect, authorize('admin','superadmin'), updatePortal);
+router.delete('/:id', protect, authorize('admin','superadmin'), deletePortal);
+router.put('/:id/pin', protect, authorize('admin','superadmin'), togglePin);
 
-// Protected routes (superadmin only)
+// Superadmin only
 router.get('/unapproved', protect, authorize('superadmin'), getUnapprovedPortals);
-router.put('/:id/approve', protect, authorize('superadmin'), toggleApproval);
+router.put('/:id/approve', protect, authorize('superadmin'), approvePortal);
+router.put('/:id/reject', protect, authorize('superadmin'), rejectPortal);
 
 module.exports = router;

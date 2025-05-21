@@ -5,7 +5,7 @@ const Portal = require('../models/Portal');
 // @access  Public
 exports.getAllApprovedPortals = async (req, res, next) => {
   try {
-    const portals = await Portal.find({ approved: true })
+    const portals = await Portal.find({ status: 'approved' })
       .sort({ createdAt: -1 }); // Sort by createdAt descending
 
     res.status(200).json({
@@ -26,7 +26,8 @@ exports.getAllApprovedPortals = async (req, res, next) => {
 // @access  Admin/Superadmin
 exports.getUnapprovedPortals = async (req, res, next) => {
   try {
-    const portals = await Portal.find({ approved: false })
+    const portals = await Portal.find({ status: 'pending' })
+      .populate('author', 'name')
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -47,7 +48,7 @@ exports.getUnapprovedPortals = async (req, res, next) => {
 // @access  Public
 exports.getPinnedPortals = async (req, res, next) => {
   try {
-    const portals = await Portal.find({ pinned: true, approved: true })
+    const portals = await Portal.find({ pinned: true, status: 'approved' })
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -68,12 +69,17 @@ exports.getPinnedPortals = async (req, res, next) => {
 // @access  Admin/Superadmin
 exports.addPortal = async (req, res, next) => {
   try {
-    const { title, url, icon } = req.body;
+    const { title, url, icon, office } = req.body;
 
     const portal = await Portal.create({
       title,
       url,
-      icon: icon || '🔗' // Use provided icon or default
+      icon: icon || '🔗',
+      office,
+      author: req.user._id,
+      createdAt: Date.now(),
+      status: 'pending',
+      pinned: false
     });
 
     res.status(201).json({
@@ -130,11 +136,11 @@ exports.deletePortal = async (req, res, next) => {
 // @access  Admin/Superadmin
 exports.updatePortal = async (req, res, next) => {
   try {
-    const { title, url, icon } = req.body;
+    const { title, url, icon, office } = req.body;
     
     const portal = await Portal.findByIdAndUpdate(
       req.params.id,
-      { title, url, icon },
+      { title, url, icon, office, status: 'pending', author: req.user._id },
       { new: true, runValidators: true }
     );
 
@@ -166,33 +172,31 @@ exports.updatePortal = async (req, res, next) => {
   }
 };
 
-// @desc    Toggle portal approval status
-// @route   PUT /api/portals/:id/approve
-// @access  Superadmin
-exports.toggleApproval = async (req, res, next) => {
-  try {
-    const portal = await Portal.findById(req.params.id);
+// @desc  Approve a portal
+// @route PUT /api/portals/:id/approve
+// @access Superadmin
+exports.approvePortal = async (req, res) => {
+  const portal = await Portal.findByIdAndUpdate(
+    req.params.id,
+    { status: 'approved' },
+    { new: true }
+  );
+  if (!portal) return res.status(404).json({ success: false, error: 'Portal not found' });
+  res.json({ success: true, data: portal });
+};
 
-    if (!portal) {
-      return res.status(404).json({
-        success: false,
-        error: 'No portal found'
-      });
-    }
-
-    portal.approved = !portal.approved;
-    await portal.save();
-
-    res.status(200).json({
-      success: true,
-      data: portal
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: 'Server Error'
-    });
-  }
+// @desc  Reject a portal with a comment
+// @route PUT /api/portals/:id/reject
+// @access Superadmin
+exports.rejectPortal = async (req, res) => {
+  const { comment } = req.body;
+  if (!comment?.trim()) return res.status(400).json({ success: false, error: 'Rejection comment required' });
+  const portal = await Portal.findById(req.params.id);
+  if (!portal) return res.status(404).json({ success: false, error: 'Portal not found' });
+  portal.status = 'rejected';
+  portal.comments.push({ author: req.user._id, content: comment });
+  await portal.save();
+  res.json({ success: true, data: portal });
 };
 
 // @desc    Toggle portal pinned status

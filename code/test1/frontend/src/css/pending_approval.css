@@ -169,7 +169,7 @@ body {
 /* Content Section */
 .archive-content {
   max-width: 1200px;
-  margin: 0 auto;
+  margin-bottom: 2rem;
 }
 
 .loading-state,

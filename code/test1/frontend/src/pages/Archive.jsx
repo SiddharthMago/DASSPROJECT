@@ -348,7 +348,9 @@ function Archive({ darkMode, userRole }) {
 					  office: announcement.office,
 					  modifiedDate: new Date(announcement.createdAt).toLocaleDateString(),
 					  category: 'Announcements',
-					  status: announcement.approved ? 'approved' : 'pending',
+					  status: announcement.status,
+					  comments: announcement.comments || [],
+					  rejectionComment: announcement.rejectionComment,
 					  downloadUrl: announcement.link || '#',
 					  image: announcement.image
 					};
@@ -362,7 +364,9 @@ function Archive({ darkMode, userRole }) {
 					  office: link.office,
 					  modifiedDate: new Date(link.createdAt).toLocaleDateString(),
 					  category: 'Links',
-					  status: link.approved ? 'approved' : 'pending',
+					  status: link.status,
+					  comments: link.comments || [],
+					  rejectionComment: link.rejectionComment,
 					  downloadUrl: link.url,
 					  pinned: link.pinned
 					};

@@ -8,7 +8,7 @@ const fs = require('fs');
 // @access  Admin
 exports.addAnnouncement = async (req, res, next) => {
   try {
-    const { title, office, link, approved } = req.body;
+    const { title, office, link } = req.body;
     let imagePath;
 
     // Handle file upload if present
@@ -29,7 +29,7 @@ exports.addAnnouncement = async (req, res, next) => {
       office,
       image: imagePath || undefined,
       link: link || undefined,
-      approved: false, // Always set to false for new announcements
+      status: 'pending',
       author: req.user._id // Add the author field from the authenticated user
     });
 
@@ -48,14 +48,14 @@ exports.addAnnouncement = async (req, res, next) => {
 // @access  Admin/Superadmin
 exports.updateAnnouncement = async (req, res, next) => {
   try {
-    const { title, office, link, approved } = req.body;
+    const { title, office, link } = req.body;
     
     // Prepare update object
     const updateData = { 
       title, 
       office, 
       link: link || '',
-      approved: approved === 'true' || true,
+      status: 'pending', // Reset status to pending on update
       author: req.user._id // Update the author field to the current user
     };
     
@@ -99,7 +99,7 @@ exports.approveAnnouncement = async (req, res, next) => {
   try {
     const announcement = await Announcement.findByIdAndUpdate(
       req.params.id,
-      { approved: true },
+      { status: 'approved' },
       { new: true }
     );
 
@@ -121,7 +121,7 @@ exports.approveAnnouncement = async (req, res, next) => {
 // @access  Public
 exports.getAllAnnouncements = async (req, res, next) => {
   try {
-    const announcements = await Announcement.find({ approved: true })
+    const announcements = await Announcement.find({ status: 'approved' })
       .sort({ createdAt: -1 }); // Sort by newest first
 
     res.status(200).json({
@@ -139,7 +139,7 @@ exports.getAllAnnouncements = async (req, res, next) => {
 // @access  Public
 exports.getLatestAnnouncements = async (req, res, next) => {
   try {
-    const latestAnnouncements = await Announcement.find({ approved: true })
+    const latestAnnouncements = await Announcement.find({ status: 'approved' })
       .sort({ createdAt: -1 }) // Sort by createdAt in descending order
       .limit(5); // Limit to 5 announcements
 
@@ -158,7 +158,7 @@ exports.getLatestAnnouncements = async (req, res, next) => {
 // @access  Admin/Superadmin
 exports.getUnapprovedAnnouncements = async (req, res, next) => {
   try {
-    const unapprovedAnnouncements = await Announcement.find({ approved: false })
+    const unapprovedAnnouncements = await Announcement.find({ status: 'pending' })
       .populate('author', 'name') // Populate the author field with the name
       .sort({ createdAt: -1 }); // Sort by createdAt in descending order
 
@@ -213,5 +213,33 @@ exports.getMyAnnouncements = async (req, res, next) => {
       error: 'Server error',
       details: err.message
     });
+  }
+};
+
+// @desc    Reject an announcement with a comment
+// @route   PUT /api/announcements/:id/reject
+// @access  Superadmin
+exports.rejectAnnouncement = async (req, res, next) => {
+  try {
+    const { comment } = req.body;
+    if(!comment || !comment.trim()) {
+      return res.status(400).json({ success: false, error: 'Rejection comment required' });
+    }
+    const announcement = await Announcement.findById(req.params.id);
+    if(!announcement) {
+      return res.status(404).json({ success: false, error: 'Announcement not found' });
+    }
+
+    announcement.status = 'rejected';
+    announcement.comments.push({
+      author: req.user._id,
+      content: comment
+    });
+    await announcement.save();
+
+    res.status(200).json({ success: true, data: announcement });
+  } catch (err) {
+    console.error('Reject error:', err);
+    res.status(400).json({ success: false, error: err.message });
   }
 };

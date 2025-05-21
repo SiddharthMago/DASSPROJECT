@@ -5,12 +5,7 @@ const QuickLink = require('../models/QuickLink');
 // @access  Admin/Superadmin
 exports.addQuickLink = async (req, res, next) => {
   try {
-    console.log('Received QuickLink Creation Request:', req.body);
-    console.log('Authenticated User:', req.user);
-
     const { title, url, office = 'Administration' } = req.body;
-
-    // Explicit validation
     if (!title) {
       return res.status(400).json({ 
         success: false, 
@@ -29,8 +24,8 @@ exports.addQuickLink = async (req, res, next) => {
       title,
       url,
       office,
-      approved: false,
-      pinned: true,
+      status: 'pending',
+      pinned: false,
       author: req.user._id
     });
 
@@ -83,6 +78,7 @@ exports.editQuickLink = async (req, res, next) => {
         title, 
         url, 
         office,
+        status: 'pending',
         author: req.user._id
       },
       { new: true, runValidators: true }
@@ -106,7 +102,7 @@ exports.editQuickLink = async (req, res, next) => {
 // @access  Public
 exports.getAllApprovedQuickLinks = async (req, res, next) => {
   try {
-    const quickLinks = await QuickLink.find({ approved: true })
+    const quickLinks = await QuickLink.find({ status: 'approved' })
       .populate('author', 'name email');
 
     res.status(200).json({
@@ -124,7 +120,7 @@ exports.getAllApprovedQuickLinks = async (req, res, next) => {
 // @access  Admin/Superadmin
 exports.getAllUnapprovedQuickLinks = async (req, res, next) => {
   try {
-    const quickLinks = await QuickLink.find({ approved: false })
+    const quickLinks = await QuickLink.find({ status: 'pending' })
       .populate('author', 'name email');
 
     res.status(200).json({
@@ -192,7 +188,7 @@ exports.approveQuickLink = async (req, res, next) => {
   try {
     const quickLink = await QuickLink.findByIdAndUpdate(
       req.params.id,
-      { approved: true },
+      { status: 'approved' },
       { new: true }
     );
 
@@ -248,5 +244,34 @@ exports.getMyQuickLinks = async (req, res, next) => {
       error: 'Server error',
       details: err.message
     });
+  }
+};
+
+// @desc    Reject a quick link
+// @route   PUT /api/quicklinks/:id/reject
+// @access  Superadmin
+exports.rejectQuickLink = async (req, res, next) => {
+  try {
+    const { comment } = req.body;
+    if (!comment || !comment.trim()) {
+      return res.status(400).json({ success: false, error: 'Rejection comment required' });
+    }
+
+    const quickLink = await QuickLink.findById(req.params.id);
+    if (!quickLink) return res.status(404).json({ success: false, error: 'Not found' });
+
+    // guard against null
+    if (!Array.isArray(quickLink.comments)) quickLink.comments = [];
+
+    quickLink.status = 'rejected';
+    quickLink.comments.push({
+      author: req.user._id,
+      content: comment.trim()
+    });
+
+    await quickLink.save();
+    res.json({ success: true, data: quickLink });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
   }
 };

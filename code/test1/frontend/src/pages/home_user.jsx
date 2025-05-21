@@ -96,19 +96,9 @@ function HomeUser({ darkMode }) {
         
         // If there are enough pinned quick links, use those
         if (data.data && data.data.length >= 6) {
-          setQuickLinks(data.data);
+          setQuickLinks(data.data.filter(link => link.status === 'approved' && link.pinned));
         } else {
-          // Otherwise, get all approved quick links
-          const allLinksResponse = await fetch('/api/quicklinks');
-          
-          if (!allLinksResponse.ok) {
-            throw new Error(`Failed to fetch all quick links: ${allLinksResponse.status}`);
-          }
-          
-          const allLinksData = await allLinksResponse.json();
-          console.log('Fetched all quick links:', allLinksData);
-          
-          setQuickLinks(allLinksData.data);
+          setQuickLinks(data.data.filter(link => link.status === 'approved'));
         }
         
         setQuickLinksLoading(false);
@@ -116,30 +106,6 @@ function HomeUser({ darkMode }) {
         console.error('Error fetching quick links:', err);
         setQuickLinksError(`Failed to load quick links: ${err.message}`);
         setQuickLinksLoading(false);
-        
-        // Fallback to hardcoded quick links if fetch fails
-        setQuickLinks([
-          { title: "Academic Calendar", url: "/academic-calendar" },
-          { title: "Admissions", url: "/admissions" },
-          { title: "Research Publications", url: "/research-publications" },
-          { title: "Faculty Directory", url: "/faculty" },
-          { title: "Scholarships", url: "/scholarships" },
-          { title: "Campus Map", url: "/campus-map" },
-          { title: "Careers", url: "/careers" },
-          { title: "News & Events", url: "/news" },
-          { title: "Library Resources", url: "/library" },
-          { title: "IT Services", url: "/it-services" },
-          { title: "Student Clubs", url: "/student-clubs" },
-          { title: "Hostel Information", url: "/hostel" },
-          { title: "Sports Facilities", url: "/sports" },
-          { title: "International Collaborations", url: "/collaborations" },
-          { title: "Alumni Network", url: "/alumni" },
-          { title: "Entrepreneurship Cell", url: "/ecell" },
-          { title: "Grievance Portal", url: "/grievance" },
-          { title: "Tenders & Notices", url: "/tenders" },
-          { title: "Contact Us", url: "/contact" },
-          { title: "Download Forms", url: "/forms" }
-        ]);
       }
     };
 

@@ -33,6 +33,7 @@ function HomeAdmin({ darkMode }) {
   const [portals, setPortals] = useState([]);
   const [portalsLoading, setPortalsLoading] = useState(true);
   const [portalsError, setPortalsError] = useState(null);
+  const [editPortalOffice, setEditPortalOffice] = useState("");
 
   // State for tracking current announcement index
   const [currentAnnouncementIndex, setCurrentAnnouncementIndex] = useState(0);
@@ -129,7 +130,7 @@ useEffect(() => {
     try {
       setQuickLinksLoading(true);
       console.log('Fetching pinned quick links...');
-      const response = await fetch('/api/quicklinks/pinned'); // Use the new endpoint
+      const response = await fetch('/api/quicklinks');
 
       console.log('Quick links response status:', response.status);
       if (!response.ok) {
@@ -140,7 +141,7 @@ useEffect(() => {
 
       const data = await response.json();
       console.log('Fetched pinned quick links:', data);
-      setQuickLinks(data.data); // Set only pinned quick links
+      setQuickLinks(data.data.filter(link => link.status === 'approved'));
       setQuickLinksLoading(false);
     } catch (err) {
       console.error('Error fetching quick links:', err);
@@ -223,7 +224,6 @@ useEffect(() => {
       formData.append('title', editText);
       formData.append('office', editOffice); // Use the corrected office name
       formData.append('link', editLink || '');
-      formData.append('approved', 'true');
 
       // If a new image was selected, append it
       if (editImage) {
@@ -352,7 +352,8 @@ useEffect(() => {
         body: JSON.stringify({
           title: editQuickLinkTitle,
           url: editQuickLinkUrl,
-          office: editQuickLinkOffice // Make sure office is included in the request
+          office: editQuickLinkOffice,
+          status: 'pending',
         }),
       });
 
@@ -449,8 +450,7 @@ useEffect(() => {
 
       if (refreshResponse.ok) {
         const data = await refreshResponse.json();
-        // Only show approved quick links to regular users
-        setQuickLinks(data.data.filter(link => link.approved));
+        setQuickLinks(data.data.filter(link => link.status === 'approved'));
       }
     } catch (err) {
       console.error('Full Error in QuickLink Creation:', err);
@@ -530,7 +530,7 @@ useEffect(() => {
 
       // Only filter out unpinned links if we're not in editing mode
       if (!isEditingQuickLinks) {
-        setQuickLinks(updatedQuickLinks.filter(link => link.pinned));
+        setQuickLinks(updatedQuickLinks.filter(link => link.status === 'approved'));
       } else {
         setQuickLinks(updatedQuickLinks);
       }
@@ -643,8 +643,9 @@ useEffect(() => {
           title: editPortalTitle.trim(),
           url: editPortalUrl.trim(),
           icon: editPortalIcon,
-          approved: true,  // As superadmin, auto-approve
-          pinned: false    // But not auto-pinned
+          office: editPortalOffice,
+          status: 'pending',
+          pinned: false
         })
       });
   
@@ -780,7 +781,17 @@ useEffect(() => {
     if (isEditing) {
       return (
         <div key={index} className={`${className}-edit-wrapper`}>
-          <div className={`${className}-title`}>{item.title}</div>
+          <div className={`${className}-info`}>
+            <div className={`${className}-title`}>{item.title}</div>
+            {item.author && (
+              <div className={`${className}-author`}>
+                Added by {item.author.name || item.author}
+              </div>
+            )}
+            <div className={`${className}-status`}>
+              Status: {item.status || 'Pending'}
+            </div>
+          </div>
           <div className={`${className}-actions`}>
             <button
               className="admin-edit-btn"
@@ -875,7 +886,7 @@ useEffect(() => {
       formData.append('title', newAnnouncementText);
       formData.append('office', newAnnouncementOffice);
       formData.append('link', newAnnouncementLink);
-      formData.append('approved', 'false'); // Set approved to false by default
+      formData.append('status', 'pending');
       if (newAnnouncementImage) {
         formData.append('image', newAnnouncementImage);
       }
@@ -884,7 +895,7 @@ useEffect(() => {
         title: newAnnouncementText,
         office: newAnnouncementOffice,
         link: newAnnouncementLink,
-        approved: false,
+        status: 'pending',
         hasImage: !!newAnnouncementImage
       });
 
@@ -954,6 +965,8 @@ useEffect(() => {
     }
   };
 
+  const displayedQuickLinks = isEditingQuickLinks ? quickLinks : quickLinks.filter(link => link.pinned);
+
   return (
     <div className={`home-container ${darkMode ? 'dark-mode' : ''}`}>
       <link
@@ -997,7 +1010,7 @@ useEffect(() => {
                     <option value="Statistical Cell">Statistical Cell</option>
                     <option value="General Administration">General Administration</option>
                     <option value="Accounts Office">Accounts Office</option>
-                    <option value="IT Services Offices">IT Services Offices</option>
+                    <option value="IT Services Office">IT Service Offices</option>
                     <option value="Communication Office">Communication Office</option>
                     <option value="Engineering Office">Engineering Office</option>
                     <option value="HR & Personnel">HR & Personnel</option>
@@ -1086,7 +1099,7 @@ useEffect(() => {
                     <option value="Statistical Cell">Statistical Cell</option>
                     <option value="General Administration">General Administration</option>
                     <option value="Accounts Office">Accounts Office</option>
-                    <option value="IT Services Offices">IT Services Offices</option>
+                    <option value="IT Services Office">IT Services Office</option>
                     <option value="Communications Office">Communications Office</option>
                     <option value="Engineering Office">Engineering Office</option>
                     <option value="HR & Personnel">HR & Personnel</option>
@@ -1409,6 +1422,36 @@ useEffect(() => {
                 />
               </div>
               <div className="edit-form-group">
+                <label htmlFor="portal-office">Office:</label>
+                  <select
+                    id="portal-office"
+                    value={editPortalOffice}
+                    onChange={e => setEditPortalOffice(e.target.value)}
+                    className="office-select"
+                  >
+                      <option value="None">Select Office</option>
+                      <option value="Admissions Office">Admissions Office</option>
+                      <option value="Library Office">Library Office</option>
+                      <option value="Examinations Office">Examinations Office</option>
+                      <option value="Academic Office">Academic Office</option>
+                      <option value="Student Affairs Office">Student Affairs Office</option>
+                      <option value="Mess Office">Mess Office</option>
+                      <option value="Hostel Office">Hostel Office</option>
+                      <option value="Alumni Cell">Alumni Cell</option>
+                      <option value="Faculty Portal">Faculty Portal</option>
+                      <option value="Placement Cell">Placement Cell</option>
+                      <option value="Outreach Office">Outreach Office</option>
+                      <option value="Statistical Cell">Statistical Cell</option>
+                      <option value="R&D Office">R&D Office</option>
+                      <option value="General Administration">General Administration</option>
+                      <option value="Accounts Office">Accounts Office</option>
+                      <option value="IT Services Office">IT Services Office</option>
+                      <option value="Communication Office">Communication Office</option>
+                      <option value="Engineering Office">Engineering Office</option>
+                      <option value="HR & Personnel">HR & Personnel</option>
+                  </select>
+              </div>
+              <div className="edit-form-group">
                 <label htmlFor="portal-icon">Icon:</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   {/* Input field for custom icon */}
@@ -1461,6 +1504,36 @@ useEffect(() => {
                   value={editPortalUrl}
                   onChange={(e) => setEditPortalUrl(e.target.value)}
                 />
+              </div>
+              <div className="edit-form-group">
+                <label htmlFor="portal-office">Office:</label>
+                  <select
+                    id="portal-office"
+                    value={editPortalOffice}
+                    onChange={e => setEditPortalOffice(e.target.value)}
+                    className="office-select"
+                  >
+                      <option value="None">Select Office</option>
+                      <option value="Admissions Office">Admissions Office</option>
+                      <option value="Library Office">Library Office</option>
+                      <option value="Examinations Office">Examinations Office</option>
+                      <option value="Academic Office">Academic Office</option>
+                      <option value="Student Affairs Office">Student Affairs Office</option>
+                      <option value="Mess Office">Mess Office</option>
+                      <option value="Hostel Office">Hostel Office</option>
+                      <option value="Alumni Cell">Alumni Cell</option>
+                      <option value="Faculty Portal">Faculty Portal</option>
+                      <option value="Placement Cell">Placement Cell</option>
+                      <option value="Outreach Office">Outreach Office</option>
+                      <option value="Statistical Cell">Statistical Cell</option>
+                      <option value="R&D Office">R&D Office</option>
+                      <option value="General Administration">General Administration</option>
+                      <option value="Accounts Office">Accounts Office</option>
+                      <option value="IT Services Office">IT Services Office</option>
+                      <option value="Communication Office">Communication Office</option>
+                      <option value="Engineering Office">Engineering Office</option>
+                      <option value="HR & Personnel">HR & Personnel</option>
+                  </select>
               </div>
               <div className="edit-form-group">
                 <label htmlFor="portal-icon">Icon:</label>
@@ -1584,6 +1657,7 @@ useEffect(() => {
                   onChange={(e) => setEditQuickLinkOffice(e.target.value)}
                   className="office-select"
                 >
+                  <option value="None">Select Office</option>
                   <option value="Admissions Office">Admissions Office</option>
                   <option value="Academic Office">Academic Office</option>
                   <option value="Library Office">Library Office</option>
@@ -1641,6 +1715,7 @@ useEffect(() => {
                   onChange={(e) => setEditQuickLinkOffice(e.target.value)}
                   className="office-select"
                 >
+                  <option value="None">Select Office</option>
                   <option value="Admissions Office">Admissions Office</option>
                   <option value="Academic Office">Academic Office</option>
                   <option value="Library Office">Library Office</option>
@@ -1673,27 +1748,21 @@ useEffect(() => {
             <div className="quick-links-loading">Loading quick links...</div>
           ) : quickLinksError ? (
             <div className="quick-links-error">{quickLinksError}</div>
-          ) : quickLinks.length > 0 ? (
+          ) : displayedQuickLinks.length > 0 ? (
             <div className="quick-links-grid">
-              {isEditingQuickLinks
-                ? quickLinks.map((link, index) => (
-                  <div key={index} className="quick-link-item-admin">
-                    {renderLinkComponent(
-                      link,
-                      index,
-                      "quick-link",
-                      true,
-                      startEditingQuickLink,
-                      toggleQuickLinkPin,
-                      removeQuickLink
-                    )}
-                  </div>
-                ))
-                : quickLinks
-                  .filter(link => link.pinned) // Only display pinned quick links
-                  .map((link, index) =>
-                    renderLinkComponent(link, index, "quick-link", false)
+              {displayedQuickLinks.map((link, index) => (
+                <div key={index} className="quick-link-item-admin">
+                  {renderLinkComponent(
+                    link,
+                    index,
+                    "quick-link",
+                    isEditingQuickLinks,
+                    startEditingQuickLink,
+                    toggleQuickLinkPin,
+                    removeQuickLink
                   )}
+                </div>
+              ))}
             </div>
           ) : (
             <div className="no-quick-links">No quick links available</div>

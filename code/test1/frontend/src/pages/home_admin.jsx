@@ -11,8 +11,10 @@ import adminLogo from '../assets/admin-logo.png';
 import editIcon from '../assets/edit-icon.jpg';
 import addIcon from '../assets/add-icon.jpg';
 import deleteIcon from '../assets/delete-icon.jpg';
-// Home component - Admin landing page for IIIT-Hyderabad website
+
 function HomeAdmin({ darkMode }) {
+  const [userOffice, setUserOffice] = useState("");
+
   // State for announcements
   const [authToken, setAuthToken] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
@@ -45,7 +47,7 @@ function HomeAdmin({ darkMode }) {
   // State for adding new announcement
   const [isAddingAnnouncement, setIsAddingAnnouncement] = useState(false);
   const [newAnnouncementText, setNewAnnouncementText] = useState("");
-  const [newAnnouncementOffice, setNewAnnouncementOffice] = useState("Admissions Office");
+  const [newAnnouncementOffice, setNewAnnouncementOffice] = useState("");
   const [newAnnouncementLink, setNewAnnouncementLink] = useState("");
   const [newAnnouncementImage, setNewAnnouncementImage] = useState(null);
   const [newAnnouncementImageUrl, setNewAnnouncementImageUrl] = useState(null);
@@ -55,7 +57,7 @@ function HomeAdmin({ darkMode }) {
   const [selectedQuickLinkIndex, setSelectedQuickLinkIndex] = useState(null);
   const [editQuickLinkTitle, setEditQuickLinkTitle] = useState("");
   const [editQuickLinkUrl, setEditQuickLinkUrl] = useState("");
-  const [editQuickLinkOffice, setEditQuickLinkOffice] = useState("Admissions Office");
+  const [editQuickLinkOffice, setEditQuickLinkOffice] = useState("");
   const [isAddingQuickLink, setIsAddingQuickLink] = useState(false);
 
   // Portals editing state
@@ -78,6 +80,15 @@ function HomeAdmin({ darkMode }) {
     const token = localStorage.getItem('token');
     console.log('Auth token:', token);
     setAuthToken(token);
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    fetch('/api/auth_cas/current', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(json => { setUserOffice(json.data.office); });
   }, []);
 
   // Fetch announcements from backend
@@ -126,7 +137,7 @@ function HomeAdmin({ darkMode }) {
       try {
         setQuickLinksLoading(true);
         console.log('Fetching quick links...');
-        const response = await fetch('/api/quicklinks/pinned');
+        const response = await fetch('/api/quicklinks');
 
         console.log('Quick links response status:', response.status);
         if (!response.ok) {
@@ -137,7 +148,7 @@ function HomeAdmin({ darkMode }) {
 
         const data = await response.json();
         console.log('Fetched quick links:', data);
-        setQuickLinks(data.data);
+        setQuickLinks(data.data.filter(link => link.status === 'approved'));
         setQuickLinksLoading(false);
       } catch (err) {
         console.error('Error fetching quick links:', err);
@@ -218,9 +229,8 @@ function HomeAdmin({ darkMode }) {
       // Create FormData for the update
       const formData = new FormData();
       formData.append('title', editText);
-      formData.append('office', editOffice);
+      formData.append('office', userOffice);
       formData.append('link', editLink || '');
-      formData.append('approved', 'true');
 
       // If a new image was selected, append it
       if (editImage) {
@@ -248,7 +258,7 @@ function HomeAdmin({ darkMode }) {
       updatedAnnouncements[currentAnnouncementIndex] = {
         ...currentAnnouncement,
         text: editText,
-        office: editOffice,
+        office: userOffice,
         link: editLink || '',
         imageUrl: responseData.data.image || currentAnnouncement.imageUrl,
         id: id
@@ -327,7 +337,7 @@ function HomeAdmin({ darkMode }) {
     setSelectedQuickLinkIndex(index);
     setEditQuickLinkTitle(quickLink.title);
     setEditQuickLinkUrl(quickLink.url);
-    setEditQuickLinkOffice(quickLink.office || "Admissions Office");
+    setEditQuickLinkOffice(quickLink.office);
     setIsEditingQuickLinks(true);
     setIsAddingQuickLink(false);
   };
@@ -349,7 +359,7 @@ function HomeAdmin({ darkMode }) {
         body: JSON.stringify({
           title: editQuickLinkTitle,
           url: editQuickLinkUrl,
-          office: editQuickLinkOffice // Make sure office is included in the request
+          office: editQuickLinkOffice
         }),
       });
 
@@ -384,7 +394,7 @@ function HomeAdmin({ darkMode }) {
     setIsAddingQuickLink(true);
     setEditQuickLinkTitle("");
     setEditQuickLinkUrl("");
-    setEditQuickLinkOffice("Admissions Office");
+    setEditQuickLinkOffice("");
     setSelectedQuickLinkIndex(null);
   };
 
@@ -405,7 +415,7 @@ function HomeAdmin({ darkMode }) {
         body: JSON.stringify({
           title: editQuickLinkTitle.trim(),
           url: editQuickLinkUrl.trim(),
-          office: editQuickLinkOffice,
+          office: userOffice,
         })
       });
 
@@ -431,7 +441,7 @@ function HomeAdmin({ darkMode }) {
       setIsAddingQuickLink(false);
       setEditQuickLinkTitle("");
       setEditQuickLinkUrl("");
-      setEditQuickLinkOffice("Admissions Office");
+      setEditQuickLinkOffice("");
 
       // Clear success message after 3 seconds
       setTimeout(() => {
@@ -447,8 +457,7 @@ function HomeAdmin({ darkMode }) {
 
       if (refreshResponse.ok) {
         const data = await refreshResponse.json();
-        // Only show approved quick links to regular users
-        setQuickLinks(data.data.filter(link => link.approved));
+        setQuickLinks(data.data.filter(link => link.status === 'approved'));
       }
     } catch (err) {
       console.error('Full Error in QuickLink Creation:', err);
@@ -463,7 +472,7 @@ function HomeAdmin({ darkMode }) {
     setSelectedQuickLinkIndex(null);
     setEditQuickLinkTitle("");
     setEditQuickLinkUrl("");
-    setEditQuickLinkOffice("Admissions Office");
+    setEditQuickLinkOffice("");
   };
 
   // Function to remove a quick link
@@ -527,8 +536,11 @@ function HomeAdmin({ darkMode }) {
         i === index ? { ...link, pinned: !link.pinned } : link
       );
 
-      // Filter only pinned quick links for display
-      setQuickLinks(updatedQuickLinks.filter(link => link.pinned));
+      if (!isEditingQuickLinks) {
+        setQuickLinks(updatedQuickLinks.filter(link => link.status === 'approved'));
+      } else {
+        setQuickLinks(updatedQuickLinks);
+      }
 
       const actionType = quickLink.pinned ? 'unpinned' : 'pinned';
       setSuccessMessage(`Quick link ${actionType} successfully`);
@@ -641,7 +653,8 @@ const saveNewPortal = async () => {
         title: editPortalTitle.trim(),
         url: editPortalUrl.trim(),
         icon: editPortalIcon,
-        approved: false, // Explicitly set to unapproved
+        office: userOffice,
+        status: 'pending',
         pinned: false    // Explicitly set to unpinned
       })
     });
@@ -780,11 +793,11 @@ const removePortal = async (index) => {
             <div className={`${className}-title`}>{item.title}</div>
             {item.author && (
               <div className={`${className}-author`}>
-                Added by {item.author.name || 'Unknown'}
+                Added by {item.author.name || item.author}
               </div>
             )}
             <div className={`${className}-status`}>
-              Status: {item.approved ? 'Approved' : 'Pending Approval'}
+              Status: {item.status || 'Pending'}
             </div>
           </div>
           <div className={`${className}-actions`}>
@@ -819,11 +832,6 @@ const removePortal = async (index) => {
         {item.icon && <div className="portal-icon">{item.icon}</div>}
         <div className="link-content">
           <span className="portal-title">{item.title}</span>
-          {item.author && (
-            <span className="link-author">
-              Added by {item.author.name || 'Unknown'}
-            </span>
-          )}
         </div>
       </>
     );
@@ -858,18 +866,18 @@ const removePortal = async (index) => {
 
       const formData = new FormData();
       formData.append('title', newAnnouncementText);
-      formData.append('office', newAnnouncementOffice);
+      formData.append('office', userOffice);
       formData.append('link', newAnnouncementLink);
-      formData.append('approved', 'false'); // Set approved to false by default
+      formData.append('status', 'pending');
       if (newAnnouncementImage) {
         formData.append('image', newAnnouncementImage);
       }
 
       console.log('Sending announcement data:', {
         title: newAnnouncementText,
-        office: newAnnouncementOffice,
+        office: userOffice,
         link: newAnnouncementLink,
-        approved: false,
+        status: 'pending',
         hasImage: !!newAnnouncementImage
       });
 
@@ -900,7 +908,7 @@ const removePortal = async (index) => {
       setAnnouncements(updatedAnnouncements);
       setIsAddingAnnouncement(false);
       setNewAnnouncementText("");
-      setNewAnnouncementOffice("Admissions Office");
+      setNewAnnouncementOffice("");
       setNewAnnouncementLink("");
       setNewAnnouncementImage(null);
       setNewAnnouncementImageUrl(null);
@@ -974,6 +982,8 @@ const removePortal = async (index) => {
     }
   };
 
+  const displayedQuickLinks = isEditingQuickLinks ? quickLinks : quickLinks.filter(link => link.pinned);
+
   return (
     <div className={`home-container ${darkMode ? 'dark-mode' : ''}`}>
       <link
@@ -994,34 +1004,8 @@ const removePortal = async (index) => {
             >
               <div className="announcement-edit-mode">
                 <div className="edit-form-group">
-                  <label htmlFor="office-select">Office:</label>
-                  <select
-                    id="office-select"
-                    value={editOffice} // Bind to the editOffice state
-                    onChange={(e) => setEditOffice(e.target.value)} // Update the state on change
-                    className="office-select"
-                  >
-                    <option value="None">Select Office</option>
-                    <option value="Admissions Office">Admissions Office</option>
-                    <option value="Academic Office">Academic Office</option>
-                    <option value="Library Office">Library Office</option>
-                    <option value="Examinations Office">Examinations Office</option>
-                    <option value="Student Affairs Office">Student Affairs Office</option>
-                    <option value="Hostel Office">Hostel Office</option>
-                    <option value="Mess Office">Mess Office</option>
-                    <option value="Alumni Cell">Alumni Cell</option>
-                    <option value="Faculty Portal">Faculty Portal</option>
-                    <option value="Outreach Office">Outreach Office</option>
-                    <option value="R&D Office">R&D Office</option>
-                    <option value="Placement Cell">Placement Cell</option>
-                    <option value="Statistical Cell">Statistical Cell</option>
-                    <option value="General Administration">General Administration</option>
-                    <option value="Accounts Office">Accounts Office</option>
-                    <option value="IT Services Offices">IT Services Offices</option>
-                    <option value="Communication Office">Communication Office</option>
-                    <option value="Engineering Office">Engineering Office</option>
-                    <option value="HR & Personnel">HR & Personnel</option>
-                  </select>
+                <label>Office:</label>
+                <input type="text" value={userOffice} readOnly />
                 </div>
 
                 <div className="image-upload-container">
@@ -1083,34 +1067,8 @@ const removePortal = async (index) => {
               <div className="announcement-edit-mode">
                 <h3>Add New Announcement</h3>
                 <div className="edit-form-group">
-                  <label htmlFor="new-office-select">Office:</label>
-                  <select
-                    id="new-office-select"
-                    value={newAnnouncementOffice}
-                    onChange={(e) => setNewAnnouncementOffice(e.target.value)}
-                    className="office-select"
-                  >
-                    <option value="None">None</option>
-                    <option value="Admissions Office">Admissions Office</option>
-                    <option value="Academic Office">Academic Office</option>
-                    <option value="Library Office">Library Office</option>
-                    <option value="Examinations Office">Examinations Office</option>
-                    <option value="Student Affairs Office">Student Affairs Office</option>
-                    <option value="Hostel Office">Hostel Office</option>
-                    <option value="Mess Office">Mess Office</option>
-                    <option value="Alumni Cell">Alumni Cell</option>
-                    <option value="Faculty Portal">Faculty Portal</option>
-                    <option value="Outreach Office">Outreach Office</option>
-                    <option value="R&D Office">R&D Office</option>
-                    <option value="Placement Cell">Placement Cell</option>
-                    <option value="Statistical Cell">Statistical Cell</option>
-                    <option value="General Administration">General Administration</option>
-                    <option value="Accounts Office">Accounts Office</option>
-                    <option value="IT Services Offices">IT Services Offices</option>
-                    <option value="Communications Office">Communications Office</option>
-                    <option value="Engineering Office">Engineering Office</option>
-                    <option value="HR & Personnel">HR & Personnel</option>
-                  </select>
+                  <label>Office:</label>
+                  <input type="text" value={userOffice} readOnly />
                 </div>
 
                 <div className="image-upload-container">
@@ -1597,33 +1555,8 @@ const removePortal = async (index) => {
                 />
               </div>
               <div className="edit-form-group">
-                <label htmlFor="quick-link-office">Office:</label>
-                <select
-                  id="quick-link-office"
-                  value={editQuickLinkOffice}
-                  onChange={(e) => setEditQuickLinkOffice(e.target.value)}
-                  className="office-select"
-                >
-                  <option value="Admissions Office">Admissions Office</option>
-                  <option value="Academic Office">Academic Office</option>
-                  <option value="Library Office">Library Office</option>
-                  <option value="Examinations Office">Examinations Office</option>
-                  <option value="Student Affairs Office">Student Affairs Office</option>
-                  <option value="Hostel Office">Hostel Office</option>
-                  <option value="Mess Office">Mess Office</option>
-                  <option value="Alumni Cell">Alumni Cell</option>
-                  <option value="Faculty Portal">Faculty Portal</option>
-                  <option value="Placement Cell">Placement Cell</option>
-                  <option value="Outreach Office">Outreach Office</option>
-                  <option value="Statistical Cell">Statistical Cell</option>
-                  <option value="R&D Office">R&D Office</option>
-                  <option value="General Administration">General Administration</option>
-                  <option value="Accounts Office">Accounts Office</option>
-                  <option value="IT Services Office">IT Services Office</option>
-                  <option value="Communication Office">Communication Office</option>
-                  <option value="Engineering Office">Engineering Office</option>
-                  <option value="HR & Personnel">HR & Personnel</option>
-                </select>
+              <label>Office:</label>
+              <input type="text" value={userOffice} readOnly />
               </div>
               <div className="edit-buttons">
                 <button onClick={saveNewQuickLink} className="save-btn">Save</button>
@@ -1654,33 +1587,8 @@ const removePortal = async (index) => {
                 />
               </div>
               <div className="edit-form-group">
-                <label htmlFor="quick-link-office">Office:</label>
-                <select
-                  id="quick-link-office"
-                  value={editQuickLinkOffice}
-                  onChange={(e) => setEditQuickLinkOffice(e.target.value)}
-                  className="office-select"
-                >
-                  <option value="Admissions Office">Admissions Office</option>
-                  <option value="Academic Office">Academic Office</option>
-                  <option value="Library Office">Library Office</option>
-                  <option value="Examinations Office">Examinations Office</option>
-                  <option value="Student Affairs Office">Student Affairs Office</option>
-                  <option value="Hostel Office">Hostel Office</option>
-                  <option value="Mess Office">Mess Office</option>
-                  <option value="Alumni Cell">Alumni Cell</option>
-                  <option value="Faculty Portal">Faculty Portal</option>
-                  <option value="Placement Cell">Placement Cell</option>
-                  <option value="Outreach Office">Outreach Office</option>
-                  <option value="Statistical Cell">Statistical Cell</option>
-                  <option value="R&D Office">R&D Office</option>
-                  <option value="General Administration">General Administration</option>
-                  <option value="Accounts Office">Accounts Office</option>
-                  <option value="IT Services Office">IT Services Office</option>
-                  <option value="Communication Office">Communication Office</option>
-                  <option value="Engineering Office">Engineering Office</option>
-                  <option value="HR & Personnel">HR & Personnel</option>
-                </select>
+              <label>Office:</label>
+              <input type="text" value={userOffice} readOnly />
               </div>
               <div className="edit-buttons">
                 <button onClick={saveQuickLink} className="save-btn">Save</button>
@@ -1693,27 +1601,21 @@ const removePortal = async (index) => {
             <div className="quick-links-loading">Loading quick links...</div>
           ) : quickLinksError ? (
             <div className="quick-links-error">{quickLinksError}</div>
-          ) : quickLinks.length > 0 ? (
+          ) : displayedQuickLinks.length > 0 ? (
             <div className="quick-links-grid">
-              {isEditingQuickLinks
-                ? quickLinks.map((link, index) => (
-                  <div key={index} className="quick-link-item-admin">
-                    {renderLinkComponent(
-                      link,
-                      index,
-                      "quick-link",
-                      true,
-                      startEditingQuickLink,
-                      toggleQuickLinkPin,
-                      removeQuickLink
-                    )}
-                  </div>
-                ))
-                : quickLinks
-                  .filter(link => link.pinned) // Only display pinned quick links
-                  .map((link, index) =>
-                    renderLinkComponent(link, index, "quick-link", false)
+              {displayedQuickLinks.map((link, index) => (
+                <div key={index} className="quick-link-item-admin">
+                  {renderLinkComponent(
+                    link,
+                    index,
+                    "quick-link",
+                    isEditingQuickLinks,
+                    startEditingQuickLink,
+                    toggleQuickLinkPin,
+                    removeQuickLink
                   )}
+                </div>
+              ))}
             </div>
           ) : (
             <div className="no-quick-links">No quick links available</div>

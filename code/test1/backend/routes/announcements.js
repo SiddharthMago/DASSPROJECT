@@ -8,6 +8,7 @@ const {
   deleteAnnouncement,
   updateAnnouncement,
   getMyAnnouncements,
+  rejectAnnouncement,
 } = require('../controllers/announcementController');
 const { protect, authorize } = require('../middleware/auth');
 const multer = require('multer');
@@ -47,5 +48,6 @@ router.get('/unapproved', protect, authorize('superadmin'), getUnapprovedAnnounc
 router.delete('/:id', protect, authorize('admin', 'superadmin'), deleteAnnouncement); // Admin/Superadmin route to delete an announcement
 router.put('/:id', protect, authorize('admin', 'superadmin'), upload.single('image'), updateAnnouncement);
 router.get('/my-announcements', protect, authorize('admin', 'superadmin'), getMyAnnouncements);
+router.put('/:id/reject', protect, authorize('superadmin'), rejectAnnouncement);
 
 module.exports = router;

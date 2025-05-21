@@ -508,6 +508,27 @@
 	color: var(--accent-color);
   }
 
+.portal-edit-panel {
+	margin-bottom: 1rem;
+  }
+  .portal-edit-panel .edit-actions {
+	display: flex;
+	gap: 1rem;
+  }
+
+  .portal-edit-form {
+	background-color: var(--card-bg);
+	border-radius: 8px;
+	border: 1px solid var(--accent-color);
+	padding: 1rem;
+	margin-bottom: 1rem;
+  }
+  
+  .portal-edit-form h3 {
+	margin-bottom: 1rem;
+	color: var(--accent-color);
+  }
+
   /* Responsive adjustments for IIIT Portals */
   @media (max-width: 1024px) {
 	.iiit-portals-grid {

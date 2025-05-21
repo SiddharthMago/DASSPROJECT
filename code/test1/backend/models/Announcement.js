@@ -1,5 +1,21 @@
 const mongoose = require('mongoose');
 
+const CommentSchema = new mongoose.Schema({
+  author: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  content: {
+    type: String,
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
 const AnnouncementSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -48,13 +64,20 @@ const AnnouncementSchema = new mongoose.Schema({
   },
   link: {
     type: String,
-    default: 'https://youtube.com', // Default link
+    default: 'https://www.iiit.ac.in',
     required: [true, 'Please add a link for the announcement'],
   },
-  approved: {
-    type: Boolean,
-    default: false,
+  status: {
+    type: String,
+    enum: ['pending','approved','rejected'],
+    default: 'pending',
+    required: true
   },
-});
+  comments: {
+    type: [CommentSchema],
+    default: [],
+  },
+}, { timestamps: true }
+);
 
 module.exports = mongoose.model('Announcement', AnnouncementSchema);

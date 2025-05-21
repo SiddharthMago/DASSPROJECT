@@ -1,5 +1,21 @@
 const mongoose = require('mongoose');
 
+const CommentSchema = new mongoose.Schema({
+  author: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  content: {
+    type: String,
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
 const QuickLinkSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -46,15 +62,22 @@ const QuickLinkSchema = new mongoose.Schema({
         'HR & Personnel',
     ],
     required: [true, 'Please select an office for the quick link'],
-},
+  },
   pinned: {
     type: Boolean,
     default: true,
   },
-  approved: {
-    type: Boolean,
-    default: true,
+  status: {
+    type: String,
+    enum: ['pending','approved','rejected'],
+    default: 'pending',
+    required: true
   },
-});
+  comments: {
+    type: [CommentSchema],
+    default: []
+  }
+}, { timestamps: true }
+);
 
 module.exports = mongoose.model('QuickLink', QuickLinkSchema);

@@ -64,7 +64,7 @@ function NavBar_User({ darkMode, setDarkMode }){
                 <Link to="/user/archive?tab=Announcements" onClick={() => setMobileMenuOpen(false)}>Announcements</Link>
                 <Link to="/user/home#offices" onClick={() => setMobileMenuOpen(false)}>Offices</Link>
                 <Link to="/user/archive?tab=Links" onClick={() => setMobileMenuOpen(false)}>Quick Links</Link>
-                <Link to="/user/contacts" onClick={() => setMobileMenuOpen(false)}>Users</Link>
+                {/* <Link to="/user/contacts" onClick={() => setMobileMenuOpen(false)}>Users</Link> */}
                 {isLoggedIn ? (
                     <Link onClick={() => handleLogOut()}>Log Out</Link>
                 ) : (

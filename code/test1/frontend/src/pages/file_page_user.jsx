@@ -16,6 +16,7 @@ function FilePageUser({ darkMode }) {
     const [version1, setVersion1] = useState(null);
     const [version2, setVersion2] = useState(null);
     const [showVersionList, setShowVersionList] = useState(false);
+    const [showCompareLoading, setShowCompareLoading] = useState(false);
 
     // For development, use a hardcoded file URL
     // const sampleFileUrl = "http://localhost:5000/uploads/files/1744972682727-MDL_A4.pdf";
@@ -113,6 +114,7 @@ function FilePageUser({ darkMode }) {
             return;
         }
 
+        setShowCompareLoading(true);
         try {
             const response = await axios.post('http://localhost:5000/api/compare-pdfs', {
                 pdf1Path: version1.filePath,
@@ -138,6 +140,8 @@ function FilePageUser({ darkMode }) {
         } catch (error) {
             console.error('Error comparing PDFs:', error);
             alert('An error occurred while comparing PDFs: ' + (error.response?.data?.message || error.message));
+        } finally {
+            setShowCompareLoading(false);
         }
     };
 
@@ -168,6 +172,18 @@ function FilePageUser({ darkMode }) {
 
     return (
         <div className={`file-container ${darkMode ? 'dark-mode' : ''}`}>
+            {/* Compare Loading Modal */}
+            {showCompareLoading && (
+                <div className="compare-loading-modal">
+                    <div className="compare-loading-content">
+                        <button className="close-modal-btn" onClick={() => setShowCompareLoading(false)} title="Close">&times;</button>
+                        <div className="loading-spinner" style={{marginTop: '20px'}}></div>
+                        <h3>Comparing versions...</h3>
+                        <p>This operation might take some time. You can continue working in other tabs.</p>
+                    </div>
+                </div>
+            )}
+
             <div className="file-header">
                 <div className="file-info">
                     <h1>{selectedVersion?.name}</h1>

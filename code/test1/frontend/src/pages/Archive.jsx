@@ -149,7 +149,7 @@ function Archive({ darkMode, userRole }) {
 			id: file._id,
 			fileName: hasMultipleVersions ? `${file.name} *` : file.name, // Add asterisk for files with versions
 			authorId: file.author, // Store the author ObjectId
-			author: 'Loading...', // Initial state
+			author: file.author ? file.author.name : file.office, // Default to office name if not available
 			office: file.office,
 			modifiedDate: new Date(file.createdAt).toLocaleDateString(),
 			category: 'Files',
@@ -161,13 +161,13 @@ function Archive({ darkMode, userRole }) {
 			hasVersions: hasMultipleVersions
 		};
 
-		// If we have the author details, update the author name
-		if (file.author && authorDetails[file.author]) {
-			mappedFile.author = authorDetails[file.author];
-		} else if (file.author) {
-			// Fetch author details if we don't have them
-			fetchAuthorDetails(file.author);
-		}
+		// // If we have the author details, update the author name
+		// if (file.author && authorDetails[file.author]) {
+		// 	mappedFile.author = authorDetails[file.author];
+		// } else if (file.author) {
+		// 	// Fetch author details if we don't have them
+		// 	fetchAuthorDetails(file.author);
+		// }
 
 		return mappedFile;
 	}, [authorDetails]);
@@ -186,13 +186,13 @@ function Archive({ darkMode, userRole }) {
 			image: announcement.image
 		};
 
-		// If we have the author details, update the author name
-		if (announcement.author && authorDetails[announcement.author]) {
-			mappedAnnouncement.author = authorDetails[announcement.author];
-		} else if (announcement.author) {
-			// Fetch author details if we don't have them
-			fetchAuthorDetails(announcement.author);
-		}
+		// // If we have the author details, update the author name
+		// if (announcement.author && authorDetails[announcement.author]) {
+		// 	mappedAnnouncement.author = authorDetails[announcement.author];
+		// } else if (announcement.author) {
+		// 	// Fetch author details if we don't have them
+		// 	fetchAuthorDetails(announcement.author);
+		// }
 
 		return mappedAnnouncement;
 	}, [authorDetails]);

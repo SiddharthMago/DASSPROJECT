@@ -175,7 +175,7 @@ exports.getAllApprovedFiles = async (req, res, next) => {
 		// 	? { status: 'approved', office: office }
 		// 	: { status: 'approved' };
 
-		const files = await File.find({ status: 'approved' }).sort({ createdAt: -1});
+		const files = await File.find({ status: 'approved' }).populate('author', 'name').sort({ createdAt: -1});
 		const latestFiles = files.filter(file => !file.versions || file.versions.length === 0);
 
 		res.status(200).json({

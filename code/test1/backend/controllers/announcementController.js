@@ -16,10 +16,10 @@ exports.addAnnouncement = async (req, res, next) => {
       const fileExt = path.extname(req.file.originalname);
       const fileName = `${uuidv4()}${fileExt}`;
       const uploadPath = path.join(__dirname, '../uploads', fileName);
-      
+
       // Move the file to the uploads directory
       fs.renameSync(req.file.path, uploadPath);
-      
+
       // Store the relative path in the database
       imagePath = `/uploads/${fileName}`;
     }
@@ -49,25 +49,25 @@ exports.addAnnouncement = async (req, res, next) => {
 exports.updateAnnouncement = async (req, res, next) => {
   try {
     const { title, office, link } = req.body;
-    
+
     // Prepare update object
-    const updateData = { 
-      title, 
-      office, 
+    const updateData = {
+      title,
+      office,
       link: link || '',
       status: 'pending', // Reset status to pending on update
       author: req.user._id // Update the author field to the current user
     };
-    
+
     // Handle file upload if present
     if (req.file) {
       const fileExt = path.extname(req.file.originalname);
       const fileName = `${uuidv4()}${fileExt}`;
       const uploadPath = path.join(__dirname, '../uploads', fileName);
-      
+
       // Move the file to the uploads directory
       fs.renameSync(req.file.path, uploadPath);
-      
+
       // Store the relative path in the database
       updateData.image = `/uploads/${fileName}`;
     }
@@ -122,6 +122,7 @@ exports.approveAnnouncement = async (req, res, next) => {
 exports.getAllAnnouncements = async (req, res, next) => {
   try {
     const announcements = await Announcement.find({ status: 'approved' })
+      .populate('author', 'name')
       .sort({ createdAt: -1 }); // Sort by newest first
 
     res.status(200).json({
@@ -208,8 +209,8 @@ exports.getMyAnnouncements = async (req, res, next) => {
     });
   } catch (err) {
     console.error('Error fetching user announcements:', err);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       error: 'Server error',
       details: err.message
     });
@@ -222,11 +223,11 @@ exports.getMyAnnouncements = async (req, res, next) => {
 exports.rejectAnnouncement = async (req, res, next) => {
   try {
     const { comment } = req.body;
-    if(!comment || !comment.trim()) {
+    if (!comment || !comment.trim()) {
       return res.status(400).json({ success: false, error: 'Rejection comment required' });
     }
     const announcement = await Announcement.findById(req.params.id);
-    if(!announcement) {
+    if (!announcement) {
       return res.status(404).json({ success: false, error: 'Announcement not found' });
     }
 

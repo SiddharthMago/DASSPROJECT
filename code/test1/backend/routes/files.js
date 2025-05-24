@@ -91,7 +91,7 @@ router.get('/office/:office', async (req, res) => {
     
     const files = await File.find({ 
       office: office,
-      status: { $in: ['pending', 'approved'] } 
+      status: { $in: ['approved'] } 
     }).sort({ createdAt: -1 });
 
     console.log('Files found:', files.length);
@@ -111,14 +111,14 @@ router.get('/office/:office', async (req, res) => {
   }
 });
 
-router.get('/files/:office', protect, authorize('admin', 'superadmin'), async (req, res) => {
+router.get('/files/:office', async (req, res) => {
   try {
     const { office } = req.params;
     console.log('Fetching files for office:', office);
     
     const files = await File.find({ 
       office: office,
-      status: { $in: ['pending', 'approved'] } 
+      status: { $in: ['approved'] } 
     }).sort({ createdAt: -1 });
 
     console.log('Files found:', files.length);

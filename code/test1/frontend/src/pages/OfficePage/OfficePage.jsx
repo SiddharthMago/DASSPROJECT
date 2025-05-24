@@ -20,7 +20,9 @@ const OfficePage = ({ darkMode }) => {
         
         // Fetch files for the specific office
         const filesResponse = await axios.get(`/api/files/office/${encodeURIComponent(officeName)}`, {
-          params: { status: 'approved' }
+          params: {
+            status: 'approved'
+          }
         });
 
         // Process the files to filter out older versions

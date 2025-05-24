@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import '../css/home.css'; // We'll create this file for styling
+import '../css/home.css';
 import iiithLogo from '../assets/iiit-logo.png';
-import helpIcon from '../assets/small.jpg';
+import helpPdf from '../assets/Intranet_Manual_SuperAdmin.pdf';
 
 function NavBar_SuperAdmin({ darkMode, setDarkMode }) {
     // State for mobile menu toggle
@@ -37,10 +37,7 @@ function NavBar_SuperAdmin({ darkMode, setDarkMode }) {
         window.location.href = `https://login.iiit.ac.in/cas/logout?service=${encodeURIComponent("http://localhost:5173/")}`;
     };
 
-    // Function to redirect to help website
-    const goToHelpWebsite = () => {
-        window.open('https://help.iiit.ac.in', '_blank');
-    };
+    const goToHelpPdf = () => window.open(helpPdf, '_blank');
 
     return (
         <nav className="navbar">
@@ -82,7 +79,7 @@ function NavBar_SuperAdmin({ darkMode, setDarkMode }) {
             </div>
 
             <div className="navbar-mode-toggle">
-                <button onClick={goToHelpWebsite} className="navbar-help-button" title="Get Help">
+                <button onClick={goToHelpPdf} className="navbar-help-button" title="Get Help">
                     ❓
                 </button>
                 

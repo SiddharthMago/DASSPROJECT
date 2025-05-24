@@ -5,30 +5,6 @@ const File = require('../models/Files');
 const Faq = require('../models/Faq');
 const { protect, authorize } = require('../middleware/auth');
 
-// Get files for a specific office (for admin/superadmin - including unapproved)
-router.get('/files/:office', protect, authorize('admin', 'superadmin'), async (req, res) => {
-  try {
-    const { office } = req.params;
-    
-    const files = await File.find({ 
-      office: office,
-      status: { $in: ['pending', 'approved', 'rejected'] } 
-    }).sort({ createdAt: -1 });
-
-    res.status(200).json({
-      success: true,
-      count: files.length,
-      data: files
-    });
-  } catch (err) {
-    console.error(`Error fetching office files: ${err.message}`);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Server error' 
-    });
-  }
-});
-
 // Get FAQs for a specific office (for admin/superadmin)
 router.get('/faqs/:office', protect, authorize('admin', 'superadmin'), async (req, res) => {
   try {

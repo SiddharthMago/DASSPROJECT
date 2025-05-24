@@ -400,13 +400,6 @@ function FileUpload({ darkMode }) {
             formData.append('url', fileUrl.trim());
           }
 
-          const response = await axios.post('/api/files/upload', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
           setSuccessMessage("File or URL sent for approval");
         }
         

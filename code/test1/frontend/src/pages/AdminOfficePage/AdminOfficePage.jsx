@@ -50,9 +50,12 @@ const AdminOfficePage = ({ darkMode }) => {
         setLoading(true);
         
         // Fetch files for the specific office
-        const filesResponse = await axios.get(`/api/offices/files/${encodeURIComponent(officeName)}`, {
+        const filesResponse = await axios.get(`/api/files/office/${encodeURIComponent(officeName)}`, {
           headers: {
             'Authorization': `Bearer ${token}`
+          },
+          params: {
+            status: 'approved'
           }
         });
         

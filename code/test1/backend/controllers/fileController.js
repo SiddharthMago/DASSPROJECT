@@ -87,6 +87,13 @@ exports.deleteFile = async (req, res, next) => {
 		// Replace .remove() with .findByIdAndDelete()
 		await File.findByIdAndDelete(req.params.id);
 
+		await File.updateMany(
+			{ 'versions._id': req.params.id },
+			{ $pull: { versions: { _id: req.params.id } } }
+		);
+
+		console.log(`[DELETE FILE] Removed version references from other file records: ${req.params.id}`);
+
 		console.log(`[DELETE FILE] File record deleted from DB: ${req.params.id}`);
 		res.status(200).json({ success: true, message: 'File deleted successfully' });
 	} catch (err) {

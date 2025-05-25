@@ -45,7 +45,7 @@ router.get('/cas-callback', async (req, res) => {
         const role = await determineRole(userDetails); // You can enhance this with a DB lookup
         console.log("JWT_SECRET:", process.env.JWT_SECRET);
 
-        const token = jwt.sign({ userDetails, role }, process.env.JWT_SECRET, {expiresIn: '1h'});
+        const token = jwt.sign({ userDetails, role }, process.env.JWT_SECRET, {expiresIn: '30d'});
 
         // Redirect to frontend with token
         // res.redirect(`http://localhost:5173/${role}/`);

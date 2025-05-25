@@ -432,6 +432,7 @@ function ContactsAdmin({ darkMode }) {
                                     name="email"
                                     value={editingContact.email}
                                     onChange={handleEditChange}
+                                    disabled
                                 />
                             </div>
 

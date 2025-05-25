@@ -185,6 +185,16 @@ function FileUpload({ darkMode }) {
     await fetchAllFilesInOffice(office);
   };
 
+  const getLatestFiles = (files) => {
+    // collect every version _id
+    const referenced = new Set();
+    files.forEach(f => {
+      (f.versions || []).forEach(v => referenced.add(v._id));
+    });
+    // filter out any file whose _id is in that set
+    return files.filter(f => !referenced.has(f._id));
+  };
+
   // Fetch all files for an office
   const fetchAllFilesInOffice = async (office) => {
     if (!office) return;
@@ -201,7 +211,10 @@ function FileUpload({ darkMode }) {
         }
       });
       
-      setAllOfficeFiles(response.data.data || []);
+      // setAllOfficeFiles(response.data.data || []); - old
+      // only keep latest versions - new:
+      const allFiles = response.data.data || [];
+      setAllOfficeFiles(getLatestFiles(allFiles));
     } catch (error) {
       console.error('Error fetching all office files:', error);
       setAllOfficeFiles([]);
@@ -227,12 +240,15 @@ function FileUpload({ darkMode }) {
           }
         });
         
-        // Filter files to only include those in the selected category
-        const filesInCategory = response.data.data.filter(
-          file => file.category === selectedCategory
-        );
-        
-        setCategoryFiles(filesInCategory);
+        // Filter files to only include those in the selected category - old
+        // const filesInCategory = response.data.data.filter(
+        //   file => file.category === selectedCategory
+        // );
+        // setCategoryFiles(filesInCategory);
+
+        // first filter by category, then strip out old versions - new
+        const byCat = (response.data.data || []).filter(f => f.category === selectedCategory);
+        setCategoryFiles(getLatestFiles(byCat));
       } catch (error) {
         console.error('Error fetching files in category:', error);
         setCategoryFiles([]);
@@ -400,6 +416,11 @@ function FileUpload({ darkMode }) {
             formData.append('url', fileUrl.trim());
           }
 
+          await axios.post('/api/files/upload',formData, {headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }});
+            
           setSuccessMessage("File or URL sent for approval");
         }
         

@@ -57,10 +57,7 @@ const AnnouncementSchema = new mongoose.Schema({
   },
   image: {
     type: String,
-    default: function () {
-      // Set default image based on the office
-      return `/uploads/announcements_bg/${this.office}.jpg`;
-    },
+    default: '/uploads/announcements_default_background.png',
   },
   link: {
     type: String,

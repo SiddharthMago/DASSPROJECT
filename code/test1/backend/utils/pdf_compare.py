@@ -193,10 +193,10 @@ class DocumentComparator:
                 try:
                     # Try to get text from different shape types
                     text = ""
-                    if hasattr(shape, 'text_frame') and shape.text_frame:
-                        text = shape.text_frame.text.strip()
+                    if hasattr(shape, 'text_frame') and shape.text_frame: # type: ignore
+                        text = shape.text_frame.text.strip() # type: ignore
                     elif hasattr(shape, 'text'):
-                        text = shape.text.strip()
+                        text = shape.text.strip() # type: ignore
                     
                     if text:
                         p = Paragraph(text, styles['Normal'])
@@ -236,7 +236,7 @@ class DocumentComparator:
             page = doc.load_page(page_num)
             # Convert to image with high DPI for quality
             mat = fitz.Matrix(self.dpi/72, self.dpi/72)
-            pix = page.get_pixmap(matrix=mat)
+            pix = page.get_pixmap(matrix=mat) # type: ignore
             img_data = pix.tobytes("png")
             image = Image.open(io.BytesIO(img_data))
             images.append(image)
@@ -255,7 +255,7 @@ class DocumentComparator:
             blocks = []
             
             # Get text blocks with position
-            text_dict = page.get_text("dict")
+            text_dict = page.get_text("dict") # type: ignore
             for block in text_dict["blocks"]:
                 if "lines" in block:  # Text block
                     for line in block["lines"]:

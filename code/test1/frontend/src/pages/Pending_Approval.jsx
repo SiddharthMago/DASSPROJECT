@@ -82,6 +82,7 @@ function PendingApprovals({ darkMode }) {
 					office: p.office || '—',
 					createdAt: p.createdAt,
 					uploadDate: new Date(p.createdAt).toLocaleDateString(),
+					url: p.url,
 					category: 'portal'	
 				}));
 				
@@ -198,7 +199,7 @@ function PendingApprovals({ darkMode }) {
 	const approveAll = async (type) => {
 		try {
 			const token = localStorage.getItem('token');
-			const items = type === 'file' ? pendingFiles : type === 'announcement' ? pendingAnnouncements : pendingQuickLinks;
+			const items = type === 'file' ? pendingFiles : type === 'announcement' ? pendingAnnouncements : type === 'quicklink' ? pendingQuickLinks : pendingPortals;
 			const endpoint = type === 'file' ? 'files' : type === 'announcement' ? 'announcements' : type === 'quicklink' ? 'quicklinks' : 'portals';
 			
 			for (const item of items) {
@@ -213,8 +214,10 @@ function PendingApprovals({ darkMode }) {
 				setPendingFiles([]);
 			} else if (type === 'announcement') {
 				setPendingAnnouncements([]);
-			} else {
+			} else if (type === 'quicklink') {
 				setPendingQuickLinks([]);
+			} else if (type === 'portal') {
+				setPendingPortals([]);
 			}
 		} catch (err) {
 			console.error('Error approving all items:', err);

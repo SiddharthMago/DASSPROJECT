@@ -381,7 +381,7 @@ function Archive({ darkMode, userRole }) {
 						return {
 							id: announcement._id,
 							fileName: announcement.title,
-							author: announcement.author?.name || ,
+							author: announcement.author?.name || "Unknown",
 							office: announcement.office,
 							modifiedDate: new Date(announcement.createdAt).toLocaleDateString(),
 							category: 'Announcements',

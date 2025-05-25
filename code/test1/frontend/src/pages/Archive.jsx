@@ -43,7 +43,7 @@ function Archive({ darkMode, userRole }) {
 		title: '',
 		office: '',
 		url: '',
-		pinned: true // Set pinned to true by default
+		pinned: false // Set pinned to false by default
 	});
 
 	// Add new state for edit announcement modal
@@ -558,7 +558,7 @@ function Archive({ darkMode, userRole }) {
 				title: linkModal.title,
 				office: userRole === 'superadmin' ? linkModal.office : userOffice,
 				url: linkModal.url,
-				pinned: true,
+				pinned: linkModal.pinned,
 				approved: true
 			}, {
 				headers: {
@@ -578,7 +578,7 @@ function Archive({ darkMode, userRole }) {
 					title: '',
 					office: '',
 					url: '',
-					pinned: true
+					pinned: false
 				});
 			} else {
 				alert('Failed to create link: ' + response.data.error);
@@ -894,30 +894,32 @@ function Archive({ darkMode, userRole }) {
 										<>
 											{canManageItem(item.office) && (
 												<>
-													<button
-														className="action-button pin"
-														onClick={() => {
-															const endpoint = item.pinned ? 'unpin' : 'pin';
-															axios.put(
-																`http://localhost:5000/api/quicklinks/${item.id}/${endpoint}`,
-																{},
-																{
-																	headers: {
-																		'Authorization': `Bearer ${localStorage.getItem('token')}`
+													{item.status === 'approved' && (
+														<button
+															className="action-button pin"
+															onClick={() => {
+																const endpoint = item.pinned ? 'unpin' : 'pin';
+																axios.put(
+																	`http://localhost:5000/api/quicklinks/${item.id}/${endpoint}`,
+																	{},
+																	{
+																		headers: {
+																			'Authorization': `Bearer ${localStorage.getItem('token')}`
+																		}
 																	}
-																}
-															).then(() => {
-																// Refresh the links list
-																axios.get('http://localhost:5000/api/quicklinks')
-																	.then(res => {
-																		const mapped = res.data.data.map(mapQuickLinkData);
-																		setArchiveItems(mapped);
-																	});
-															});
-														}}
-													>
-														{item.pinned ? 'Unpin' : 'Pin'}
-													</button>
+																).then(() => {
+																	// Refresh the links list
+																	axios.get('http://localhost:5000/api/quicklinks')
+																		.then(res => {
+																			const mapped = res.data.data.map(mapQuickLinkData);
+																			setArchiveItems(mapped);
+																		});
+																});
+															}}
+														>
+															{item.pinned ? 'Unpin' : 'Pin'}
+														</button>
+													)}
 													<button
 														className="action-button edit"
 														onClick={() => setEditLinkModal({
@@ -1118,30 +1120,32 @@ function Archive({ darkMode, userRole }) {
 												<>
 													{canManageItem(item.office) && (
 														<>
-															<button
-																className="action-button pin"
-																onClick={() => {
-																	const endpoint = item.pinned ? 'unpin' : 'pin';
-																	axios.put(
-																		`http://localhost:5000/api/quicklinks/${item.id}/${endpoint}`,
-																		{},
-																		{
-																			headers: {
-																				'Authorization': `Bearer ${localStorage.getItem('token')}`
+															{item.status === 'approved' && (
+																<button
+																	className="action-button pin"
+																	onClick={() => {
+																		const endpoint = item.pinned ? 'unpin' : 'pin';
+																		axios.put(
+																			`http://localhost:5000/api/quicklinks/${item.id}/${endpoint}`,
+																			{},
+																			{
+																				headers: {
+																					'Authorization': `Bearer ${localStorage.getItem('token')}`
+																				}
 																			}
-																		}
-																	).then(() => {
-																		// Refresh the links list
-																		axios.get('http://localhost:5000/api/quicklinks')
-																			.then(res => {
-																				const mapped = res.data.data.map(mapQuickLinkData);
-																				setArchiveItems(mapped);
-																			});
-																	});
-																}}
-															>
-																{item.pinned ? 'Unpin' : 'Pin'}
-															</button>
+																		).then(() => {
+																			// Refresh the links list
+																			axios.get('http://localhost:5000/api/quicklinks')
+																				.then(res => {
+																					const mapped = res.data.data.map(mapQuickLinkData);
+																					setArchiveItems(mapped);
+																				});
+																		});
+																	}}
+																>
+																	{item.pinned ? 'Unpin' : 'Pin'}
+																</button>
+															)}
 															<button
 																className="action-button edit"
 																onClick={() => setEditLinkModal({
@@ -1418,16 +1422,6 @@ function Archive({ darkMode, userRole }) {
 									required
 								/>
 							</div>
-							{/* <div className="form-group">
-								<label className="checkbox-label">
-									<input
-										type="checkbox"
-										checked={linkModal.pinned}
-										onChange={(e) => setLinkModal({ ...linkModal, pinned: e.target.checked })}
-									/>
-									Pin this link
-								</label>
-							</div> */}
 							<div className="modal-actions">
 								<button
 									type="button"

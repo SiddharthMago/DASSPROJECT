@@ -45,7 +45,6 @@ function User({ darkMode, setDarkMode }) {
                 <Route path='file/:id' element={<FilePageUser darkMode={actualDarkMode} />} />
                 <Route path="archive" element={<Archive darkMode={actualDarkMode} />} />
                 <Route path='search' element={<Archive darkMode={actualDarkMode} />} />
-                <Route path='contacts' element={<ContactsUser darkMode={actualDarkMode} />} />
             </Routes>
             <Footer darkMode={actualDarkMode} />
         </div>

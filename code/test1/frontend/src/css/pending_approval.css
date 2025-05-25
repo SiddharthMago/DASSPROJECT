@@ -245,7 +245,7 @@ body {
   max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .author-cell {
@@ -512,4 +512,17 @@ body {
 
 .dark-mode .cancel-button:hover {
   background-color: rgba(255, 255, 255, 0.05);
+}
+
+.archive-table td,
+.archive-table th,
+.archive-table .name-cell,
+.archive-table .author-cell,
+.archive-table .office-cell,
+.archive-table .date-cell {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  word-break: break-word !important;
+  /* max-width: 220px; Adjust as needed */
 }

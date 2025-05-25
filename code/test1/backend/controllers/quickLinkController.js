@@ -7,16 +7,16 @@ exports.addQuickLink = async (req, res, next) => {
   try {
     const { title, url, office = 'Administration' } = req.body;
     if (!title) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Title is required' 
+      return res.status(400).json({
+        success: false,
+        error: 'Title is required'
       });
     }
 
     if (!url) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'URL is required' 
+      return res.status(400).json({
+        success: false,
+        error: 'URL is required'
       });
     }
 
@@ -35,10 +35,10 @@ exports.addQuickLink = async (req, res, next) => {
     });
   } catch (err) {
     console.error('QuickLink Creation Error:', err);
-    
+
     // More detailed error response
-    res.status(400).json({ 
-      success: false, 
+    res.status(400).json({
+      success: false,
       error: err.message,
       details: err.errors ? Object.keys(err.errors) : null
     });
@@ -74,9 +74,9 @@ exports.editQuickLink = async (req, res, next) => {
   try {
     const quickLink = await QuickLink.findByIdAndUpdate(
       req.params.id,
-      { 
-        title, 
-        url, 
+      {
+        title,
+        url,
         office,
         status: 'pending',
         author: req.user._id
@@ -230,6 +230,7 @@ exports.getMyQuickLinks = async (req, res, next) => {
   try {
     // Find all quick links where the author is the current user
     const quickLinks = await QuickLink.find({ author: req.user._id })
+      .populate('author', 'name')
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -239,8 +240,8 @@ exports.getMyQuickLinks = async (req, res, next) => {
     });
   } catch (err) {
     console.error('Error fetching user quick links:', err);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       error: 'Server error',
       details: err.message
     });

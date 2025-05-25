@@ -17,16 +17,16 @@ function FileUpload({ darkMode }) {
   // State for user information
   const [userOffice, setUserOffice] = useState("");
   const [userRole, setUserRole] = useState("");
-  
+
   // State for offices (for superadmin)
   const [offices, setOffices] = useState([]);
   const [selectedOffice, setSelectedOffice] = useState("");
-  
+
   // State for categories
   const [existingCategories, setExistingCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [newCategory, setNewCategory] = useState("");
-  
+
   // State for files in the selected office/category and version handling
   const [categoryFiles, setCategoryFiles] = useState([]);
   const [allOfficeFiles, setAllOfficeFiles] = useState([]);
@@ -40,11 +40,11 @@ function FileUpload({ darkMode }) {
     const categoryParam = queryParams.get('category');
     const fileIdParam = queryParams.get('fileId');
     const isNewVersionParam = queryParams.get('isNewVersion');
-    
+
     if (officeParam) {
       console.log('Office from URL:', officeParam);
     }
-    
+
     if (categoryParam) {
       console.log('Category from URL:', categoryParam);
       setSelectedCategory(categoryParam);
@@ -66,7 +66,7 @@ function FileUpload({ darkMode }) {
     const fetchUserProfileAndOffices = async () => {
       try {
         const token = localStorage.getItem('token');
-        
+
         // Fetch user profile
         const userResponse = await axios.get('/api/auth_cas/user-profile', {
           headers: {
@@ -74,32 +74,32 @@ function FileUpload({ darkMode }) {
             'Content-Type': 'application/json'
           }
         });
-        
+
         // Add logging to understand the response
         console.log('User Profile Response:', userResponse.data);
-        
+
         // Safely extract office and role
         const office = userResponse.data.office;
         const role = userResponse.data.role;
-        
+
         if (!office) {
           throw new Error('Office not found in user profile');
         }
-        
+
         setUserOffice(office);
         setUserRole(role);
-        
+
         // Parse URL parameters again (now that we have user data)
         const queryParams = new URLSearchParams(location.search);
         const officeParam = queryParams.get('office');
-        
+
         // Set the selected office based on URL or user's default
         if (officeParam && (role === 'superadmin' || officeParam === office)) {
           setSelectedOffice(officeParam);
         } else {
           setSelectedOffice(office); // Default to user's office
         }
-        
+
         // If superadmin, set all available offices from the User model enum
         if (role === 'superadmin') {
           // Use the complete list of offices from the User model schema
@@ -124,40 +124,40 @@ function FileUpload({ darkMode }) {
             'Engineering Office',
             'HR & Personnel'
           ];
-          
+
           setOffices(allOffices);
           console.log('Set all available offices for superadmin');
         }
-        
+
         // Fetch existing categories for this office
         // Use selected office (from URL or user profile)
-        const officeToUse = officeParam && (role === 'superadmin' || officeParam === office) 
-          ? officeParam 
+        const officeToUse = officeParam && (role === 'superadmin' || officeParam === office)
+          ? officeParam
           : office;
-          
+
         await fetchCategories(officeToUse, token);
       } catch (error) {
         console.error('Error fetching user profile:', error);
-        
+
         // More detailed error handling
-        const errorMsg = error.response?.data?.error || 
-                         error.message || 
-                         'Could not fetch user profile';
-        
+        const errorMsg = error.response?.data?.error ||
+          error.message ||
+          'Could not fetch user profile';
+
         setErrorMessage(errorMsg);
-        
+
         // Optional: Provide a fallback or prompt user to update profile
         setUserOffice('Unknown Office');
       }
     };
-  
+
     fetchUserProfileAndOffices();
   }, [location]);
 
   // Function to fetch categories for an office
   const fetchCategories = async (office, token) => {
     if (!office) return;
-    
+
     try {
       const categoriesResponse = await axios.get(`/api/files/categories/${encodeURIComponent(office)}`, {
         headers: {
@@ -165,7 +165,7 @@ function FileUpload({ darkMode }) {
           'Content-Type': 'application/json'
         }
       });
-      
+
       setExistingCategories(categoriesResponse.data.categories || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -177,10 +177,10 @@ function FileUpload({ darkMode }) {
   const handleOfficeChange = async (office) => {
     setSelectedOffice(office);
     setSelectedCategory('');
-    
+
     const token = localStorage.getItem('token');
     await fetchCategories(office, token);
-    
+
     // Also fetch all files for this office
     await fetchAllFilesInOffice(office);
   };
@@ -198,10 +198,10 @@ function FileUpload({ darkMode }) {
   // Fetch all files for an office
   const fetchAllFilesInOffice = async (office) => {
     if (!office) return;
-    
+
     try {
       const token = localStorage.getItem('token');
-      
+
       const response = await axios.get(`/api/files/office/${encodeURIComponent(office)}`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -210,7 +210,7 @@ function FileUpload({ darkMode }) {
           status: 'approved'
         }
       });
-      
+
       // setAllOfficeFiles(response.data.data || []); - old
       // only keep latest versions - new:
       const allFiles = response.data.data || [];
@@ -225,10 +225,10 @@ function FileUpload({ darkMode }) {
   useEffect(() => {
     const fetchFilesInCategory = async () => {
       if (!selectedCategory || !selectedOffice) return;
-      
+
       try {
         const token = localStorage.getItem('token');
-        
+
         // Fetch files for the selected category and office
         const response = await axios.get(`/api/files/office/${encodeURIComponent(selectedOffice)}`, {
           headers: {
@@ -239,7 +239,7 @@ function FileUpload({ darkMode }) {
             status: 'approved'
           }
         });
-        
+
         // Filter files to only include those in the selected category - old
         // const filesInCategory = response.data.data.filter(
         //   file => file.category === selectedCategory
@@ -254,7 +254,7 @@ function FileUpload({ darkMode }) {
         setCategoryFiles([]);
       }
     };
-    
+
     fetchFilesInCategory();
   }, [selectedCategory, selectedOffice]);
 
@@ -271,9 +271,9 @@ function FileUpload({ darkMode }) {
 
     try {
       const token = localStorage.getItem('token');
-      
+
       // Add new category
-      const response = await axios.post('/api/files/categories', 
+      const response = await axios.post('/api/files/categories',
         {
           office: selectedOffice,
           category: newCategory.trim()
@@ -287,16 +287,16 @@ function FileUpload({ darkMode }) {
 
       // Update existing categories
       setExistingCategories(response.data.categories);
-      
+
       // Select the newly added category
       setSelectedCategory(newCategory.trim());
-      
+
       // Clear new category input
       setNewCategory("");
-      
+
       // Show success message
       setSuccessMessage("New category added successfully");
-      
+
       // Clear message after 3 seconds
       setTimeout(() => {
         setSuccessMessage("");
@@ -377,17 +377,17 @@ function FileUpload({ darkMode }) {
 
       try {
         const token = localStorage.getItem('token');
-        
+
         if (isNewVersion && selectedFile) {
           // Handle version upload
           const formData = new FormData();
-          
+
           if (files.length > 0) {
             formData.append('file', files[0]);
           }
-          
+
           formData.append('name', fileName || files[0]?.name || fileUrl);
-          
+
           if (fileUrl.trim()) {
             formData.append('url', fileUrl.trim());
           }
@@ -403,27 +403,29 @@ function FileUpload({ darkMode }) {
         } else {
           // Handle new file upload
           const formData = new FormData();
-          
+
           if (files.length > 0) {
-            formData.append('file', files[0]); 
+            formData.append('file', files[0]);
           }
-          
+
           formData.append('name', fileName || files[0]?.name || fileUrl);
-          formData.append('office', selectedOffice); 
+          formData.append('office', selectedOffice);
           formData.append('category', selectedCategory);
-          
+
           if (fileUrl.trim()) {
             formData.append('url', fileUrl.trim());
           }
 
-          await axios.post('/api/files/upload',formData, {headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }});
-            
+          await axios.post('/api/files/upload', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+              Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+
           setSuccessMessage("File or URL sent for approval");
         }
-        
+
         setTimeout(() => {
           setSuccessMessage("");
           setErrorMessage("");
@@ -438,7 +440,7 @@ function FileUpload({ darkMode }) {
         setIsNewVersion(false);
       } catch (error) {
         console.error('Error uploading file/URL:', error);
-        
+
         const errorMsg = error.response?.data?.error || 'Failed to upload file/URL';
         setErrorMessage(errorMsg);
 
@@ -467,14 +469,14 @@ function FileUpload({ darkMode }) {
   const toggleVersionUpload = (e) => {
     const newVersionState = e.target.checked;
     setIsNewVersion(newVersionState);
-    
+
     if (!newVersionState) {
       // When turning off new version option, clear the selected file
       setSelectedFile("");
     } else {
       // When turning on new version option, fetch all files for the office
       fetchAllFilesInOffice(selectedOffice);
-      
+
       // Note: We keep the selected category when toggling between modes
       // This allows filtering by the same category when switching to version mode
     }
@@ -513,7 +515,7 @@ function FileUpload({ darkMode }) {
       {successMessage && (
         <div className="success-message">
           <svg className="message-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor"/>
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor" />
           </svg>
           {successMessage}
         </div>
@@ -523,7 +525,7 @@ function FileUpload({ darkMode }) {
       {errorMessage && (
         <div className="error-message">
           <svg className="message-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor" />
           </svg>
           {errorMessage}
         </div>
@@ -548,7 +550,7 @@ function FileUpload({ darkMode }) {
                   <label className="form-label">File/Resource Name:</label>
                   <div className="input-wrapper">
                     <svg className="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" fill="currentColor"/>
+                      <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" fill="currentColor" />
                     </svg>
                     <input
                       type="text"
@@ -562,10 +564,10 @@ function FileUpload({ darkMode }) {
 
                 {/* URL Input */}
                 <div className="form-group">
-                  <label className="form-label">URL (Optional):</label>
+                  <label className="form-label">File URL:</label>
                   <div className="input-wrapper">
                     <svg className="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" fill="currentColor"/>
+                      <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z" fill="currentColor" />
                     </svg>
                     <input
                       type="url"
@@ -573,6 +575,7 @@ function FileUpload({ darkMode }) {
                       value={fileUrl}
                       onChange={(e) => setFileUrl(e.target.value)}
                       placeholder="Enter URL of the resource"
+                      disabled={files.length > 0}
                     />
                   </div>
                 </div>
@@ -580,13 +583,14 @@ function FileUpload({ darkMode }) {
                 {/* Office Selection (for superadmin) or Display (for admin) */}
                 <div className="form-group">
                   <label className="form-label">Office:</label>
-                  {userRole === 'superadmin' ? (
-                    <div className="input-wrapper">
-                      <svg className="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" fill="currentColor"/>
-                      </svg>
-                      <select 
-                        value={selectedOffice} 
+
+                  <div className="input-wrapper">
+                    <svg className="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" fill="currentColor" />
+                    </svg>
+                    {userRole === 'superadmin' ? (
+                      <select
+                        value={selectedOffice}
                         onChange={(e) => handleOfficeChange(e.target.value)}
                         className="form-select"
                       >
@@ -597,15 +601,10 @@ function FileUpload({ darkMode }) {
                           </option>
                         ))}
                       </select>
-                    </div>
-                  ) : (
-                    <div className="office-value">
-                      <svg className="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" fill="currentColor"/>
-                      </svg>
-                      {userOffice}
-                    </div>
-                  )}
+                    ) : (
+                      <input className="form-input" value={userOffice} disabled />
+                    )}
+                  </div>
                 </div>
 
                 {/* Category Selection */}
@@ -615,10 +614,10 @@ function FileUpload({ darkMode }) {
                   </label>
                   <div className="input-wrapper">
                     <svg className="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" fill="currentColor"/>
+                      <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" fill="currentColor" />
                     </svg>
-                    <select 
-                      value={selectedCategory} 
+                    <select
+                      value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
                       className="form-select"
                     >
@@ -641,7 +640,7 @@ function FileUpload({ darkMode }) {
                     <div className="input-group">
                       <div className="input-wrapper">
                         <svg className="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" fill="currentColor"/>
+                          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" fill="currentColor" />
                         </svg>
                         <input
                           type="text"
@@ -651,13 +650,13 @@ function FileUpload({ darkMode }) {
                           className="form-input"
                         />
                       </div>
-                      <button 
+                      <button
                         type="button"
                         onClick={handleAddNewCategory}
                         className="form-button secondary-button"
                       >
                         <svg className="button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/>
+                          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor" />
                         </svg>
                         Add
                       </button>
@@ -685,32 +684,32 @@ function FileUpload({ darkMode }) {
                     <label className="form-label">Select Existing File:</label>
                     <div className="input-wrapper">
                       <svg className="input-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" fill="currentColor"/>
+                        <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" fill="currentColor" />
                       </svg>
                       <select
                         value={selectedFile}
                         onChange={(e) => setSelectedFile(e.target.value)}
                         className="form-select"
-                        disabled={!selectedOffice || 
+                        disabled={!selectedOffice ||
                           (selectedCategory ? categoryFiles.length === 0 : allOfficeFiles.length === 0)}
                       >
                         <option value="">-- Select File --</option>
-                        {selectedCategory 
+                        {selectedCategory
                           ? categoryFiles.map((file) => (
-                              <option key={file._id} value={file._id}>
-                                {file.name} ({file.category})
-                              </option>
-                            ))
+                            <option key={file._id} value={file._id}>
+                              {file.name} ({file.category})
+                            </option>
+                          ))
                           : allOfficeFiles.map((file) => (
-                              <option key={file._id} value={file._id}>
-                                {file.name} ({file.category})
-                              </option>
-                            ))
+                            <option key={file._id} value={file._id}>
+                              {file.name} ({file.category})
+                            </option>
+                          ))
                         }
                       </select>
                     </div>
-                    {selectedOffice && 
-                      (selectedCategory 
+                    {selectedOffice &&
+                      (selectedCategory
                         ? categoryFiles.length === 0 && <p className="help-text">No existing files in this category</p>
                         : allOfficeFiles.length === 0 && <p className="help-text">No existing files in this office</p>
                       )
@@ -721,7 +720,7 @@ function FileUpload({ darkMode }) {
                 {/* Submit Button */}
                 <button type="submit" className="form-button primary-button submit-button">
                   <svg className="button-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor"/>
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor" />
                   </svg>
                   {isNewVersion ? "SUBMIT NEW VERSION" : "SUBMIT FOR APPROVAL"}
                 </button>
@@ -731,19 +730,20 @@ function FileUpload({ darkMode }) {
             {/* Dropzone Section */}
             <div className="dropzone-container">
               <div
-                className={`dropzone ${isDragging ? "dragging" : ""}`}
-                onDragEnter={handleDragEnter}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => document.getElementById("file-input").click()}
+                className={`dropzone ${isDragging ? "dragging" : ""} ${fileUrl.trim() ? "disabled" : ""}`}
+                onDragEnter={fileUrl.trim() ? undefined : handleDragEnter}
+                onDragOver={fileUrl.trim() ? undefined : handleDragOver}
+                onDragLeave={fileUrl.trim() ? undefined : handleDragLeave}
+                onDrop={fileUrl.trim() ? undefined : handleDrop}
+                onClick={fileUrl.trim() ? undefined : () => document.getElementById("file-input").click()}
+                style={{ pointerEvents: fileUrl.trim() ? "none" : "auto", opacity: fileUrl.trim() ? 0.5 : 1 }}
               >
                 <div className="dropzone-content">
                   <div className="dropzone-icon">
                     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 16L12 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                      <path d="M9 11L12 8L15 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M20 16.7428C21.2215 15.734 22 14.2079 22 12.5C22 9.46243 19.5376 7 16.5 7C16.2815 7 16.0771 6.886 15.9661 6.69774C14.6621 4.48484 12.2544 3 9.5 3C5.35786 3 2 6.35786 2 10.5C2 12.5661 2.83545 14.4371 4.18695 15.7935" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      <path d="M12 16L12 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      <path d="M9 11L12 8L15 11" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M20 16.7428C21.2215 15.734 22 14.2079 22 12.5C22 9.46243 19.5376 7 16.5 7C16.2815 7 16.0771 6.886 15.9661 6.69774C14.6621 4.48484 12.2544 3 9.5 3C5.35786 3 2 6.35786 2 10.5C2 12.5661 2.83545 14.4371 4.18695 15.7935" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                     </svg>
                   </div>
                   <p className="dropzone-text">
@@ -760,6 +760,7 @@ function FileUpload({ darkMode }) {
                   multiple
                   style={{ display: "none" }}
                   onChange={handleFileSelect}
+                  disabled={!!fileUrl.trim()}
                 />
               </div>
 
@@ -770,7 +771,7 @@ function FileUpload({ darkMode }) {
                     <div key={index} className="file-item">
                       <div className="file-item-content">
                         <svg className="file-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" fill="currentColor"/>
+                          <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" fill="currentColor" />
                         </svg>
                         <span className="file-item-name">{file.name}</span>
                       </div>
@@ -780,7 +781,7 @@ function FileUpload({ darkMode }) {
                         type="button"
                       >
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" fill="currentColor"/>
+                          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" fill="currentColor" />
                         </svg>
                       </button>
                     </div>

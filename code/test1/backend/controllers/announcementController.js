@@ -200,6 +200,7 @@ exports.getMyAnnouncements = async (req, res, next) => {
   try {
     // Find all announcements where the author is the current user
     const announcements = await Announcement.find({ author: req.user._id })
+      .populate('author', 'name')
       .sort({ createdAt: -1 });
 
     res.status(200).json({

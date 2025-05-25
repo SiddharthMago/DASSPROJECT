@@ -386,13 +386,15 @@ body {
   margin: 0;
   color: var(--text-primary);
   overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
+  /* -webkit-line-clamp: 2;
+  line-clamp: 2; */
   -webkit-box-orient: vertical;
-  line-height: 1.4;
-  max-height: 2.8em;
+  /* line-height: 1.4; */
+  /* max-height: 2.8em; */
 }
 
 .card-category {
@@ -404,44 +406,44 @@ body {
 
 /* Category Colors */
 .card-category.files {
-  background-color: rgba(46, 91, 187, 0.2);
-  color: #5b8cff;
+  background-color: #5b8cff;
+  color: white;
 }
 
 .card-category.announcements {
-  background-color: rgba(76, 175, 80, 0.2);
-  color: #66bb6a;
+  background-color: #66bb6a;
+  color: white;
 }
 
 .card-category.links {
-  background-color: rgba(255, 152, 0, 0.2);
-  color: #ffb74d;
+  background-color: #ffb74d;
+  color: white;
 }
 
 .card-category.events {
-  background-color: rgba(156, 39, 176, 0.2);
-  color: #ba68c8;
+  background-color: #ba68c8;
+  color: white;
 }
 
 /* Dark mode adjustments */
 .dark-mode .card-category.files {
-  background-color: rgba(91, 140, 255, 0.15);
-  color: #5b8cff;
+  background-color: #5b8cff;
+  color: white;
 }
 
 .dark-mode .card-category.announcements {
-  background-color: rgba(102, 187, 106, 0.15);
-  color: #66bb6a;
+  background-color: #66bb6a;
+  color: white;
 }
 
 .dark-mode .card-category.links {
-  background-color: rgba(255, 183, 77, 0.15);
-  color: #ffb74d;
+  background-color: #ffb74d;
+  color: white;
 }
 
 .dark-mode .card-category.events {
-  background-color: rgba(186, 104, 200, 0.15);
-  color: #ba68c8;
+  background-color: #ba68c8;
+  color: white;
 }
 
 .card-content {
@@ -933,44 +935,44 @@ body {
 
 /* Category Colors for Table */
 .archive-table .category-badge.files {
-  background-color: rgba(46, 91, 187, 0.2);
-  color: #5b8cff;
+  background-color: #5b8cff;
+  color: white;
 }
 
 .archive-table .category-badge.announcements {
-  background-color: rgba(76, 175, 80, 0.2);
-  color: #66bb6a;
+  background-color: #66bb6a;
+  color: white;
 }
 
 .archive-table .category-badge.links {
-  background-color: rgba(255, 152, 0, 0.2);
-  color: #ffb74d;
+  background-color: #ffb74d;
+  color: white;
 }
 
 .archive-table .category-badge.events {
-  background-color: rgba(156, 39, 176, 0.2);
-  color: #ba68c8;
+  background-color: #ba68c8;
+  color: white;
 }
 
 /* Dark mode category adjustments */
 .dark-mode .archive-table .category-badge.files {
-  background-color: rgba(91, 140, 255, 0.15);
-  color: #5b8cff;
+  background-color: #5b8cff;
+  color: white;
 }
 
 .dark-mode .archive-table .category-badge.announcements {
-  background-color: rgba(102, 187, 106, 0.15);
-  color: #66bb6a;
+  background-color: #66bb6a;
+  color: white;
 }
 
 .dark-mode .archive-table .category-badge.links {
-  background-color: rgba(255, 183, 77, 0.15);
-  color: #ffb74d;
+  background-color: #ffb74d;
+  color: white;
 }
 
 .dark-mode .archive-table .category-badge.events {
-  background-color: rgba(186, 104, 200, 0.15);
-  color: #ba68c8;
+  background-color: #ba68c8;
+  color: white;
 }
 
 .archive-table .status-cell {
@@ -1265,6 +1267,7 @@ body {
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 1.5rem;
+  flex-direction: row !important;
 }
 
 .announcement-modal .submit-button {
@@ -1281,6 +1284,24 @@ body {
 .announcement-modal .submit-button:hover {
   background-color: #1e4a9e;
   transform: translateY(-1px);
+}
+
+.announcement-modal .cancel-button {
+  padding: 0.8rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 17px;
+}
+
+.announcement-modal .modal-actions .cancel-button,
+.announcement-modal .modal-actions .submit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1.5rem;
+  height: 40px;
+  width: auto !important;
 }
 
 /* Dark mode adjustments */
@@ -1406,6 +1427,24 @@ body {
 .link-modal .submit-button:hover {
   background-color: #1e4a9e;
   transform: translateY(-1px);
+}
+
+.link-modal .cancel-button {
+  padding: 0.8rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 17px;
+}
+
+.link-modal .modal-actions .cancel-button,
+.link-modal .modal-actions .submit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1.5rem;
+  height: 40px;
+  width: auto !important;
 }
 
 /* Dark mode adjustments */

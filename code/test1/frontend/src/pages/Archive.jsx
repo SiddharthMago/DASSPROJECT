@@ -894,30 +894,32 @@ function Archive({ darkMode, userRole }) {
 										<>
 											{canManageItem(item.office) && (
 												<>
-													<button
-														className="action-button pin"
-														onClick={() => {
-															const endpoint = item.pinned ? 'unpin' : 'pin';
-															axios.put(
-																`http://localhost:5000/api/quicklinks/${item.id}/${endpoint}`,
-																{},
-																{
-																	headers: {
-																		'Authorization': `Bearer ${localStorage.getItem('token')}`
+													{item.status === 'approved' && (
+														<button
+															className="action-button pin"
+															onClick={() => {
+																const endpoint = item.pinned ? 'unpin' : 'pin';
+																axios.put(
+																	`http://localhost:5000/api/quicklinks/${item.id}/${endpoint}`,
+																	{},
+																	{
+																		headers: {
+																			'Authorization': `Bearer ${localStorage.getItem('token')}`
+																		}
 																	}
-																}
-															).then(() => {
-																// Refresh the links list
-																axios.get('http://localhost:5000/api/quicklinks')
-																	.then(res => {
-																		const mapped = res.data.data.map(mapQuickLinkData);
-																		setArchiveItems(mapped);
-																	});
-															});
-														}}
-													>
-														{item.pinned ? 'Unpin' : 'Pin'}
-													</button>
+																).then(() => {
+																	// Refresh the links list
+																	axios.get('http://localhost:5000/api/quicklinks')
+																		.then(res => {
+																			const mapped = res.data.data.map(mapQuickLinkData);
+																			setArchiveItems(mapped);
+																		});
+																});
+															}}
+														>
+															{item.pinned ? 'Unpin' : 'Pin'}
+														</button>
+													)}
 													<button
 														className="action-button edit"
 														onClick={() => setEditLinkModal({
@@ -1118,30 +1120,32 @@ function Archive({ darkMode, userRole }) {
 												<>
 													{canManageItem(item.office) && (
 														<>
-															<button
-																className="action-button pin"
-																onClick={() => {
-																	const endpoint = item.pinned ? 'unpin' : 'pin';
-																	axios.put(
-																		`http://localhost:5000/api/quicklinks/${item.id}/${endpoint}`,
-																		{},
-																		{
-																			headers: {
-																				'Authorization': `Bearer ${localStorage.getItem('token')}`
+															{item.status === 'approved' && (
+																<button
+																	className="action-button pin"
+																	onClick={() => {
+																		const endpoint = item.pinned ? 'unpin' : 'pin';
+																		axios.put(
+																			`http://localhost:5000/api/quicklinks/${item.id}/${endpoint}`,
+																			{},
+																			{
+																				headers: {
+																					'Authorization': `Bearer ${localStorage.getItem('token')}`
+																				}
 																			}
-																		}
-																	).then(() => {
-																		// Refresh the links list
-																		axios.get('http://localhost:5000/api/quicklinks')
-																			.then(res => {
-																				const mapped = res.data.data.map(mapQuickLinkData);
-																				setArchiveItems(mapped);
-																			});
-																	});
-																}}
-															>
-																{item.pinned ? 'Unpin' : 'Pin'}
-															</button>
+																		).then(() => {
+																			// Refresh the links list
+																			axios.get('http://localhost:5000/api/quicklinks')
+																				.then(res => {
+																					const mapped = res.data.data.map(mapQuickLinkData);
+																					setArchiveItems(mapped);
+																				});
+																		});
+																	}}
+																>
+																	{item.pinned ? 'Unpin' : 'Pin'}
+																</button>
+															)}
 															<button
 																className="action-button edit"
 																onClick={() => setEditLinkModal({

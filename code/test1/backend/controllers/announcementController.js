@@ -27,7 +27,7 @@ exports.addAnnouncement = async (req, res, next) => {
     const announcement = await Announcement.create({
       title,
       office,
-      image: imagePath || undefined,
+      image: imagePath, // If imagePath is undefined, the default from schema will be used
       link: link || undefined,
       status: 'pending',
       author: req.user._id // Add the author field from the authenticated user

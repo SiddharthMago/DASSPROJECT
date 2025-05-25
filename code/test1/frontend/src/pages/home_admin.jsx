@@ -1350,138 +1350,7 @@ function HomeAdmin({ darkMode }) {
 			{/* IIIT Portals Section - With editing capabilities */}
 			<div className="iiit-portals-section">
 				<div className="iiit-portals-container">
-					<div className="section-header">
-						<h2 className="section-title">IIIT Portals</h2>
-						<button
-							className="edit-section-btn"
-							onClick={() => setIsEditingPortals(!isEditingPortals)}
-							aria-label="Edit portals"
-							title="Edit portals"
-						>
-							<img src={editIcon} alt="Edit" className="action-icon" />
-						</button>
-					</div>
-
-					{isEditingPortals && !isAddingPortal && selectedPortalIndex === null && (
-						<div className="portal-edit-panel">
-							<div className="edit-actions">
-								<button onClick={startAddingPortal} className="add-btn">
-									Add New Portal
-								</button>
-								{/* <button onClick={cancelEditingPortal} className="cancel-btn">
-                  Done Editing
-                </button> */}
-							</div>
-						</div>
-					)}
-
-					{isEditingPortals && isAddingPortal && (
-						<div className="portal-edit-form">
-							<h3>Add New Portal</h3>
-							<div className="edit-form-group">
-								<label htmlFor="portal-title">Title:</label>
-								<input
-									id="portal-title"
-									type="text"
-									value={editPortalTitle}
-									onChange={(e) => setEditPortalTitle(e.target.value)}
-								/>
-							</div>
-							<div className="edit-form-group">
-								<label htmlFor="portal-url">URL:</label>
-								<input
-									id="portal-url"
-									type="text"
-									value={editPortalUrl}
-									onChange={(e) => setEditPortalUrl(e.target.value)}
-								/>
-							</div>
-							<div className="edit-form-group">
-								<label htmlFor="portal-icon">Icon:</label>
-								<div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-									{/* Input field for custom icon */}
-									<input
-										id="portal-icon"
-										type="text"
-										value={editPortalIcon}
-										onChange={(e) => setEditPortalIcon(e.target.value)}
-										maxLength={2}
-										placeholder="Custom Icon"
-									/>
-									{/* Dropdown for predefined icons */}
-									<select
-										value={editPortalIcon}
-										onChange={(e) => setEditPortalIcon(e.target.value)}
-										className="icon-dropdown"
-									>
-										<option value="🔗">🔗</option>
-										<option value="📁">📁</option>
-										<option value="🌐">🌐</option>
-										<option value="📄">📄</option>
-										<option value="⚙️">⚙️</option>
-									</select>
-								</div>
-							</div>
-							<div className="edit-buttons">
-								<button onClick={saveNewPortal} className="save-btn">Save</button>
-								<button onClick={cancelEditingPortal} className="cancel-btn">Cancel</button>
-							</div>
-						</div>
-					)}
-
-					{isEditingPortals && selectedPortalIndex !== null && (
-						<div className="portal-edit-form">
-							<h3>Edit Portal</h3>
-							<div className="edit-form-group">
-								<label htmlFor="portal-title">Title:</label>
-								<input
-									id="portal-title"
-									type="text"
-									value={editPortalTitle}
-									onChange={(e) => setEditPortalTitle(e.target.value)}
-								/>
-							</div>
-							<div className="edit-form-group">
-								<label htmlFor="portal-url">URL:</label>
-								<input
-									id="portal-url"
-									type="text"
-									value={editPortalUrl}
-									onChange={(e) => setEditPortalUrl(e.target.value)}
-								/>
-							</div>
-							<div className="edit-form-group">
-								<label htmlFor="portal-icon">Icon:</label>
-								<div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-									{/* Input field for custom icon */}
-									<input
-										id="portal-icon"
-										type="text"
-										value={editPortalIcon}
-										onChange={(e) => setEditPortalIcon(e.target.value)}
-										maxLength={2}
-										placeholder="Custom Icon"
-									/>
-									{/* Dropdown for predefined icons */}
-									<select
-										value={editPortalIcon}
-										onChange={(e) => setEditPortalIcon(e.target.value)}
-										className="icon-dropdown"
-									>
-										<option value="🔗">🔗 </option>
-										<option value="📁">📁 </option>
-										<option value="🌐">🌐 </option>
-										<option value="📄">📄 </option>
-										<option value="⚙️">⚙️ </option>
-									</select>
-								</div>
-							</div>
-							<div className="edit-buttons">
-								<button onClick={savePortal} className="save-btn">Save</button>
-								<button onClick={cancelEditingPortal} className="cancel-btn">Cancel</button>
-							</div>
-						</div>
-					)}
+					<h2 className="section-title">IIIT Portals</h2>
 
 					{portalsLoading ? (
 						<div className="portals-loading">Loading portals...</div>
@@ -1489,26 +1358,9 @@ function HomeAdmin({ darkMode }) {
 						<div className="portals-error">{portalsError}</div>
 					) : portals.length > 0 ? (
 						<div className="iiit-portals-grid">
-							{isEditingPortals ?
-								portals.map((portal, index) => (
-									<div key={index} className="portal-item-admin">
-										{renderLinkComponent(
-											portal,
-											index,
-											"portal-link",
-											true,
-											startEditingPortal,
-											togglePortalPin,
-											removePortal
-										)}
-									</div>
-								)) :
-								portals
-									.filter(portal => portal.pinned) // Only display pinned portals
-									.map((portal, index) =>
-										renderLinkComponent(portal, index, "portal-link", false)
-									)
-							}
+							{portals.map((portal, index) =>
+								renderLinkComponent(portal, index, "portal-link")
+							)}
 						</div>
 					) : (
 						<div className="no-portals">No portals available</div>

@@ -14,14 +14,13 @@ router.post('/compare-pdfs', async (req, res) => {
     }
 
     const outputDir = path.join(__dirname, '../temp');
-    const outputFile = path.join(outputDir, `compare_${Date.now()}`);
 
     // Ensure the temp directory exists
     if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir);
+        fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    const command = `python3 ${path.join(__dirname, '../utils/pdf_compare.py')} ${path.join(__dirname, "../", pdf1Path)} ${path.join(__dirname, "../", pdf2Path)} -o ${outputFile}`;
+    const command = `python3 ${path.join(__dirname, '../utils/pdf_compare.py')} ${path.join(__dirname, "../", pdf1Path)} ${path.join(__dirname, "../", pdf2Path)}`;
 
     console.log("Executing command: ", command);
     exec(command, (error, stdout, stderr) => {
@@ -33,19 +32,37 @@ router.post('/compare-pdfs', async (req, res) => {
 
         console.log('PDF comparison output:', stdout);
 
-        // Serve the generated HTML file
-        res.json({ success: true, htmlPath: `/temp/${path.basename(outputFile)}/pdf_diff.html` });
+        // Extract the report path from Python script output
+        // The Python script returns the full path to comparison_report.html
+        const reportPathMatch = stdout.match(/Report saved: (.+)/);
+        if (!reportPathMatch) {
+            console.error('Could not find report path in Python output');
+            return res.status(500).json({ success: false, message: 'Could not locate comparison report' });
+        }
 
-        // Delete the directory after a delay (1 minute)
+        const fullReportPath = reportPathMatch[1].trim();
+        console.log('Full report path:', fullReportPath);
+        
+        // Extract the relative path from backend/temp/
+        const tempDir = path.join(__dirname, '../temp');
+        const relativePath = path.relative(tempDir, fullReportPath);
+        const htmlPath = `/temp/${relativePath.replace(/\\/g, '/')}`;  // Ensure forward slashes for URL
+        
+        console.log('Serving HTML at:', htmlPath);
+
+        // Serve the generated HTML file
+        res.json({ success: true, htmlPath: htmlPath });
+
+        // Delete the directory after a delay (10 minutes)
         setTimeout(() => {
-            const folderPath = outputFile;
-            if (fs.existsSync(folderPath)) {
+            const comparisonDir = path.dirname(fullReportPath);
+            if (fs.existsSync(comparisonDir)) {
                 // Remove directory recursively
-                fs.rm(folderPath, { recursive: true, force: true }, (err) => {
+                fs.rm(comparisonDir, { recursive: true, force: true }, (err) => {
                     if (err) {
                         console.error('Error deleting temporary folder:', err);
                     } else {
-                        console.log('Deleted temporary folder:', folderPath);
+                        console.log('Deleted temporary folder:', comparisonDir);
                     }
                 });
             }

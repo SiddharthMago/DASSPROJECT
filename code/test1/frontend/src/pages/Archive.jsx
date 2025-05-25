@@ -107,7 +107,7 @@ function Archive({ darkMode, userRole }) {
 	const fetchAuthorDetails = async (authorId) => {
 		// Skip if authorId is missing, already fetched, or not a string
 		if (!authorId || authorDetails[authorId] || typeof authorId !== 'string') return;
-		
+
 		try {
 			console.log("[archive] fetching author details for ID:", authorId);
 			const token = localStorage.getItem('token');
@@ -203,7 +203,7 @@ function Archive({ darkMode, userRole }) {
 			id: quickLink._id,
 			fileName: quickLink.title,
 			authorId: quickLink.author, // Store the author ObjectId
-			author: quickLink.author ? quickLink.author.name : quickLink.office , // Default to office name as fallback
+			author: quickLink.author ? quickLink.author.name : quickLink.office, // Default to office name as fallback
 			office: quickLink.office,
 			modifiedDate: new Date(quickLink.createdAt).toLocaleDateString(),
 			category: 'Links',
@@ -241,7 +241,7 @@ function Archive({ darkMode, userRole }) {
 		try {
 			setLoading(true);
 			const now = Date.now();
-			
+
 			// Check if we have cached data that's still valid
 			if (apiCache.lastFetch && (now - apiCache.lastFetch) < apiCache.CACHE_DURATION) {
 				if (activeTab === 'All' && apiCache.files && apiCache.announcements && apiCache.quicklinks) {
@@ -299,92 +299,92 @@ function Archive({ darkMode, userRole }) {
 			} else if (activeTab === 'Uploaded by Me') {
 				const token = localStorage.getItem('token');
 				if (!token) {
-				  console.error('No token found');
-				  setError('Please log in to view your uploaded content');
-				  setLoading(false);
-				  return;
+					console.error('No token found');
+					setError('Please log in to view your uploaded content');
+					setLoading(false);
+					return;
 				}
-			  
+
 				try {
-				  // Fetch all content types uploaded by the current user
-				  const [filesRes, announcementsRes, quickLinksRes] = await Promise.all([
-					axios.get('http://localhost:5000/api/files/my-files', {
-					  headers: { Authorization: `Bearer ${token}` }
-					}),
-					axios.get('http://localhost:5000/api/announcements/my-announcements', {
-					  headers: { Authorization: `Bearer ${token}` }
-					}),
-					axios.get('http://localhost:5000/api/quicklinks/my-links', {
-					  headers: { Authorization: `Bearer ${token}` }
-					})
-				  ]);
-			  
-				  // Map each content type using the appropriate mapping functions
-				  const files = filesRes.data.data.map(file => {
-					const filePath = file.filePath ? `/${file.filePath.replace(/\\/g, '/')}` : '';
-					const role = getRoleFromURL();
-					const viewURL = `/${role}/file/${file._id}`;
-			  
-					return {
-					  id: file._id,
-					  fileName: file.name,
-					  author: file.author?.name || 'Siddharth Mago',
-					  office: file.office,
-					  modifiedDate: new Date(file.createdAt).toLocaleDateString(),
-					  category: 'Files',
-					  status: file.status,
-					  comments: file.comments || [],
-					  rejectionComment: file.rejectionComment,
-					  viewURL: viewURL,
-					  downloadUrl: file.url || (filePath ? `http://localhost:5000${filePath}` : null),
-					};
-				  });
-			  
-				  const announcements = announcementsRes.data.data.map(announcement => {
-					return {
-					  id: announcement._id,
-					  fileName: announcement.title,
-					  author: announcement.author?.name || 'You',
-					  office: announcement.office,
-					  modifiedDate: new Date(announcement.createdAt).toLocaleDateString(),
-					  category: 'Announcements',
-					  status: announcement.status,
-					  comments: announcement.comments || [],
-					  rejectionComment: announcement.rejectionComment,
-					  downloadUrl: announcement.link || '#',
-					  image: announcement.image
-					};
-				  });
-			  
-				  const quickLinks = quickLinksRes.data.data.map(link => {
-					return {
-					  id: link._id,
-					  fileName: link.title,
-					  author: link.author?.name || 'You',
-					  office: link.office,
-					  modifiedDate: new Date(link.createdAt).toLocaleDateString(),
-					  category: 'Links',
-					  status: link.status,
-					  comments: link.comments || [],
-					  rejectionComment: link.rejectionComment,
-					  downloadUrl: link.url,
-					  pinned: link.pinned
-					};
-				  });
-			  
-				  // Combine all items and sort by date
-				  const allUserItems = [...files, ...announcements, ...quickLinks].sort((a, b) =>
-					new Date(b.modifiedDate) - new Date(a.modifiedDate)
-				  );
-				  
-				  setArchiveItems(allUserItems);
+					// Fetch all content types uploaded by the current user
+					const [filesRes, announcementsRes, quickLinksRes] = await Promise.all([
+						axios.get('http://localhost:5000/api/files/my-files', {
+							headers: { Authorization: `Bearer ${token}` }
+						}),
+						axios.get('http://localhost:5000/api/announcements/my-announcements', {
+							headers: { Authorization: `Bearer ${token}` }
+						}),
+						axios.get('http://localhost:5000/api/quicklinks/my-links', {
+							headers: { Authorization: `Bearer ${token}` }
+						})
+					]);
+
+					// Map each content type using the appropriate mapping functions
+					const files = filesRes.data.data.map(file => {
+						const filePath = file.filePath ? `/${file.filePath.replace(/\\/g, '/')}` : '';
+						const role = getRoleFromURL();
+						const viewURL = `/${role}/file/${file._id}`;
+
+						return {
+							id: file._id,
+							fileName: file.name,
+							author: file.author?.name || 'Siddharth Mago',
+							office: file.office,
+							modifiedDate: new Date(file.createdAt).toLocaleDateString(),
+							category: 'Files',
+							status: file.status,
+							comments: file.comments || [],
+							rejectionComment: file.rejectionComment,
+							viewURL: viewURL,
+							downloadUrl: file.url || (filePath ? `http://localhost:5000${filePath}` : null),
+						};
+					});
+
+					const announcements = announcementsRes.data.data.map(announcement => {
+						return {
+							id: announcement._id,
+							fileName: announcement.title,
+							author: announcement.author?.name || 'You',
+							office: announcement.office,
+							modifiedDate: new Date(announcement.createdAt).toLocaleDateString(),
+							category: 'Announcements',
+							status: announcement.status,
+							comments: announcement.comments || [],
+							rejectionComment: announcement.rejectionComment,
+							downloadUrl: announcement.link || '#',
+							image: announcement.image
+						};
+					});
+
+					const quickLinks = quickLinksRes.data.data.map(link => {
+						return {
+							id: link._id,
+							fileName: link.title,
+							author: link.author?.name || 'You',
+							office: link.office,
+							modifiedDate: new Date(link.createdAt).toLocaleDateString(),
+							category: 'Links',
+							status: link.status,
+							comments: link.comments || [],
+							rejectionComment: link.rejectionComment,
+							downloadUrl: link.url,
+							pinned: link.pinned
+						};
+					});
+
+					// Combine all items and sort by date
+					const allUserItems = [...files, ...announcements, ...quickLinks].sort((a, b) =>
+						new Date(b.modifiedDate) - new Date(a.modifiedDate)
+					);
+
+					setArchiveItems(allUserItems);
 				} catch (err) {
-				  console.error('Error fetching user content:', err);
-				  setError('Failed to fetch your uploaded content: ' + (err.response?.data?.error || err.message));
+					console.error('Error fetching user content:', err);
+					setError('Failed to fetch your uploaded content: ' + (err.response?.data?.error || err.message));
 				} finally {
-				  setLoading(false);
+					setLoading(false);
 				}
-			  }
+			}
 		} catch (err) {
 			console.error('Failed to fetch data:', err);
 			setError(err.response?.data?.error || 'Failed to fetch data');
@@ -470,7 +470,7 @@ function Archive({ darkMode, userRole }) {
 					const mapped = res.data.data.map(mapFileData);
 					setArchiveItems(mapped);
 				}
-				
+
 				setDeleteModal({ show: false, itemId: null, itemName: '', category: '' });
 			} else {
 				alert('Failed to delete item: ' + response.data.error);
@@ -955,7 +955,7 @@ function Archive({ darkMode, userRole }) {
 											) : (
 												<>
 													{item.viewURL && (
-														<button 
+														<button
 															className='action-button preview'
 															onClick={() => {
 																console.log("Preview viewURL: ", item.viewURL);
@@ -1266,33 +1266,43 @@ function Archive({ darkMode, userRole }) {
 							</div>
 							<div className="form-group">
 								<label htmlFor="office">Office</label>
-								<select
-									id="office"
-									value={announcementModal.office}
-									onChange={(e) => setAnnouncementModal({ ...announcementModal, office: e.target.value })}
-									required
-								>
-									<option value="">Select Office</option>
-									<option value="Admissions Office">Admissions Office</option>
-									<option value="Library Office">Library Office</option>
-									<option value="Examinations Office">Examinations Office</option>
-									<option value="Academic Office">Academic Office</option>
-									<option value="Student Affairs Office">Student Affairs Office</option>
-									<option value="Mess Office">Mess Office</option>
-									<option value="Hostel Office">Hostel Office</option>
-									<option value="Alumni Cell">Alumni Cell</option>
-									<option value="Faculty Portal">Faculty Portal</option>
-									<option value="Placement Cell">Placement Cell</option>
-									<option value="Outreach Office">Outreach Office</option>
-									<option value="Statistical Cell">Statistical Cell</option>
-									<option value="R&D Office">R&D Office</option>
-									<option value="General Administration">General Administration</option>
-									<option value="Accounts Office">Accounts Office</option>
-									<option value="IT Services Office">IT Services Office</option>
-									<option value="Communication Office">Communication Office</option>
-									<option value="Engineering Office">Engineering Office</option>
-									<option value="HR & Personnel">HR & Personnel</option>
-								</select>
+								{userRole === "superadmin" && (
+									<>
+										<select
+											id="office"
+											value={announcementModal.office}
+											onChange={(e) => setAnnouncementModal({ ...announcementModal, office: e.target.value })}
+											required
+										>
+											<option value="">Select Office</option>
+											<option value="Admissions Office">Admissions Office</option>
+											<option value="Library Office">Library Office</option>
+											<option value="Examinations Office">Examinations Office</option>
+											<option value="Academic Office">Academic Office</option>
+											<option value="Student Affairs Office">Student Affairs Office</option>
+											<option value="Mess Office">Mess Office</option>
+											<option value="Hostel Office">Hostel Office</option>
+											<option value="Alumni Cell">Alumni Cell</option>
+											<option value="Faculty Portal">Faculty Portal</option>
+											<option value="Placement Cell">Placement Cell</option>
+											<option value="Outreach Office">Outreach Office</option>
+											<option value="Statistical Cell">Statistical Cell</option>
+											<option value="R&D Office">R&D Office</option>
+											<option value="General Administration">General Administration</option>
+											<option value="Accounts Office">Accounts Office</option>
+											<option value="IT Services Office">IT Services Office</option>
+											<option value="Communication Office">Communication Office</option>
+											<option value="Engineering Office">Engineering Office</option>
+											<option value="HR & Personnel">HR & Personnel</option>
+										</select>
+									</>
+								)}
+								{userRole === "admin" && (
+									<>
+										<input value={userOffice} disabled></input>
+									</>
+								)}
+
 							</div>
 							<div className="form-group">
 								<label htmlFor="link">Link (Optional)</label>
@@ -1358,33 +1368,45 @@ function Archive({ darkMode, userRole }) {
 							</div>
 							<div className="form-group">
 								<label htmlFor="office">Office</label>
-								<select
-									id="office"
-									value={linkModal.office}
-									onChange={(e) => setLinkModal({ ...linkModal, office: e.target.value })}
-									required
-								>
-									<option value="">Select Office</option>
-									<option value="Admissions Office">Admissions Office</option>
-									<option value="Library Office">Library Office</option>
-									<option value="Examinations Office">Examinations Office</option>
-									<option value="Academic Office">Academic Office</option>
-									<option value="Student Affairs Office">Student Affairs Office</option>
-									<option value="Mess Office">Mess Office</option>
-									<option value="Hostel Office">Hostel Office</option>
-									<option value="Alumni Cell">Alumni Cell</option>
-									<option value="Faculty Portal">Faculty Portal</option>
-									<option value="Placement Cell">Placement Cell</option>
-									<option value="Outreach Office">Outreach Office</option>
-									<option value="Statistical Cell">Statistical Cell</option>
-									<option value="R&D Office">R&D Office</option>
-									<option value="General Administration">General Administration</option>
-									<option value="Accounts Office">Accounts Office</option>
-									<option value="IT Services Office">IT Services Office</option>
-									<option value="Communication Office">Communication Office</option>
-									<option value="Engineering Office">Engineering Office</option>
-									<option value="HR & Personnel">HR & Personnel</option>
-								</select>
+								{userRole === "superadmin" && (
+									<>
+										<select
+											id="office"
+											value={linkModal.office}
+											onChange={(e) => setLinkModal({ ...linkModal, office: e.target.value })}
+											required
+										>
+											<option value="">Select Office</option>
+											<option value="Admissions Office">Admissions Office</option>
+											<option value="Library Office">Library Office</option>
+											<option value="Examinations Office">Examinations Office</option>
+											<option value="Academic Office">Academic Office</option>
+											<option value="Student Affairs Office">Student Affairs Office</option>
+											<option value="Mess Office">Mess Office</option>
+											<option value="Hostel Office">Hostel Office</option>
+											<option value="Alumni Cell">Alumni Cell</option>
+											<option value="Faculty Portal">Faculty Portal</option>
+											<option value="Placement Cell">Placement Cell</option>
+											<option value="Outreach Office">Outreach Office</option>
+											<option value="Statistical Cell">Statistical Cell</option>
+											<option value="R&D Office">R&D Office</option>
+											<option value="General Administration">General Administration</option>
+											<option value="Accounts Office">Accounts Office</option>
+											<option value="IT Services Office">IT Services Office</option>
+											<option value="Communication Office">Communication Office</option>
+											<option value="Engineering Office">Engineering Office</option>
+											<option value="HR & Personnel">HR & Personnel</option>
+										</select>
+									</>
+								)}
+
+								{userRole === "admin" && (
+									<>
+										<input value={userOffice} disabled></input>
+									</>
+								)}
+								
+
 							</div>
 							<div className="form-group">
 								<label htmlFor="url">URL</label>
@@ -1396,7 +1418,7 @@ function Archive({ darkMode, userRole }) {
 									required
 								/>
 							</div>
-							<div className="form-group">
+							{/* <div className="form-group">
 								<label className="checkbox-label">
 									<input
 										type="checkbox"
@@ -1405,7 +1427,7 @@ function Archive({ darkMode, userRole }) {
 									/>
 									Pin this link
 								</label>
-							</div>
+							</div> */}
 							<div className="modal-actions">
 								<button
 									type="button"

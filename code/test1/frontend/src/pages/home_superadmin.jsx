@@ -783,14 +783,14 @@ useEffect(() => {
         <div key={index} className={`${className}-edit-wrapper`}>
           <div className={`${className}-info`}>
             <div className={`${className}-title`}>{item.title}</div>
-            {item.author && (
+            {/* {item.author && (
               <div className={`${className}-author`}>
                 Added by {item.author.name || item.author}
               </div>
             )}
             <div className={`${className}-status`}>
               Status: {item.status || 'Pending'}
-            </div>
+            </div> */}
           </div>
           <div className={`${className}-actions`}>
             <button

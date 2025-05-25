@@ -43,7 +43,7 @@ function Archive({ darkMode, userRole }) {
 		title: '',
 		office: '',
 		url: '',
-		pinned: true // Set pinned to true by default
+		pinned: false // Set pinned to false by default
 	});
 
 	// Add new state for edit announcement modal
@@ -558,7 +558,7 @@ function Archive({ darkMode, userRole }) {
 				title: linkModal.title,
 				office: userRole === 'superadmin' ? linkModal.office : userOffice,
 				url: linkModal.url,
-				pinned: true,
+				pinned: linkModal.pinned,
 				approved: true
 			}, {
 				headers: {
@@ -578,7 +578,7 @@ function Archive({ darkMode, userRole }) {
 					title: '',
 					office: '',
 					url: '',
-					pinned: true
+					pinned: false
 				});
 			} else {
 				alert('Failed to create link: ' + response.data.error);
@@ -1399,16 +1399,6 @@ function Archive({ darkMode, userRole }) {
 									onChange={(e) => setLinkModal({ ...linkModal, url: e.target.value })}
 									required
 								/>
-							</div>
-							<div className="form-group">
-								<label className="checkbox-label">
-									<input
-										type="checkbox"
-										checked={linkModal.pinned}
-										onChange={(e) => setLinkModal({ ...linkModal, pinned: e.target.checked })}
-									/>
-									Pin this link
-								</label>
 							</div>
 							<div className="modal-actions">
 								<button

@@ -144,6 +144,19 @@ function Archive({ darkMode, userRole }) {
 		// Check if the file has multiple versions
 		const hasMultipleVersions = file.versions && file.versions.length > 0;
 
+		let authorName = "Unknown";
+		if (file.author) {
+			if (typeof file.author === "object" && file.author.name) {
+				authorName = file.author.name;
+			}
+			else if (typeof file.author === "string" && authorDetails[file.author]) {
+				authorName = authorDetails[file.author];
+			}
+			else if (typeof file.author === "string") {
+				fetchAuthorDetails(file.author);
+			}
+		}
+
 		console.log('[archive] generated viewurl:', viewURL);
 		const mappedFile = {
 			id: file._id,
@@ -174,6 +187,18 @@ function Archive({ darkMode, userRole }) {
 
 	// Map announcement data consistently
 	const mapAnnouncementData = useCallback((announcement) => {
+		let authorName = "Unknown";
+		if (announcement.author) {
+			if (typeof announcement.author === "object" && announcement.author.name) {
+				authorName = announcement.author.name;
+			}
+			else if (typeof announcement.author === "string" && authorDetails[announcement.author]) {
+				authorName = authorDetails[announcement.author];
+			}
+			else if (typeof announcement.author === "string") {
+				fetchAuthorDetails(announcement.author);
+			}
+		}
 		const mappedAnnouncement = {
 			id: announcement._id,
 			fileName: announcement.title,
@@ -199,6 +224,18 @@ function Archive({ darkMode, userRole }) {
 
 	// Map quickLink data consistently
 	const mapQuickLinkData = useCallback((quickLink) => {
+		let authorName = "Unknown";
+		if (quickLink.author) {
+			if (typeof quickLink.author === "object" && quickLink.author.name) {
+				authorName = quickLink.author.name;
+			}
+			else if (typeof quickLink.author === "string" && authorDetails[quickLink.author]) {
+				authorName = authorDetails[quickLink.author];
+			}
+			else if (typeof quickLink.author === "string") {
+				fetchAuthorDetails(quickLink.author);
+			}
+		}
 		const mappedQuickLink = {
 			id: quickLink._id,
 			fileName: quickLink.title,
@@ -328,7 +365,7 @@ function Archive({ darkMode, userRole }) {
 						return {
 							id: file._id,
 							fileName: file.name,
-							author: file.author?.name || 'Siddharth Mago',
+							author: file.author?.name || "Unknown",
 							office: file.office,
 							modifiedDate: new Date(file.createdAt).toLocaleDateString(),
 							category: 'Files',
@@ -344,7 +381,7 @@ function Archive({ darkMode, userRole }) {
 						return {
 							id: announcement._id,
 							fileName: announcement.title,
-							author: announcement.author?.name || 'You',
+							author: announcement.author?.name || "Unknown",
 							office: announcement.office,
 							modifiedDate: new Date(announcement.createdAt).toLocaleDateString(),
 							category: 'Announcements',
@@ -360,7 +397,7 @@ function Archive({ darkMode, userRole }) {
 						return {
 							id: link._id,
 							fileName: link.title,
-							author: link.author?.name || 'You',
+							author: link.author?.name || 'Unknown',
 							office: link.office,
 							modifiedDate: new Date(link.createdAt).toLocaleDateString(),
 							category: 'Links',
@@ -894,7 +931,7 @@ function Archive({ darkMode, userRole }) {
 										<>
 											{canManageItem(item.office) && (
 												<>
-													{item.status === 'approved' && (
+													{/* {item.status === 'approved' && (
 														<button
 															className="action-button pin"
 															onClick={() => {
@@ -919,7 +956,7 @@ function Archive({ darkMode, userRole }) {
 														>
 															{item.pinned ? 'Unpin' : 'Pin'}
 														</button>
-													)}
+													)} */}
 													<button
 														className="action-button edit"
 														onClick={() => setEditLinkModal({
@@ -1605,16 +1642,6 @@ function Archive({ darkMode, userRole }) {
 									onChange={(e) => setEditLinkModal({ ...editLinkModal, url: e.target.value })}
 									required
 								/>
-							</div>
-							<div className="form-group">
-								<label className="checkbox-label">
-									<input
-										type="checkbox"
-										checked={editLinkModal.pinned}
-										onChange={(e) => setEditLinkModal({ ...editLinkModal, pinned: e.target.checked })}
-									/>
-									Pin this link
-								</label>
 							</div>
 							<div className="modal-actions">
 								<button

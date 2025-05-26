@@ -450,6 +450,7 @@ body {
   font-size: 0.9rem;
   max-width: 400px;
   backdrop-filter: blur(8px);
+  max-height: 3rem;
 }
 
 .message-icon {

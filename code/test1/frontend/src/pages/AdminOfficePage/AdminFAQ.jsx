@@ -100,6 +100,34 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
       return;
     }
 
+    const existingIndex = faqData.findIndex(
+      (faq) => faq.question.trim().toLowerCase() === newFaq.question.trim().toLowerCase()
+    );
+
+    if (existingIndex !== -1) {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.put(`/api/offices/faqs/${faqData[existingIndex]._id}`,
+          { question: newFaq.question, answer: newFaq.answer },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+        const updatedFaqs = [...faqData];
+        updatedFaqs[existingIndex] = response.data.data;
+        setFaqData(updatedFaqs);
+        setNewFaq({ question: "", answer: "" });
+        setSimilarFaqs([]); // Clear similar FAQs
+        setShowAddForm(false);
+      } catch (error) {
+        console.error('Error adding FAQ:', error);
+        alert('Failed to add FAQ');
+      }
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post('/api/offices/faqs', {
@@ -111,14 +139,14 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
         }
       });
 
-      // Add the new FAQ returned from the server
       setFaqData([...faqData, response.data.data]);
       setNewFaq({ question: "", answer: "" });
-      setSimilarFaqs([]); // Clear similar FAQs
+      setSimilarFaqs([]);
       setShowAddForm(false);
-    } catch (error) {
-      console.error('Error adding FAQ:', error);
-      alert('Failed to add FAQ');
+    }
+    catch (err) {
+      console.error("Error adding FAQ: ", err);
+      alert("Failed to add FAQ");
     }
   };
 
@@ -131,7 +159,7 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
     try {
       const token = localStorage.getItem('token');
       const faqToUpdate = faqData[isEditing];
-      const response = await axios.put(`/api/offices/faqs/${faqToUpdate._id}`, 
+      const response = await axios.put(`/api/offices/faqs/${faqToUpdate._id}`,
         editForm,
         {
           headers: {
@@ -142,7 +170,7 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
 
       const updatedFaqs = [...faqData];
       updatedFaqs[isEditing] = response.data.data;
-      
+
       setFaqData(updatedFaqs);
       setIsEditing(null);
       setEditForm({ question: "", answer: "" });
@@ -165,7 +193,7 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
 
         const updatedFaqs = faqData.filter((_, i) => i !== index);
         setFaqData(updatedFaqs);
-        
+
         if (activeIndex === index) {
           setActiveIndex(null);
         } else if (activeIndex > index) {
@@ -201,8 +229,8 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
       {/* Only show add button if user can edit */}
       {isAdmin && canEdit && (
         <div className="admin-controls">
-          <button 
-            className="admin-button add-button" 
+          <button
+            className="admin-button add-button"
             onClick={() => setShowAddForm(true)}
           >
             Add New FAQ
@@ -225,7 +253,7 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
               placeholder="Enter new question"
             />
           </div>
-          
+
           {/* Similar FAQs section */}
           {newFaq.question.trim().length > 0 && (
             <div className="similar-faqs-container">
@@ -242,12 +270,12 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
                   ))}
                 </div>
               ) : (
-                !isSearchingSimilar && newFaq.question.trim().length > 5 && 
+                !isSearchingSimilar && newFaq.question.trim().length > 5 &&
                 <p className="no-similar">No similar FAQs found.</p>
               )}
             </div>
           )}
-          
+
           <div className="form-group">
             <label htmlFor="newAnswer">Answer:</label>
             <textarea
@@ -268,8 +296,8 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
 
       {/* FAQ List */}
       {faqData.map((faq, index) => (
-        <div 
-          key={index} 
+        <div
+          key={index}
           className={`faq-item ${activeIndex === index ? 'active' : ''} ${isEditing === index ? 'editing' : ''}`}
         >
           {isEditing === index ? (
@@ -282,6 +310,7 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
                   name="question"
                   value={editForm.question}
                   onChange={handleEditFormChange}
+                  disabled
                 />
               </div>
               <div className="form-group">
@@ -301,7 +330,7 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
             </div>
           ) : (
             <>
-              <button 
+              <button
                 className="faq-question"
                 onClick={() => toggleFAQ(index)}
                 aria-expanded={activeIndex === index}
@@ -311,13 +340,13 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
                   {activeIndex === index ? '−' : '+'}
                 </span>
               </button>
-              <div 
+              <div
                 className={`faq-answer ${activeIndex === index ? 'show' : ''}`}
               >
                 <p>{faq.answer}</p>
                 {isAdmin && canEdit && activeIndex === index && (
                   <div className="admin-faq-controls">
-                    <button 
+                    <button
                       className="admin-btn edit-btn"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -326,7 +355,7 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
                     >
                       Edit
                     </button>
-                    <button 
+                    <button
                       className="admin-btn faq-delete-btn"
                       onClick={(e) => {
                         e.stopPropagation();

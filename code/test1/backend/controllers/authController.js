@@ -12,7 +12,7 @@ exports.addUser = async (req, res, next) => {
 
 		const existingUser = await User.findOne({ email });
 		if (existingUser){
-			return res.status(400).json({ success: false, error: "USer with this email already exists." });
+			return res.status(400).json({ success: false, error: "User with this email already exists." });
 		}
 
 		const user = await User.create({
@@ -170,10 +170,6 @@ exports.changeUserRole = async (req, res, next) => {
 // @route   PUT /api/auth_Cas/user/:id
 // @access  Superadmin
 exports.updateUser = async (req, res, next) => {
-	console.log("req.params: ", req.params);
-	console.log("req.body: ", req.body);
-	console.log("req.user: ", req.user);
-
 	const { name, office, role } = req.body;
 	const { email } = req.params;
 	try {
@@ -190,8 +186,6 @@ exports.updateUser = async (req, res, next) => {
 		if (name !== undefined) user.name = name;
 		if (office !== undefined) user.office = office;
 		if (role !== undefined && ["user", "admin", "superadmin"].includes(role)) user.role = role;
-
-		console.log(user);
 		
 		await user.save();
 

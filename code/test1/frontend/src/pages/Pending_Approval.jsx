@@ -169,6 +169,12 @@ function PendingApprovals({ darkMode }) {
 	// Function to preview an item
 	const previewItem = (item) => {
 		if (item.category === 'file') {
+			// if the file was uploaded via URL, open the URL directly
+			if (item.url) {
+				window.open(item.url, '_blank')
+				return
+			}
+
 			// Build the view URL using the file ID for the file view route
 			const role = localStorage.getItem('role') || 'superadmin';
 			const viewURL = `/${role}/file/${item.id}`;

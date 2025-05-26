@@ -75,7 +75,6 @@ exports.addPortal = async (req, res, next) => {
       title,
       url,
       icon: icon || '🔗',
-      office,
       author: req.user._id,
       createdAt: Date.now(),
       status: 'pending',
@@ -136,11 +135,11 @@ exports.deletePortal = async (req, res, next) => {
 // @access  Admin/Superadmin
 exports.updatePortal = async (req, res, next) => {
   try {
-    const { title, url, icon, office } = req.body;
+    const { title, url, icon } = req.body;
     
     const portal = await Portal.findByIdAndUpdate(
       req.params.id,
-      { title, url, icon, office, status: 'pending', author: req.user._id },
+      { title, url, icon, status: 'pending', author: req.user._id },
       { new: true, runValidators: true }
     );
 

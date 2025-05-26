@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Route, Routes, Navigate } from 'react-router-dom';
+import { Route, Routes, Navigate, useParams } from 'react-router-dom';
 
 import NavBar_User from './nav_bar_user.jsx';
 import Footer from './footer.jsx';
@@ -9,6 +9,37 @@ import OfficePage from './OfficePage/OfficePage.jsx';
 import Archive from './Archive.jsx';
 import ContactsUser from "./contacts_user.jsx";
 import FilePageUser from './file_page_user.jsx';
+
+const allowedOffices = [
+    "Admissions Office",
+    "Library Office",
+    "Examinations Office",
+    "Academic Office",
+    "Student Affairs Office",
+    "Mess Office",
+    "Hostel Office",
+    "Alumni Cell",
+    "Faculty Portal",
+    "Placement Cell",
+    "Outreach Office",
+    "Statistical Cell",
+    "R&D Office",
+    "General Administration",
+    "Accounts Office",
+    "IT Services Office",
+    "Communication Office",
+    "Engineering Office",
+    "HR & Personnel"
+];
+
+function OfficeRouteWrapper(props) {
+    const { officeName } = useParams();
+    const decodedOffice = decodeURIComponent(officeName || "");
+    if (!allowedOffices.includes(decodedOffice)) {
+        return <Navigate to="/user/home#offices" replace />;
+    }
+    return <OfficePage {...props} />;
+}
 
 function User({ darkMode, setDarkMode }) {
     // If darkMode is passed as a prop, use it; otherwise, initialize local state
@@ -39,13 +70,10 @@ function User({ darkMode, setDarkMode }) {
             <Routes>
                 <Route path='/' element={<Navigate to="home" />} />
                 <Route path="home" element={<HomeUser darkMode={actualDarkMode} />} />
-                
-                {/* Keep this route for dynamic office pages */}
-                <Route path="offices/:officeName" element={<OfficePage darkMode={actualDarkMode} />} />
+                <Route path="offices/:officeName" element={<OfficeRouteWrapper darkMode={actualDarkMode} />} />
                 <Route path='file/:id' element={<FilePageUser darkMode={actualDarkMode} />} />
                 <Route path="archive" element={<Archive darkMode={actualDarkMode} />} />
-                <Route path='search' element={<Archive darkMode={actualDarkMode} />} />
-                <Route path='contacts' element={<ContactsUser darkMode={actualDarkMode} />} />
+                <Route path="*" element={<Navigate to="/user/home" replace />} />
             </Routes>
             <Footer darkMode={actualDarkMode} />
         </div>

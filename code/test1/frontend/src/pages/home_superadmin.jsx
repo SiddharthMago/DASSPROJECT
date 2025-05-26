@@ -260,7 +260,7 @@ useEffect(() => {
       setAnnouncements(updatedAnnouncements);
       setIsEditing(false);
 
-      setSuccessMessage("Announcement updated successfully");
+      setSuccessMessage("Edited announcement details sent for approval");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error('Error updating announcement:', err);
@@ -370,7 +370,7 @@ useEffect(() => {
 
       setQuickLinks(updatedQuickLinks);
 
-      setSuccessMessage("Quick link updated successfully");
+      setSuccessMessage("Edited quick link details sent for approval");
 
       // Automatically close the edit view
       setIsEditingQuickLinks(false);
@@ -597,7 +597,7 @@ useEffect(() => {
       setPortals(updatedPortals);
       
       // Show success message
-      setSuccessMessage("Portal updated successfully");
+      setSuccessMessage("Edited portal details sent for approval");
       
       // Close editing mode
       setIsEditingPortals(false);
@@ -1475,36 +1475,6 @@ useEffect(() => {
                   value={editPortalUrl}
                   onChange={(e) => setEditPortalUrl(e.target.value)}
                 />
-              </div>
-              <div className="edit-form-group">
-                <label htmlFor="portal-office">Office:</label>
-                  <select
-                    id="portal-office"
-                    value={editPortalOffice}
-                    onChange={e => setEditPortalOffice(e.target.value)}
-                    className="office-select"
-                  >
-                      <option value="None">Select Office</option>
-                      <option value="Admissions Office">Admissions Office</option>
-                      <option value="Library Office">Library Office</option>
-                      <option value="Examinations Office">Examinations Office</option>
-                      <option value="Academic Office">Academic Office</option>
-                      <option value="Student Affairs Office">Student Affairs Office</option>
-                      <option value="Mess Office">Mess Office</option>
-                      <option value="Hostel Office">Hostel Office</option>
-                      <option value="Alumni Cell">Alumni Cell</option>
-                      <option value="Faculty Portal">Faculty Portal</option>
-                      <option value="Placement Cell">Placement Cell</option>
-                      <option value="Outreach Office">Outreach Office</option>
-                      <option value="Statistical Cell">Statistical Cell</option>
-                      <option value="R&D Office">R&D Office</option>
-                      <option value="General Administration">General Administration</option>
-                      <option value="Accounts Office">Accounts Office</option>
-                      <option value="IT Services Office">IT Services Office</option>
-                      <option value="Communication Office">Communication Office</option>
-                      <option value="Engineering Office">Engineering Office</option>
-                      <option value="HR & Personnel">HR & Personnel</option>
-                  </select>
               </div>
               <div className="edit-form-group">
                 <label htmlFor="portal-icon">Icon:</label>

@@ -310,6 +310,7 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
                   name="question"
                   value={editForm.question}
                   onChange={handleEditFormChange}
+                  disabled
                 />
               </div>
               <div className="form-group">

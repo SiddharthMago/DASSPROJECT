@@ -931,7 +931,7 @@ function Archive({ darkMode, userRole }) {
 										<>
 											{canManageItem(item.office) && (
 												<>
-													{item.status === 'approved' && (
+													{/* {item.status === 'approved' && (
 														<button
 															className="action-button pin"
 															onClick={() => {
@@ -956,7 +956,7 @@ function Archive({ darkMode, userRole }) {
 														>
 															{item.pinned ? 'Unpin' : 'Pin'}
 														</button>
-													)}
+													)} */}
 													<button
 														className="action-button edit"
 														onClick={() => setEditLinkModal({

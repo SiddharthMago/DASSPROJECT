@@ -260,7 +260,7 @@ useEffect(() => {
       setAnnouncements(updatedAnnouncements);
       setIsEditing(false);
 
-      setSuccessMessage("Announcement updated successfully");
+      setSuccessMessage("Edited announcement details sent for approval");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error('Error updating announcement:', err);
@@ -370,7 +370,7 @@ useEffect(() => {
 
       setQuickLinks(updatedQuickLinks);
 
-      setSuccessMessage("Quick link updated successfully");
+      setSuccessMessage("Edited quick link details sent for approval");
 
       // Automatically close the edit view
       setIsEditingQuickLinks(false);
@@ -597,7 +597,7 @@ useEffect(() => {
       setPortals(updatedPortals);
       
       // Show success message
-      setSuccessMessage("Portal updated successfully");
+      setSuccessMessage("Edited portal details sent for approval");
       
       // Close editing mode
       setIsEditingPortals(false);

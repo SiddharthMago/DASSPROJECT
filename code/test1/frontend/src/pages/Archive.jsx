@@ -1643,16 +1643,6 @@ function Archive({ darkMode, userRole }) {
 									required
 								/>
 							</div>
-							<div className="form-group">
-								<label className="checkbox-label">
-									<input
-										type="checkbox"
-										checked={editLinkModal.pinned}
-										onChange={(e) => setEditLinkModal({ ...editLinkModal, pinned: e.target.checked })}
-									/>
-									Pin this link
-								</label>
-							</div>
 							<div className="modal-actions">
 								<button
 									type="button"

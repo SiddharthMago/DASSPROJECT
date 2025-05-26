@@ -30,8 +30,6 @@ router.post('/compare-pdfs', async (req, res) => {
             return res.status(500).json({ success: false, message: 'Error comparing PDFs' });
         }
 
-        console.log('PDF comparison output:', stdout);
-
         // Extract the report path from Python script output
         // The Python script returns the full path to comparison_report.html
         const reportPathMatch = stdout.match(/Report saved: (.+)/);

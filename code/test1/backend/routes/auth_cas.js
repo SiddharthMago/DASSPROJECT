@@ -26,8 +26,6 @@ router.get('/cas-callback', async (req, res) => {
     }
     
     try {
-        console.log("Received CAS ticket:", ticket);
-
         const response = await axios.get('https://login.iiit.ac.in/cas/serviceValidate', {
             params: {
                 service: serviceURL,
@@ -36,21 +34,18 @@ router.get('/cas-callback', async (req, res) => {
         });
 
         const result = await parseStringPromise(response.data);
-        console.log(JSON.stringify(result, null, 2));
         const userDetails = result['cas:serviceResponse']['cas:authenticationSuccess']?.[0]['cas:attributes']?.[0];
 
         if (!userDetails) return res.status(401).send('CAS Authentication Failed');
 
         // Now map user to role
         const role = await determineRole(userDetails); // You can enhance this with a DB lookup
-        console.log("JWT_SECRET:", process.env.JWT_SECRET);
 
         const token = jwt.sign({ userDetails, role }, process.env.JWT_SECRET, {expiresIn: '30d'});
 
         // Redirect to frontend with token
         // res.redirect(`http://localhost:5173/${role}/`);
         const frontendURL = process.env.FRONTEND_URL
-        console.log("Generated Token:", token);
         res.redirect(`${frontendURL}/auth?token=${token}`);
 
     } 

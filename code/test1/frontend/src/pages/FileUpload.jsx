@@ -555,6 +555,7 @@ function FileUpload({ darkMode }) {
                     <input
                       type="text"
                       className="form-input"
+                      required
                       value={fileName}
                       onChange={(e) => setFileName(e.target.value)}
                       placeholder="Enter file or resource name"

@@ -173,7 +173,7 @@ body {
 }
 
 .loading-state,
-.error-state,
+.error,
 .empty-state {
   text-align: center;
   padding: 2rem;

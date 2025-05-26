@@ -94,6 +94,16 @@ app.use('/api/portals', portals);
 app.use('/api/offices', officesRoutes);
 app.use("/api", pdfRoutes);
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Server is healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Server Error:', err.stack);

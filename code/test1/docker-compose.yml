@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # MongoDB Service
+  mongodb:
+    image: mongo:7.0
+    container_name: project_mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: project_test
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./backend/mongo-init:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+
+  # Backend Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: project_backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: production
+      MONGO_URI: mongodb://admin:password123@mongodb:27017/project_test?authSource=admin
+      JWT_SECRET: your_jwt_secret_key_here
+      JWT_EXPIRE: 30d
+      JWT_COOKIE_EXPIRE: 30
+      CLIENT_URL: http://localhost:3000
+      FRONTEND_URL: http://localhost:5173
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/temp:/app/temp
+    networks:
+      - app-network
+
+  # Frontend Service (optional - you can keep running this separately)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: project_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: http://localhost:5000/api
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

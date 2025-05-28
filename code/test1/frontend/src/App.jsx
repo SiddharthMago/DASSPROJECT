@@ -26,7 +26,7 @@ function App() {
 	}, [darkMode]);
 
 	return (
-		<Router>
+		<Router basename="/new">
 			<Routes>
 				<Route path="/auth" element={<AuthHandler />} />
 				<Route

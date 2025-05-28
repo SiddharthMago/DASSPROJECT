@@ -66,7 +66,7 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
     setIsSearchingSimilar(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('/api/faqs/search-similar', {
+      const response = await axios.post('http://devintranet.iiit.ac.in/api/faqs/search-similar', {
         question: newFaq.question,
         office: officeName
       }, {
@@ -107,7 +107,7 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
     if (existingIndex !== -1) {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.put(`/api/offices/faqs/${faqData[existingIndex]._id}`,
+        const response = await axios.put(`http://devintranet.iiit.ac.in/api/offices/faqs/${faqData[existingIndex]._id}`,
           { question: newFaq.question, answer: newFaq.answer },
           {
             headers: {
@@ -130,7 +130,7 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('/api/offices/faqs', {
+      const response = await axios.post('http://devintranet.iiit.ac.in/api/offices/faqs', {
         ...newFaq,
         office: officeName
       }, {
@@ -159,7 +159,7 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
     try {
       const token = localStorage.getItem('token');
       const faqToUpdate = faqData[isEditing];
-      const response = await axios.put(`/api/offices/faqs/${faqToUpdate._id}`,
+      const response = await axios.put(`http://devintranet.iiit.ac.in/api/offices/faqs/${faqToUpdate._id}`,
         editForm,
         {
           headers: {
@@ -185,7 +185,7 @@ const FAQ = ({ isAdmin = false, darkMode, faqs: initialFaqs = [], officeName, ca
       try {
         const token = localStorage.getItem('token');
         const faqToDelete = faqData[index];
-        await axios.delete(`/api/offices/faqs/${faqToDelete._id}`, {
+        await axios.delete(`http://devintranet.iiit.ac.in/api/offices/faqs/${faqToDelete._id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

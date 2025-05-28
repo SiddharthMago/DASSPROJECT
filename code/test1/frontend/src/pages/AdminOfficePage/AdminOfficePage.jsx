@@ -22,7 +22,7 @@ const AdminOfficePage = ({ darkMode }) => {
     const fetchUserProfile = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('/api/auth_cas/user-profile', {
+        const response = await axios.get('http://devintranet.iiit.ac.in/api/auth_cas/user-profile', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -50,7 +50,7 @@ const AdminOfficePage = ({ darkMode }) => {
         setLoading(true);
         
         // Fetch files for the specific office
-        const filesResponse = await axios.get(`/api/files/office/${encodeURIComponent(officeName)}`, {
+        const filesResponse = await axios.get(`http://devintranet.iiit.ac.in/api/files/office/${encodeURIComponent(officeName)}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           },
@@ -82,7 +82,7 @@ const AdminOfficePage = ({ darkMode }) => {
         console.log("Admin view - Latest files (not in version arrays):", latestFiles.length);
         
         // Fetch FAQs for the specific office
-        const faqsResponse = await axios.get(`/api/offices/faqs/${encodeURIComponent(officeName)}`, {
+        const faqsResponse = await axios.get(`http://devintranet.iiit.ac.in/api/offices/faqs/${encodeURIComponent(officeName)}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

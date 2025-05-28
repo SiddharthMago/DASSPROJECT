@@ -29,7 +29,7 @@ function FilePageUser({ darkMode }) {
         const fetchUserProfile = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get('/api/auth_cas/user-profile', {
+                const response = await axios.get('http://devintranet.iiit.ac.in/api/auth_cas/user-profile', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }

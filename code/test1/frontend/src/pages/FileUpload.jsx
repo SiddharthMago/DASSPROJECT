@@ -68,7 +68,7 @@ function FileUpload({ darkMode }) {
         const token = localStorage.getItem('token');
 
         // Fetch user profile
-        const userResponse = await axios.get('/api/auth_cas/user-profile', {
+        const userResponse = await axios.get('http://devintranet.iiit.ac.in/api/auth_cas/user-profile', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -159,7 +159,7 @@ function FileUpload({ darkMode }) {
     if (!office) return;
 
     try {
-      const categoriesResponse = await axios.get(`/api/files/categories/${encodeURIComponent(office)}`, {
+      const categoriesResponse = await axios.get(`http://devintranet.iiit.ac.in/api/files/categories/${encodeURIComponent(office)}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -202,7 +202,7 @@ function FileUpload({ darkMode }) {
     try {
       const token = localStorage.getItem('token');
 
-      const response = await axios.get(`/api/files/office/${encodeURIComponent(office)}`, {
+      const response = await axios.get(`http://devintranet.iiit.ac.in/api/files/office/${encodeURIComponent(office)}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         },
@@ -230,7 +230,7 @@ function FileUpload({ darkMode }) {
         const token = localStorage.getItem('token');
 
         // Fetch files for the selected category and office
-        const response = await axios.get(`/api/files/office/${encodeURIComponent(selectedOffice)}`, {
+        const response = await axios.get(`http://devintranet.iiit.ac.in/api/files/office/${encodeURIComponent(selectedOffice)}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           },
@@ -273,7 +273,7 @@ function FileUpload({ darkMode }) {
       const token = localStorage.getItem('token');
 
       // Add new category
-      const response = await axios.post('/api/files/categories',
+      const response = await axios.post('http://devintranet.iiit.ac.in/api/files/categories',
         {
           office: selectedOffice,
           category: newCategory.trim()
@@ -392,7 +392,7 @@ function FileUpload({ darkMode }) {
             formData.append('url', fileUrl.trim());
           }
 
-          const response = await axios.post(`/api/files/${selectedFile}/version`, formData, {
+          const response = await axios.post(`http://devintranet.iiit.ac.in/api/files/${selectedFile}/version`, formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
               Authorization: `Bearer ${token}`,
@@ -416,7 +416,7 @@ function FileUpload({ darkMode }) {
             formData.append('url', fileUrl.trim());
           }
 
-          await axios.post('/api/files/upload', formData, {
+          await axios.post('http://devintranet.iiit.ac.in/api/files/upload', formData, {
             headers: {
               'Content-Type': 'multipart/form-data',
               Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -489,7 +489,7 @@ function FileUpload({ darkMode }) {
 
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`/api/files/${selectedFile}`, {
+        const response = await axios.get(`http://devintranet.iiit.ac.in/api/files/${selectedFile}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

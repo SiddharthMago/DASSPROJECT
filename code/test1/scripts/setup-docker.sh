@@ -11,7 +11,7 @@ fi
 
 # Copy docker environment file
 echo "Setting up Docker environment configuration..."
-cp "./backend/config/.env.docker" "./backend/config/.env"
+# cp "./backend/config/.env.docker" "./backend/config/.env"
 
 # Build and start services
 echo "Building and starting Docker services..."
@@ -21,7 +21,7 @@ docker-compose up -d
 
 # Wait for services to be ready
 echo "Waiting for services to start..."
-sleep 10
+sleep 15
 
 # Check service status
 echo "Checking service status..."
@@ -34,5 +34,5 @@ docker-compose logs --tail=20
 echo "Docker environment is ready!"
 echo "Access your application at:"
 echo "   - Backend API: http://localhost:5000"
-echo "   - Frontend: http://localhost:3000"
+echo "   - Frontend: http://localhost:5173"
 echo "   - MongoDB: localhost:27017"

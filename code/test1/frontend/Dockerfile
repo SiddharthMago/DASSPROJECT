@@ -13,6 +13,9 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Set environment variables for build
+ENV VITE_API_URL=http://localhost:5000
+
 # Build the application
 RUN npm run build
 
@@ -22,14 +25,26 @@ FROM nginx:alpine
 # Copy built files to nginx
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# Copy nginx configuration (if you have one)
-# COPY nginx.conf /etc/nginx/nginx.conf
+# Create nginx config for React Router
+RUN echo 'server { \
+    listen 5173; \
+    server_name localhost; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+    location /api { \
+        proxy_pass http://backend:5000; \
+        proxy_set_header Host $host; \
+        proxy_set_header X-Real-IP $remote_addr; \
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
+        proxy_set_header X-Forwarded-Proto $scheme; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
 
-# Expose port
-EXPOSE 3000
-
-# Configure nginx to run on port 3000
-RUN sed -i 's/listen       80;/listen       3000;/' /etc/nginx/conf.d/default.conf
+# Expose port 5173 to match your development setup
+EXPOSE 5173
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]

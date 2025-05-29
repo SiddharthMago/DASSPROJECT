@@ -42,7 +42,7 @@ function HomeUser({ darkMode }) {
       try {
         setAnnouncementsLoading(true);
         console.log('Fetching announcements...');
-        const response = await fetch('/api/announcements/latest');
+        const response = await fetch('http://devintranet.iiit.ac.in/api/announcements/latest');
         
         console.log('Response status:', response.status);
         if (!response.ok) {
@@ -82,7 +82,7 @@ function HomeUser({ darkMode }) {
         setQuickLinksLoading(true);
         console.log('Fetching quick links...');
         // First try to get pinned quick links
-        const response = await fetch('/api/quicklinks/pinned');
+        const response = await fetch('http://devintranet.iiit.ac.in/api/quicklinks/pinned');
         
         console.log('Quick links response status:', response.status);
         if (!response.ok) {
@@ -119,7 +119,7 @@ function HomeUser({ darkMode }) {
         setPortalsLoading(true);
         console.log('Fetching portals...');
         // First try to get pinned portals
-        const response = await fetch('/api/portals/pinned');
+        const response = await fetch('http://devintranet.iiit.ac.in/api/portals/pinned');
         
         console.log('Portals response status:', response.status);
         if (!response.ok) {
@@ -136,7 +136,7 @@ function HomeUser({ darkMode }) {
           setPortals(data.data);
         } else {
           // Otherwise, get all approved portals
-          const allPortalsResponse = await fetch('/api/portals');
+          const allPortalsResponse = await fetch('http://devintranet.iiit.ac.in/api/portals');
           
           if (!allPortalsResponse.ok) {
             throw new Error(`Failed to fetch all portals: ${allPortalsResponse.status}`);
@@ -193,7 +193,7 @@ function HomeUser({ darkMode }) {
   const getAnnouncementBackground = (announcement) => {
     // If there's a valid imageUrl, use it
     if (announcement.imageUrl && !announcement.imageUrl.includes('undefined')) {
-      const baseUrl = import.meta.env.VITE_CLIENT_URL || 'http://localhost:5000'; // Use Vite's environment variable or fallback to localhost
+      const baseUrl = import.meta.env.VITE_CLIENT_URL || 'http://devintranet.iiit.ac.in'; // Use Vite's environment variable or fallback to localhost
       const fullImageUrl = announcement.imageUrl.startsWith('http')
         ? announcement.imageUrl // If it's already a full URL, use it as is
         : `${baseUrl}${announcement.imageUrl}`; // Prepend the base URL for relative paths

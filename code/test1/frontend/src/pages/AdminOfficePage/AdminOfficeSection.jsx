@@ -59,7 +59,7 @@ const AdminOfficeSection = ({ title, category, cards, darkMode, canEdit = false 
       const fetchUserRole = async () => {
         try {
           const token = localStorage.getItem('token');
-          const response = await axios.get('/api/auth_cas/user-profile', {
+          const response = await axios.get('http://devintranet.iiit.ac.in/api/auth_cas/user-profile', {
             headers: {
               'Authorization': `Bearer ${token}`
             }
@@ -223,7 +223,7 @@ const AdminOfficeSection = ({ title, category, cards, darkMode, canEdit = false 
         const token = localStorage.getItem('token');
 
         // Make API call to delete the file
-        const response = await axios.delete(`/api/files/${card.id}`, {
+        const response = await axios.delete(`http://devintranet.iiit.ac.in/api/files/${card.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

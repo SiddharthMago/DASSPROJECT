@@ -29,7 +29,7 @@ function FilePageUser({ darkMode }) {
         const fetchUserProfile = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get('/api/auth_cas/user-profile', {
+                const response = await axios.get('http://devintranet.iiit.ac.in/api/auth_cas/user-profile', {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -54,7 +54,7 @@ function FilePageUser({ darkMode }) {
         const fetchFile = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`http://localhost:5000/api/files/${id}`);
+                const response = await axios.get(`http://devintranet.iiit.ac.in/api/files/${id}`);
                 console.log("[filePage] API response: ", response.status, response.data);
 
                 if (!response.data.success) {
@@ -72,7 +72,7 @@ function FilePageUser({ darkMode }) {
                     {
                         _id: fileData._id,
                         name: fileData.name,
-                        url: "http://localhost:5000/" + fileData.filePath,
+                        url: "http://devintranet.iiit.ac.in/" + fileData.filePath,
                         filePath: fileData.filePath,
                         createdAt: fileData.createdAt,
                         status: fileData.status,
@@ -80,7 +80,7 @@ function FilePageUser({ darkMode }) {
                     },
                     ...(fileData.versions || []).map(version => ({
                         ...version,
-                        url: "http://localhost:5000/" + version.filePath,
+                        url: "http://devintranet.iiit.ac.in/" + version.filePath,
                     })),
                 ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -139,7 +139,7 @@ function FilePageUser({ darkMode }) {
         }
         setShowCompareLoading(true);
         try {
-            const response = await axios.post('http://localhost:5000/api/compare-pdfs', {
+            const response = await axios.post('http://devintranet.iiit.ac.in/api/compare-pdfs', {
                 pdf1Path: version1.filePath,
                 pdf2Path: version2.filePath,
             }, {
@@ -149,7 +149,7 @@ function FilePageUser({ darkMode }) {
             });
 
             if (response.data.success) {
-                const newTab = window.open(`http://localhost:5000${response.data.htmlPath}`, '_blank');
+                const newTab = window.open(`http://devintranet.iiit.ac.in${response.data.htmlPath}`, '_blank');
                 if (newTab) {
                     newTab.onbeforeunload = () => {
                         // Optionally notify the backend to delete the temp file

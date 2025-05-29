@@ -19,7 +19,7 @@ const OfficePage = ({ darkMode }) => {
         setLoading(true);
         
         // Fetch files for the specific office
-        const filesResponse = await axios.get(`/api/files/office/${encodeURIComponent(officeName)}`, {
+        const filesResponse = await axios.get(`http://devintranet.iiit.ac.in/api/files/office/${encodeURIComponent(officeName)}`, {
           params: {
             status: 'approved'
           }
@@ -54,7 +54,7 @@ const OfficePage = ({ darkMode }) => {
         console.log("Latest files (not in version arrays):", latestFiles.length);
         
         // Fetch FAQs for the specific office
-        const faqsResponse = await axios.get(`/api/faqs/office/${encodeURIComponent(officeName)}`);
+        const faqsResponse = await axios.get(`http://devintranet.iiit.ac.in/api/faqs/office/${encodeURIComponent(officeName)}`);
         
         setFiles(latestFiles);
         setFaqs(faqsResponse.data.data);

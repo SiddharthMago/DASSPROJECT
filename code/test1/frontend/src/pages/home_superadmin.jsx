@@ -89,7 +89,7 @@ function HomeAdmin({ darkMode }) {
       try {
         setAnnouncementsLoading(true);
         console.log('Fetching announcements...');
-        const response = await fetch('/api/announcements/latest');
+        const response = await fetch('http://devintranet.iiit.ac.in/api/announcements/latest');
 
         console.log('Response status:', response.status);
         if (!response.ok) {
@@ -130,7 +130,7 @@ useEffect(() => {
     try {
       setQuickLinksLoading(true);
       console.log('Fetching pinned quick links...');
-      const response = await fetch('/api/quicklinks');
+      const response = await fetch('http://devintranet.iiit.ac.in/api/quicklinks');
 
       console.log('Quick links response status:', response.status);
       if (!response.ok) {
@@ -160,7 +160,7 @@ useEffect(() => {
         setPortalsLoading(true);
         console.log('Fetching portals...');
         // For admin, fetch all portals regardless of pinned status
-        const response = await fetch('/api/portals');
+        const response = await fetch('http://devintranet.iiit.ac.in/api/portals');
 
         console.log('Portals response status:', response.status);
         if (!response.ok) {
@@ -231,7 +231,7 @@ useEffect(() => {
       }
 
       // Make API call to update the announcement
-      const response = await fetch(`/api/announcements/${id}`, {
+      const response = await fetch(`http://devintranet.iiit.ac.in/api/announcements/${id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${authToken}`
@@ -292,7 +292,7 @@ useEffect(() => {
   const getAnnouncementBackground = (announcement) => {
     // If there's a valid imageUrl, use it
     if (announcement.imageUrl && !announcement.imageUrl.includes('undefined')) {
-      const baseUrl = import.meta.env.VITE_CLIENT_URL || 'http://localhost:5000'; // Use Vite's environment variable or fallback to localhost
+      const baseUrl = import.meta.env.VITE_CLIENT_URL || 'http://devintranet.iiit.ac.in'; // Use Vite's environment variable or fallback to localhost
       const fullImageUrl = announcement.imageUrl.startsWith('http')
         ? announcement.imageUrl // If it's already a full URL, use it as is
         : `${baseUrl}${announcement.imageUrl}`; // Prepend the base URL for relative paths
@@ -343,7 +343,7 @@ useEffect(() => {
       const quickLink = quickLinks[selectedQuickLinkIndex];
 
       // API call to update the quick link
-      const response = await fetch(`/api/quicklinks/${quickLink._id}`, {
+      const response = await fetch(`http://devintranet.iiit.ac.in/api/quicklinks/${quickLink._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -399,7 +399,7 @@ useEffect(() => {
     }
 
     try {
-      const response = await fetch('/api/quicklinks', {
+      const response = await fetch('http://devintranet.iiit.ac.in/api/quicklinks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -442,7 +442,7 @@ useEffect(() => {
       }, 3000);
 
       // Refetch to get updated data
-      const refreshResponse = await fetch('/api/quicklinks', {
+      const refreshResponse = await fetch('http://devintranet.iiit.ac.in/api/quicklinks', {
         headers: {
           'Authorization': `Bearer ${authToken}`
         }
@@ -474,7 +474,7 @@ useEffect(() => {
     if (window.confirm(`Are you sure you want to delete "${quickLink.title}"?`)) {
       try {
         // API call to delete the quick link
-        const response = await fetch(`/api/quicklinks/${quickLink._id}`, {
+        const response = await fetch(`http://devintranet.iiit.ac.in/api/quicklinks/${quickLink._id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${authToken}`,
@@ -513,7 +513,7 @@ useEffect(() => {
     try {
       // Use the correct endpoint based on the action
       const endpoint = quickLink.pinned ? 'unpin' : 'pin';
-      const response = await fetch(`/api/quicklinks/${quickLink._id}/${endpoint}`, {
+      const response = await fetch(`http://devintranet.iiit.ac.in/api/quicklinks/${quickLink._id}/${endpoint}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${authToken}`,
@@ -568,7 +568,7 @@ useEffect(() => {
       const portal = portals[selectedPortalIndex];
   
       // Make API call to update the portal
-      const response = await fetch(`/api/portals/${portal._id}`, {
+      const response = await fetch(`http://devintranet.iiit.ac.in/api/portals/${portal._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -606,7 +606,7 @@ useEffect(() => {
       setTimeout(() => setSuccessMessage(""), 3000);
   
       // Refetch to get updated data
-      const refreshResponse = await fetch('/api/portals');
+      const refreshResponse = await fetch('http://devintranet.iiit.ac.in/api/portals');
       if (refreshResponse.ok) {
         const data = await refreshResponse.json();
         setPortals(data.data);
@@ -633,7 +633,7 @@ useEffect(() => {
   
     try {
       // Make API call to create a new portal
-      const response = await fetch('/api/portals', {
+      const response = await fetch('http://devintranet.iiit.ac.in/api/portals', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -669,7 +669,7 @@ useEffect(() => {
       }, 3000);
   
       // Refetch to get updated data
-      const refreshResponse = await fetch('/api/portals');
+      const refreshResponse = await fetch('http://devintranet.iiit.ac.in/api/portals');
       if (refreshResponse.ok) {
         const data = await refreshResponse.json();
         setPortals(data.data);
@@ -695,7 +695,7 @@ useEffect(() => {
     if (window.confirm(`Are you sure you want to delete "${portal.title}"?`)) {
       try {
         // Make API call to delete the portal
-        const response = await fetch(`/api/portals/${portal._id}`, {
+        const response = await fetch(`http://devintranet.iiit.ac.in/api/portals/${portal._id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${authToken}` // Add auth token
@@ -734,7 +734,7 @@ useEffect(() => {
     if (!window.confirm(confirmMsg)) return;
   
     try {
-      const response = await fetch(`/api/portals/${portal._id}/pin`, {
+      const response = await fetch(`http://devintranet.iiit.ac.in/api/portals/${portal._id}/pin`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${authToken}`
@@ -846,7 +846,7 @@ useEffect(() => {
 
     if (window.confirm(`Are you sure you want to delete this announcement?`)) {
       try {
-        const response = await fetch(`/api/announcements/${announcement.id}`, {
+        const response = await fetch(`http://devintranet.iiit.ac.in/api/announcements/${announcement.id}`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${authToken}`
@@ -899,7 +899,7 @@ useEffect(() => {
         hasImage: !!newAnnouncementImage
       });
 
-      const response = await fetch('/api/announcements', {
+      const response = await fetch('http://devintranet.iiit.ac.in/api/announcements', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${authToken}`

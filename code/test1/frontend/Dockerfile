@@ -14,7 +14,7 @@ RUN npm ci
 COPY . .
 
 # Set environment variables for build
-ENV VITE_API_URL=http://localhost:5000
+ENV VITE_API_URL=http://devintranet.iiit.ac.in
 
 # Build the application
 RUN npm run build

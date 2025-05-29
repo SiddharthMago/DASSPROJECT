@@ -27,7 +27,7 @@ function NavBar_Admin({ darkMode, setDarkMode }) {
     const handleCASLogin = () => {
         const userRole = "admin";
         const serviceURL = encodeURIComponent(`http://intranet.iiit.ac.in/${userRole}`);
-        const serviceURL_test = encodeURIComponent("http://localhost:5000/api/auth_cas/cas-callback");
+        const serviceURL_test = encodeURIComponent("http://devintranet.iiit.ac.in/api/auth_cas/cas-callback");
         window.location.href = `https://login.iiit.ac.in/cas/login?service=${serviceURL_test}`;
         setMobileMenuOpen(false);
     }

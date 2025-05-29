@@ -20,7 +20,7 @@ function PendingApprovals({ darkMode }) {
 				const token = localStorage.getItem('token');
 				
 				// Fetch pending files
-				const filesResponse = await axios.get('http://localhost:5000/api/files/pending', {
+				const filesResponse = await axios.get('http://devintranet.iiit.ac.in/api/files/pending', {
 					headers: {
 						Authorization: `Bearer ${token}`
 					}
@@ -38,7 +38,7 @@ function PendingApprovals({ darkMode }) {
 				}));
 				
 				// Fetch pending announcements
-				const announcementsResponse = await axios.get('http://localhost:5000/api/announcements/unapproved', {
+				const announcementsResponse = await axios.get('http://devintranet.iiit.ac.in/api/announcements/unapproved', {
 					headers: {
 						Authorization: `Bearer ${token}`
 					}
@@ -56,7 +56,7 @@ function PendingApprovals({ darkMode }) {
 				}));
 				
 				// Fetch pending quick links
-				const quickLinksResponse = await axios.get('http://localhost:5000/api/quicklinks/unapproved', {
+				const quickLinksResponse = await axios.get('http://devintranet.iiit.ac.in/api/quicklinks/unapproved', {
 					headers: {
 						Authorization: `Bearer ${token}`
 					}
@@ -72,7 +72,7 @@ function PendingApprovals({ darkMode }) {
 					category: 'quicklink'
 				}));
 
-				const portalsResponse = await axios.get('http://localhost:5000/api/portals/unapproved',
+				const portalsResponse = await axios.get('http://devintranet.iiit.ac.in/api/portals/unapproved',
 					{ headers: { Authorization:`Bearer ${token}` } }
 				);
 				const mappedPortals = portalsResponse.data.data.map(p=>({
@@ -106,7 +106,7 @@ function PendingApprovals({ darkMode }) {
 		try {
 			const token = localStorage.getItem('token');
 			const endpoint = type === 'file' ? 'files' : type === 'announcement' ? 'announcements' : type === 'quicklink' ? 'quicklinks' : 'portals';
-			await axios.put(`http://localhost:5000/api/${endpoint}/${id}/approve`, {}, {
+			await axios.put(`http://devintranet.iiit.ac.in/api/${endpoint}/${id}/approve`, {}, {
 				headers: {
 					Authorization: `Bearer ${token}`
 				}
@@ -141,7 +141,7 @@ function PendingApprovals({ darkMode }) {
 		try {
 			const token = localStorage.getItem('token');
 			const endpoint = rejectModal.type === 'file' ? 'files' : rejectModal.type === 'announcement' ? 'announcements' : rejectModal.type === 'quicklink' ? 'quicklinks' : 'portals';
-			const response = await axios.put(`http://localhost:5000/api/${endpoint}/${rejectModal.itemId}/reject`, 
+			const response = await axios.put(`http://devintranet.iiit.ac.in/api/${endpoint}/${rejectModal.itemId}/reject`, 
 				{ comment: rejectModal.reason }, 
 				{ headers: { Authorization: `Bearer ${token}` } }
 			);
@@ -209,7 +209,7 @@ function PendingApprovals({ darkMode }) {
 			const endpoint = type === 'file' ? 'files' : type === 'announcement' ? 'announcements' : type === 'quicklink' ? 'quicklinks' : 'portals';
 			
 			for (const item of items) {
-				await axios.put(`http://localhost:5000/api/${endpoint}/${item.id}/approve`, {}, {
+				await axios.put(`http://devintranet.iiit.ac.in/api/${endpoint}/${item.id}/approve`, {}, {
 					headers: {
 						Authorization: `Bearer ${token}`
 					}

@@ -85,7 +85,7 @@ function Archive({ darkMode, userRole }) {
 		const fetchUserOffice = async () => {
 			try {
 				const token = localStorage.getItem('token');
-				const response = await axios.get('http://localhost:5000/api/auth_cas/current', {
+				const response = await axios.get('http://devintranet.iiit.ac.in/api/auth_cas/current', {
 					headers: {
 						'Authorization': `Bearer ${token}`
 					}
@@ -111,7 +111,7 @@ function Archive({ darkMode, userRole }) {
 		try {
 			console.log("[archive] fetching author details for ID:", authorId);
 			const token = localStorage.getItem('token');
-			const response = await axios.get(`http://localhost:5000/api/auth_cas/user?id=${authorId}`, {
+			const response = await axios.get(`http://devintranet.iiit.ac.in/api/auth_cas/user?id=${authorId}`, {
 				headers: {
 					'Authorization': `Bearer ${token}`
 				}
@@ -169,7 +169,7 @@ function Archive({ darkMode, userRole }) {
 			// Only set viewUrl if there's a filePath
 			viewURL: viewURL,
 			// Use URL if available, otherwise use filepath
-			downloadUrl: file.url || (filePath ? `http://localhost:5000${filePath}` : null),
+			downloadUrl: file.url || (filePath ? `http://devintranet.iiit.ac.in${filePath}` : null),
 			// Track if file has multiple versions
 			hasVersions: hasMultipleVersions
 		};
@@ -296,9 +296,9 @@ function Archive({ darkMode, userRole }) {
 
 			if (activeTab === 'All') {
 				const [filesRes, announcementsRes, quickLinksRes] = await Promise.all([
-					axios.get('http://localhost:5000/api/files/approved'),
-					axios.get('http://localhost:5000/api/announcements'),
-					axios.get('http://localhost:5000/api/quicklinks')
+					axios.get('http://devintranet.iiit.ac.in/api/files/approved'),
+					axios.get('http://devintranet.iiit.ac.in/api/announcements'),
+					axios.get('http://devintranet.iiit.ac.in/api/quicklinks')
 				]);
 
 				// Cache the responses
@@ -316,19 +316,19 @@ function Archive({ darkMode, userRole }) {
 				);
 				setArchiveItems(allItems);
 			} else if (activeTab === 'Files') {
-				const res = await axios.get('http://localhost:5000/api/files/approved');
+				const res = await axios.get('http://devintranet.iiit.ac.in/api/files/approved');
 				apiCache.files = res.data.data;
 				apiCache.lastFetch = now;
 				const mapped = res.data.data.map(mapFileData);
 				setArchiveItems(mapped);
 			} else if (activeTab === 'Announcements') {
-				const res = await axios.get('http://localhost:5000/api/announcements');
+				const res = await axios.get('http://devintranet.iiit.ac.in/api/announcements');
 				apiCache.announcements = res.data.data;
 				apiCache.lastFetch = now;
 				const mapped = res.data.data.map(mapAnnouncementData);
 				setArchiveItems(mapped);
 			} else if (activeTab === 'Links') {
-				const res = await axios.get('http://localhost:5000/api/quicklinks');
+				const res = await axios.get('http://devintranet.iiit.ac.in/api/quicklinks');
 				apiCache.quicklinks = res.data.data;
 				apiCache.lastFetch = now;
 				const mapped = res.data.data.map(mapQuickLinkData);
@@ -345,13 +345,13 @@ function Archive({ darkMode, userRole }) {
 				try {
 					// Fetch all content types uploaded by the current user
 					const [filesRes, announcementsRes, quickLinksRes] = await Promise.all([
-						axios.get('http://localhost:5000/api/files/my-files', {
+						axios.get('http://devintranet.iiit.ac.in/api/files/my-files', {
 							headers: { Authorization: `Bearer ${token}` }
 						}),
-						axios.get('http://localhost:5000/api/announcements/my-announcements', {
+						axios.get('http://devintranet.iiit.ac.in/api/announcements/my-announcements', {
 							headers: { Authorization: `Bearer ${token}` }
 						}),
-						axios.get('http://localhost:5000/api/quicklinks/my-links', {
+						axios.get('http://devintranet.iiit.ac.in/api/quicklinks/my-links', {
 							headers: { Authorization: `Bearer ${token}` }
 						})
 					]);
@@ -373,7 +373,7 @@ function Archive({ darkMode, userRole }) {
 							comments: file.comments || [],
 							rejectionComment: file.rejectionComment,
 							viewURL: viewURL,
-							downloadUrl: file.url || (filePath ? `http://localhost:5000${filePath}` : null),
+							downloadUrl: file.url || (filePath ? `http://devintranet.iiit.ac.in${filePath}` : null),
 						};
 					});
 
@@ -455,13 +455,13 @@ function Archive({ darkMode, userRole }) {
 			// Determine the correct endpoint based on the category
 			switch (category) {
 				case 'Files':
-					endpoint = `http://localhost:5000/api/files/${id}`;
+					endpoint = `http://devintranet.iiit.ac.in/api/files/${id}`;
 					break;
 				case 'Announcements':
-					endpoint = `http://localhost:5000/api/announcements/${id}`;
+					endpoint = `http://devintranet.iiit.ac.in/api/announcements/${id}`;
 					break;
 				case 'Links':
-					endpoint = `http://localhost:5000/api/quicklinks/${id}`;
+					endpoint = `http://devintranet.iiit.ac.in/api/quicklinks/${id}`;
 					break;
 				default:
 					throw new Error('Invalid category for deletion');
@@ -477,9 +477,9 @@ function Archive({ darkMode, userRole }) {
 				// Refresh the items list based on the current tab
 				if (activeTab === 'All') {
 					const [filesRes, announcementsRes, quickLinksRes] = await Promise.all([
-						axios.get('http://localhost:5000/api/files/approved'),
-						axios.get('http://localhost:5000/api/announcements'),
-						axios.get('http://localhost:5000/api/quicklinks')
+						axios.get('http://devintranet.iiit.ac.in/api/files/approved'),
+						axios.get('http://devintranet.iiit.ac.in/api/announcements'),
+						axios.get('http://devintranet.iiit.ac.in/api/quicklinks')
 					]);
 
 					// Use mapFileData for files to properly handle author information
@@ -494,15 +494,15 @@ function Archive({ darkMode, userRole }) {
 					);
 					setArchiveItems(allItems);
 				} else if (activeTab === 'Links') {
-					const res = await axios.get('http://localhost:5000/api/quicklinks');
+					const res = await axios.get('http://devintranet.iiit.ac.in/api/quicklinks');
 					const mapped = res.data.data.map(mapQuickLinkData);
 					setArchiveItems(mapped);
 				} else if (activeTab === 'Announcements') {
-					const res = await axios.get('http://localhost:5000/api/announcements');
+					const res = await axios.get('http://devintranet.iiit.ac.in/api/announcements');
 					const mapped = res.data.data.map(mapAnnouncementData);
 					setArchiveItems(mapped);
 				} else if (activeTab === 'Files') {
-					const res = await axios.get('http://localhost:5000/api/files/approved');
+					const res = await axios.get('http://devintranet.iiit.ac.in/api/files/approved');
 					// Use mapFileData for files to properly handle author information
 					const mapped = res.data.data.map(mapFileData);
 					setArchiveItems(mapped);
@@ -546,7 +546,7 @@ function Archive({ darkMode, userRole }) {
 				formData.append('image', announcementModal.image);
 			}
 
-			const response = await axios.post('http://localhost:5000/api/announcements', formData, {
+			const response = await axios.post('http://devintranet.iiit.ac.in/api/announcements', formData, {
 				headers: {
 					'Authorization': `Bearer ${token}`,
 					'Content-Type': 'multipart/form-data'
@@ -555,7 +555,7 @@ function Archive({ darkMode, userRole }) {
 
 			if (response.data.success) {
 				// Refresh the announcements list
-				const announcementsRes = await axios.get('http://localhost:5000/api/announcements');
+				const announcementsRes = await axios.get('http://devintranet.iiit.ac.in/api/announcements');
 				const mapped = announcementsRes.data.data.map(mapAnnouncementData);
 				setArchiveItems(mapped);
 
@@ -591,7 +591,7 @@ function Archive({ darkMode, userRole }) {
 		e.preventDefault();
 		try {
 			const token = localStorage.getItem('token');
-			const response = await axios.post('http://localhost:5000/api/quicklinks', {
+			const response = await axios.post('http://devintranet.iiit.ac.in/api/quicklinks', {
 				title: linkModal.title,
 				office: userRole === 'superadmin' ? linkModal.office : userOffice,
 				url: linkModal.url,
@@ -605,7 +605,7 @@ function Archive({ darkMode, userRole }) {
 
 			if (response.data.success) {
 				// Refresh the links list
-				const linksRes = await axios.get('http://localhost:5000/api/quicklinks');
+				const linksRes = await axios.get('http://devintranet.iiit.ac.in/api/quicklinks');
 				const mapped = linksRes.data.data.map(mapQuickLinkData);
 				setArchiveItems(mapped);
 
@@ -641,7 +641,7 @@ function Archive({ darkMode, userRole }) {
 			}
 
 			const response = await axios.put(
-				`http://localhost:5000/api/announcements/${editAnnouncementModal.id}`,
+				`http://devintranet.iiit.ac.in/api/announcements/${editAnnouncementModal.id}`,
 				formData,
 				{
 					headers: {
@@ -653,7 +653,7 @@ function Archive({ darkMode, userRole }) {
 
 			if (response.data.success) {
 				// Refresh the announcements list
-				const announcementsRes = await axios.get('http://localhost:5000/api/announcements');
+				const announcementsRes = await axios.get('http://devintranet.iiit.ac.in/api/announcements');
 				const mapped = announcementsRes.data.data.map(mapAnnouncementData);
 				setArchiveItems(mapped);
 
@@ -681,7 +681,7 @@ function Archive({ darkMode, userRole }) {
 		try {
 			const token = localStorage.getItem('token');
 			const response = await axios.put(
-				`http://localhost:5000/api/quicklinks/${editLinkModal.id}`,
+				`http://devintranet.iiit.ac.in/api/quicklinks/${editLinkModal.id}`,
 				{
 					title: editLinkModal.title,
 					office: editLinkModal.office,
@@ -697,7 +697,7 @@ function Archive({ darkMode, userRole }) {
 
 			if (response.data.success) {
 				// Refresh the links list
-				const linksRes = await axios.get('http://localhost:5000/api/quicklinks');
+				const linksRes = await axios.get('http://devintranet.iiit.ac.in/api/quicklinks');
 				const mapped = linksRes.data.data.map(mapQuickLinkData);
 				setArchiveItems(mapped);
 
@@ -937,7 +937,7 @@ function Archive({ darkMode, userRole }) {
 															onClick={() => {
 																const endpoint = item.pinned ? 'unpin' : 'pin';
 																axios.put(
-																	`http://localhost:5000/api/quicklinks/${item.id}/${endpoint}`,
+																	`http://devintranet.iiit.ac.in/api/quicklinks/${item.id}/${endpoint}`,
 																	{},
 																	{
 																		headers: {
@@ -946,7 +946,7 @@ function Archive({ darkMode, userRole }) {
 																	}
 																).then(() => {
 																	// Refresh the links list
-																	axios.get('http://localhost:5000/api/quicklinks')
+																	axios.get('http://devintranet.iiit.ac.in/api/quicklinks')
 																		.then(res => {
 																			const mapped = res.data.data.map(mapQuickLinkData);
 																			setArchiveItems(mapped);
@@ -1163,7 +1163,7 @@ function Archive({ darkMode, userRole }) {
 																	onClick={() => {
 																		const endpoint = item.pinned ? 'unpin' : 'pin';
 																		axios.put(
-																			`http://localhost:5000/api/quicklinks/${item.id}/${endpoint}`,
+																			`http://devintranet.iiit.ac.in/api/quicklinks/${item.id}/${endpoint}`,
 																			{},
 																			{
 																				headers: {
@@ -1172,7 +1172,7 @@ function Archive({ darkMode, userRole }) {
 																			}
 																		).then(() => {
 																			// Refresh the links list
-																			axios.get('http://localhost:5000/api/quicklinks')
+																			axios.get('http://devintranet.iiit.ac.in/api/quicklinks')
 																				.then(res => {
 																					const mapped = res.data.data.map(mapQuickLinkData);
 																					setArchiveItems(mapped);

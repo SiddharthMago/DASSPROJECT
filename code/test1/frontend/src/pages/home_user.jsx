@@ -193,7 +193,7 @@ function HomeUser({ darkMode }) {
   const getAnnouncementBackground = (announcement) => {
     // If there's a valid imageUrl, use it
     if (announcement.imageUrl && !announcement.imageUrl.includes('undefined')) {
-      const baseUrl = import.meta.env.VITE_CLIENT_URL || 'http://localhost:5000'; // Use Vite's environment variable or fallback to localhost
+      const baseUrl = import.meta.env.VITE_CLIENT_URL || 'http://devintranet.iiit.ac.in'; // Use Vite's environment variable or fallback to localhost
       const fullImageUrl = announcement.imageUrl.startsWith('http')
         ? announcement.imageUrl // If it's already a full URL, use it as is
         : `${baseUrl}${announcement.imageUrl}`; // Prepend the base URL for relative paths

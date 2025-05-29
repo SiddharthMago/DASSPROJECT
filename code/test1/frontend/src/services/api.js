@@ -1,7 +1,7 @@
 // services/api.js or services/contactService.js
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = 'http://devintranet.iiit.ac.in/api';
 
 export const contactService = {
     // Get all users

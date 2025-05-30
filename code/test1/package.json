@@ -6,7 +6,14 @@
   "scripts": {
     "backend": "nodemon backend/server.js",
     "frontend": "npm run dev --prefix frontend",
-    "dev": "concurrently \"npm run backend\" \"npm run frontend\""
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "setup:local": "./scripts/setup-local.sh",
+    "setup:docker": "./scripts/setup-docker.sh",
+    "migrate:data": "./scripts/migrate-data.sh",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:rebuild": "docker-compose down -v && docker-compose build --no-cache && docker-compose up -d"
   },
   "keywords": [],
   "author": "",

@@ -1,4 +1,4 @@
-// routes/auth_cas.js
+// routes/auth_cas.js 
 const express = require('express');
 const axios = require('axios');
 const { parseStringPromise } = require('xml2js');
@@ -19,7 +19,7 @@ router.delete('/user/:email', protect, authorize("superadmin"), deleteUser);
 
 router.get('/cas-callback', async (req, res) => {
     const { ticket } = req.query;
-    const serviceURL = `http://localhost:5000/api/auth_cas/cas-callback`;
+    const serviceURL = `http://localhost:${process.env.PORT}/api/auth_cas/cas-callback`;
 
     if (!ticket) {
         return res.status(400).send("Missing CAS ticket");

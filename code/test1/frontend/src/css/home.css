@@ -750,6 +750,8 @@
 	display: flex;
 	gap: 1.5rem;
 	margin-bottom: 1rem;
+	justify-content: center;
+	width: 100%;
   }
   
   .social-icon {
@@ -782,6 +784,26 @@
   .copyright {
 	margin-top: 0.5rem;
 	font-size: 0.9rem;
+  }
+
+  .copyright a,
+  .copyright a:link,
+  .copyright a:active,
+  .copyright a:hover,
+  .copyright a:visited {
+	color: black !important;
+	text-decoration-color: black !important;
+	text-decoration: underline;
+  }
+
+  .dark-mode .copyright a,
+  .dark-mode .copyright a:link,
+  .dark-mode .copyright a:active,
+  .dark-mode .copyright a:hover,
+  .dark-mode .copyright a:visited {
+	color: white !important;
+	text-decoration-color: white !important;
+	text-decoration: underline;
   }
   
   /* Responsive adjustments for quick links */
